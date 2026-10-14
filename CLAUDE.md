@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v35) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v36) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -92,7 +92,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
     face avatars.
   - Like → "It's a match!" → **Tinder-style chat** (`renderChat`): he texts hi (typing dots), she answers anything, he asks
     whether she's looking for the ice hockey guy, she answers anything, then "doesn't matter actually, here's what I
-    heard" + his bio text; only then the riddle and the guess appear. Texts are per guy (`SARAH_FLIRT` in `story.js`). Order: **hi → a warm-but-weird question** (`SARAH_QUESTIONS`, e.g. Matze: do you also feel sorry for the last olive in the glass?) → she answers → **"do you want to hear a fun fact?"** (`SARAH_FACTS`, a variation per guy; she answers, then the fact) → **two more weird/red-flag texts** (`SARAH_FLAGS`, look like normal bubbles, not labelled; his texts never show emoji, `noEmoji()` in `renderChat`) and she answers each → the hockey question → she answers → reveal → tip; the chat says "Read the messages out loud to the table".
+    heard" + his bio text; only then the riddle and the guess appear. Texts are per guy (`SARAH_FLIRT` in `story.js`). Order: **hi** (random of 3 variants per guy, some cool, some cringe: `SARAH_HI` → `chat.his`) → she answers → **one red-flag text** (random of 2 from `SARAH_FLAGS`, a normal unlabelled bubble) → she answers → hockey question → she answers → reveal → tip (`bio`); his texts never show emoji (`noEmoji()`); the question (`SARAH_QUESTIONS`) and fun-fact (`SARAH_FACTS`) data are no longer used; the chat says "Read the messages out loud to the table".
   - Pass → penalty sips (1, 2, 3 … per pass) and a **10-second timeout** (`renderTimeout`, `state.timeoutUntil`, survives a
     reload): blurred photo, countdown, no buttons, a different joke per guy and per pass (3 each, e.g. "Beggars can't be
     choosers"); then the profile comes back.
@@ -258,7 +258,7 @@ pending surprise mission first (`renderChallenge(key, "surprise")`, see Mission 
 For Sarah, `renderClue()` → `renderDatingClue()`, which shows in order: intermission (if any, not done) → event
 challenge (if any, not done) → profile swipe (`renderTimeout()` for 10 s after a pass) → once liked, the chat
 (`renderChat()`: his messages appear after typing dots, her turn shows the composer; messages live in `state.chat`; the script is
-hi → question → fun-fact offer (she answers) → fact → 2 more texts (she answers after each) → ask (she answers) → reveal → bio, and when his last message is in, riddle + guess follow) → for non-player stops a plain chat message + riddle + guessing.
+hi (random variant, she answers) → one red flag (she answers) → ask (she answers) → reveal → bio, and when his last message is in, riddle + guess follow) → for non-player stops a plain chat message + riddle + guessing.
 For Sara, `renderClue()` first shows a pending intermission/event via `renderChallenge()`, then `renderShop()` while
 `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the normal encounter + riddle + guessing screen
 follows (with an "Order confirmed" ribbon).
@@ -365,7 +365,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sarah's chat: every guy first asks a variation of "do you want to hear a fun fact?" (she answers, then the fact), and his texts no longer contain any emoji; cache v35.
+- 2026-10-14 · this commit · Dominik (Claude) · Sarah's chat shortened: no question, no fun fact, only one red flag; the opener is a random hi/hello (some cool, some cringe, 3 per guy); cache v36.
+- 2026-10-14 · `f3881ee` · Dominik (Claude) · Sarah's chat: every guy first asks a variation of "do you want to hear a fun fact?" (she answers, then the fact), and his texts no longer contain any emoji; cache v35.
 - 2026-10-14 · `8ee8d35` · Dominik (Claude) · Sarah's chat feels like texting a real person: the red-flag texts are no longer labelled/pink, and she gets to answer after each one (hi → question → answer → text → answer → text → answer → hockey question → answer → tip); cache v34.
 - 2026-10-14 · `f969b8a` · Dominik (Claude) · Fix: Sarah's chat flickered (the whole screen re-faded on every redraw, also in Sara's shop reading and quiz answers). Now only the newest bubble animates, chat scroll is instant, `markRedraw()` in `app.js` adds `.no-anim` when the same screen is redrawn; cache v33.
 - 2026-10-14 · `previous` · Dominik (Claude) · Sarah's chat: after hi every guy first asks her a genuine-but-weird question (10 of them, e.g. "do you also feel sorry for the last olive at the bottom of the glass?") and only after her answer comes the red flags, then the hockey question; cache v31.

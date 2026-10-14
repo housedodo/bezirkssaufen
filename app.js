@@ -751,11 +751,11 @@
     const s = story();
     const stop = s.stops[d];
     const c = p.chat || { hi: "hey", ask: "so… looking for the ice hockey guy?", reveal: "doesn't matter. here's what I heard:" };
-    // hi → a warm-but-weird question (she answers) → two more texts (she answers each) → ask (she answers) → "doesn't matter, here's what I heard" → his tip
+    // hi (random variant, she answers) → one red-flag text (random of two, she answers) → ask (she answers) → "doesn't matter, here's what I heard" → his tip
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
     const script = [
-      ...(c.q ? [{ t: c.hi }, { t: c.q, reply: true }] : [{ t: c.hi, reply: true }]),
-      ...(c.fact ? [{ t: c.fact.offer, reply: true }, { t: c.fact.text }] : []),
-      ...(c.flags || []).map((t) => ({ t, reply: true })),
+      { t: pick(c.his || [c.hi]), reply: true },
+      ...(c.flags && c.flags.length ? [{ t: pick(c.flags), reply: true }] : []),
       { t: c.ask, reply: true },
       { t: c.reveal },
       { t: p.bio },

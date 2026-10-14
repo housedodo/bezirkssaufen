@@ -956,7 +956,7 @@ Object.entries(SARAH_FLIRT).forEach(([d, f]) => {
 const SARAH_FLAGS = {
   "1": [
     "I've never lost an argument. I just leave and order another Spritzer.",
-    "also my ex and I are “just friends”. she has a key to my flat. and to my dog."
+    "my ex and I are “just friends”. she has a key to my flat. and to my dog."
   ],
   "6": [
     "I take fourteen selfies before every first date and pick the one where I look like I didn't try.",
@@ -1028,3 +1028,19 @@ const SARAH_FACTS = {
   "5": ["ok fun fact time. yes or no?", "cows have best friends and get stressed when they're separated. I'd like to be someone's cow."]
 };
 Object.entries(SARAH_FACTS).forEach(([d, f]) => { STORIES.sarah.stops[d].profile.chat.fact = { offer: f[0], text: f[1] }; });
+
+// ─────────────────────── SARAH: more ways to say hi ───────────────────────
+// One of `chat.his` (the guy's own hi + these, some cool, some cringe) is picked at random when the chat starts.
+const SARAH_HI = {
+  "1": ["hi.", "hello there. I'm Matze, I come in peace and with a Spritzer."],
+  "6": ["hey. you look like someone who has opinions about coffee.", "hello my name is Elias and I think we should get married. kidding. dinner first."],
+  "7": ["hey.", "hello. I'm Tomasz. I'm an excellent listener. also an excellent goalie. emotionally, not so much."],
+  "8": ["hello, my dear listeners. today's topic: you.", "hi!! this is Felix and you're live. say something."],
+  "10": ["hello. state your name and your intentions.", "hi. I'd say something clever but the captain doesn't improvise."],
+  "3": ["hi.", "hello. I'd wave but my face hurts. consider this a virtual wave."],
+  "12": ["hey. do you lift?", "hello there. protein or pasta? answer carefully."],
+  "14": ["hi. hold still, I'm getting the lighting. so cringe about the ex-#99 crying on Insta, by the way.", "hello, gorgeous. also did you see the ex-#99 crying on Insta? so cringe."],
+  "17": ["hey. you play pool? asking for a reason.", "hello hello. winner stays on. that's how I flirt."],
+  "5": ["hi. I am Dragan. nice to meet you.", "hello! sorry for my English, my heart is good."]
+};
+Object.entries(SARAH_HI).forEach(([d, h]) => { const c = STORIES.sarah.stops[d].profile.chat; c.his = [c.hi, ...h]; });
