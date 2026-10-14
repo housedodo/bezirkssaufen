@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v43) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v44) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -113,7 +113,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   service worker shows it, and tapping it opens the app with `?mission=<challengeKey>&mid=<id>` (or `postMessage` if
   the app is open). The service worker never hands a mission to the host app's window (`admin.html` is on the same
   origin): it picks the game window (focused, else visible, else first non-admin) or opens the game. **Safety net:**
-  `checkInbox()` (on start and whenever the app becomes visible) asks the worker `/inbox` for the recent missions and
+  `checkInbox()` (on start, whenever the app becomes visible and **every 15 s while it is open**; it sends `who`, so it works even without notifications) asks the worker `/inbox` for the recent missions and
   shows every one sent in the last 45 minutes that wasn't done yet (a mission arriving while another is open is queued in `state.mq`), so it works even if the tap handoff fails. `app.js` `receiveMission()` sets `state.bonus`; `render()` shows it via `renderChallenge(key,
   "surprise")` before the normal screen in **every phase except `pick`** (so also in the lobby and the intro; a mission that
   arrives while choosing the name waits and appears right after; the lobby keeps polling for the game start underneath), progress in its own `state.bch`, reward goes to `hearts`, `state.missions`
@@ -168,14 +168,14 @@ See [Open items](#open-items).
 | Endpoint | Who | What |
 |---|---|---|
 | `POST /subscribe {who, sub}` | phone | registers the push subscription of Sarah or Sara |
-| `POST /inbox {endpoint}` | service worker / app | returns the latest `{title, body, ch, id}` for that phone after an empty push, plus `recent` (last 8 missions) so missions sent close together all arrive |
+| `POST /inbox {endpoint, who?}` | service worker / app | the service worker identifies the phone by its push endpoint, the open app sends `who` (works without notifications); returns the latest `{title, body, ch, id}` for that phone after an empty push, plus `recent` (last 8 missions) so missions sent close together all arrive |
 | `POST /send {to, title, body, ch?}` | admin | notification to sarah / sara / both; `ch` = challenge key → surprise mission |
 | `GET /status` | admin | registered phones per player, game started? |
 | `POST /solved {who, step}` | phone | step sync: marks "solved" and answers `{both, released, other}` |
 | `GET /progress`, `POST /release {step}` | admin | who solved what; let both continue anyway |
 | `GET /game` | phone | `{started}` for the lobby |
 | `POST /start` | admin | starts the game, pushes "Adventure day has started!" to both |
-| `GET /version` | anyone | `{version}` of the deployed worker code (currently 3) |
+| `GET /version` | anyone | `{version}` of the deployed worker code (currently 4; `admin.html` `WORKER_VERSION` must match) |
 | `POST /reset` | admin | clears all progress, the started flag and the stored missions (KV data also expires after 48 h) |
 
 ---
@@ -353,7 +353,7 @@ There is no automated test suite in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **Real-device test** of mission alerts, step sync, lobby and Start game on the two iPhones (everything was only tested with mocks; Web Push can't run headless). Do it the evening before.
-- **Is the deployed Worker current?** Open `https://bezirkssaufen.domi-dominkovic.workers.dev/version`: `{"version":3}` = current (missions sent close together all arrive, Reset clears missions); `{"error":"not found"}` = an old one that still needs the paste-and-deploy from `worker/worker.js`. Bump the number in `worker.js` with every worker change.
+- **Is the deployed Worker current?** Open `https://bezirkssaufen.domi-dominkovic.workers.dev/version`: `{"version":4}` = current (missions sent close together all arrive, Reset clears missions, the open app gets missions without notifications); the admin page shows a yellow "worker is outdated" box while it is older than `WORKER_VERSION` in `admin.html`; `{"error":"not found"}` = an old one that still needs the paste-and-deploy from `worker/worker.js`. Bump the number in `worker.js` with every worker change.
 - **Worker redeploy**: after any change to `worker/worker.js` paste it into the Cloudflare dashboard (Edit code → Deploy). If a Git repo is connected under Worker → Settings → Builds, disconnect it, otherwise a push to `main` could overwrite the pasted code.
 - **Secrets**: `ADMIN_PIN` and the VAPID private key live only in Cloudflare (never commit them). The VAPID private key was pasted once into a Claude chat; rotate it after the party if that matters (new keys: `node worker/gen-vapid.mjs`, update `VAPID_PUBLIC`, `VAPID_PRIVATE_JWK` and `push-config.js`).
 - **Game day order**: (0) install the host app once, (1) both girls install + choose their name, (2) press "Reset all progress + back to the lobby" in admin.html, (3) at the start press "Start the game". Android install only works from a normal Chrome tab (not private, not Edge/Samsung).
@@ -375,7 +375,8 @@ Newest first (the commits that only claim work in the table above are not listed
 
 - 2026-10-14 · this commit · Dominik (Claude) · Handbook: new "Coverage check" section (every district has a person/encounter, and a real book for Sara in all 16 riddle districts).
 - 2026-10-14 · `previous` · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
-- 2026-10-14 · this commit · Dominik (Claude) · Host page redesigned for a better overview: live dashboard on top (game state with a big Start button, one tile per girl: phone connected, which stop, solving / waiting for the other, missions sent, "Let them through" right there), sticky Sarah/Sara/Both switch with sent counts, mission list with not-sent first, ⭐ "fits now" for missions suggested at or before her current stop (`STORIES.<who>.missions.at` = old stop), 📍 suggested stop, done ones folded away; own message, log (kept on the phone) and setup (PIN, sync details, Reset) folded below; redraws only when something changed. No game-file change, no cache bump.
+- 2026-10-14 · this commit · Dominik (Claude) · Fix "mission sent, no notification, nothing happens": a phone whose push subscription was lost never subscribed again (now `pushSync()` re-subscribes when notifications are allowed, also on every app focus); the open app now asks the worker for missions every 15 s by player name (`/inbox {who}`), so missions arrive even with notifications off; admin page warns when a mission reached 0 phones (log + alert with the fix) and shows a yellow box while the deployed worker is older than v4. **Redeploy `worker/worker.js`** (version 4). Playthrough checks a phone without notifications; cache v44.
+- 2026-10-14 · `816ef85` · Dominik (Claude) · Host page redesigned for a better overview: live dashboard on top (game state with a big Start button, one tile per girl: phone connected, which stop, solving / waiting for the other, missions sent, "Let them through" right there), sticky Sarah/Sara/Both switch with sent counts, mission list with not-sent first, ⭐ "fits now" for missions suggested at or before her current stop (`STORIES.<who>.missions.at` = old stop), 📍 suggested stop, done ones folded away; own message, log (kept on the phone) and setup (PIN, sync details, Reset) folded below; redraws only when something changed. No game-file change, no cache bump.
 - 2026-10-14 · `07bd1c4` · Dominik (Claude) · Sarah's 3rd guy (Tomasz #31, Liebenau) is now a dating sim: 3 questions with 3 reply buttons each, his reaction to every answer, 6 outcomes (perfect match, good, funny, bad, very bad, chaotic) with ❤️/sips, result in the finale. Sara's Zamboni physics: sillier Herbert tips, Kafka comments on each. Playthrough covers both; cache v43.
 - 2026-10-14 · `0512af0` · Dominik (Claude) · Full check before the party (new `tools/playthrough.mjs` drives the real admin page and sends every mission). Fixes it found: two missions sent close together → only the newest arrived (worker `/inbox` now also returns the last 8 missions, app picks up all of them; **redeploy `worker/worker.js`**); a mission arriving while another was open or paused replaced it (now queued, `state.mq`); 🎭 delegate was impossible since all challenges became missions (now offered on missions); admin page refreshes "registered phones" every 5 s; Reset also clears stored missions. README updated (3 listings, six games, host-sent challenges, new chat). Cache v42.
 - 2026-10-14 · `51ff1e6` · Dominik (Claude) · Liebenau's torn pages replaced by "Zamboni physics" (3 science questions, Herbert's tip is always wrong); new shared mission "Bike vs Zamboni" (`d_race`, new challenge type `tap`: 40 taps in 10 s, host sends it to both from the admin page, +2); cache v41.

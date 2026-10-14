@@ -196,7 +196,10 @@
   async function pushSync() {
     try {
       if (!pushCfg() || !pushSupported() || !state.char || Notification.permission !== "granted") return;
-      const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+      const reg = await navigator.serviceWorker.ready;
+      // a lost subscription (app reinstalled, iOS clean-up, worker dropped it) is created again: otherwise missions reach 0 phones
+      const sub = (await reg.pushManager.getSubscription()) ||
+        (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(pushCfg().vapidPublicKey) }));
       if (sub) await sendSubscription(sub);
     } catch (_) {}
   }
@@ -1472,11 +1475,12 @@
   // (only missions sent in the last 45 minutes, each id only once).
   async function checkInbox() {
     try {
-      if (!pushCfg() || !pushSupported() || !state.char || Notification.permission !== "granted") return;
-      const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
-      if (!sub) return;
+      // works without notifications too: the app says who it is (worker v4+), the endpoint is only a bonus
+      if (!pushCfg() || !state.char || state.phase === "pick") return;
+      let endpoint = null;
+      try { if (pushSupported() && Notification.permission === "granted") { const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription(); endpoint = sub && sub.endpoint; } } catch (_) {}
       const r = await fetch(`${PUSH.workerUrl}/inbox`, {
-        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ endpoint: sub.endpoint }),
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ who: state.char, endpoint }),
       });
       if (!r.ok) return;
       const m = await r.json();
@@ -1486,7 +1490,9 @@
     } catch (_) {}
   }
   checkInbox();
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkInbox(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { checkInbox(); pushSync(); } });
+  // while the app is open, look for missions every 15 s (in case a notification never arrived)
+  setInterval(() => { if (!document.hidden) checkInbox(); }, 15000);
   try {
     const q = new URLSearchParams(location.search);
     if (q.get("mission")) {

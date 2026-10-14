@@ -388,6 +388,24 @@ for (const w of ['sarah', 'sara']) {
   const missing = expect.filter((k) => !done[w].includes(k));
   if (missing.length) issue(w, `missions never done: ${missing.join(', ')}`); else note(w, `all ${expect.length} missions done ✓`);
 }
+// a phone WITHOUT notifications (never allowed, or the subscription got lost): an open app must still get the mission
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  await routeWorker(ctx);
+  const q = await ctx.newPage();
+  q.on('pageerror', (e) => issue('nopush', 'JS error: ' + e.message));
+  await q.goto('http://localhost:8000');
+  await q.evaluate(() => localStorage.setItem('bezirkssaufen.v1', JSON.stringify({ char: 'sara', phase: 'clue', step: 4 })));
+  await q.reload(); await q.waitForTimeout(1500);
+  await adminCall('/send', 'POST', { to: 'sara', title: 'test', body: 'x', ch: 's_nap' });
+  let got = false;
+  for (let k = 0; k < 40 && !got; k++) { await q.waitForTimeout(500); got = !!await q.$('.ch-banner.sur'); }
+  if (!got) issue('nopush', 'an open app without notifications did not get the mission'); else note('nopush', 'phone without notifications: mission appeared within 20 s while the app was open ✓');
+  await ctx.close();
+}
+const ver = (await workerCall('/version', 'GET')).json.version;
+const adminWants = Number((fs.readFileSync(path.join(ROOT, 'admin.html'), 'utf8').match(/WORKER_VERSION = (\d+)/) || [])[1]);
+if (ver !== adminWants) issue('worker', `worker.js says version ${ver}, admin.html expects ${adminWants}`);
 await hostOpen();
 for (const to of ['sarah', 'sara', 'both']) {
   await H.click(`[data-to=${to}]`); await H.waitForTimeout(200);

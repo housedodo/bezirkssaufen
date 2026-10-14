@@ -110,6 +110,9 @@
     #installbox { margin-top:12px; }
     .pinbox { margin-top:14px; }
     .pinbox.ok { display:none; }
+    .warnbox { margin-top:14px; border-color:rgba(255,209,102,.5); background:rgba(255,209,102,.08); font-size:14.5px; }
+    .warnbox b { color:var(--warn); }
+    .warnbox ol { margin:6px 0 0; padding-left:20px; }
     @media (max-width:370px) { .players { grid-template-columns:1fr; } }
   </style>
 </head>
@@ -121,6 +124,8 @@
 
   <div class="wrap">
     <div class="card" id="installbox" hidden></div>
+
+    <div class="card warnbox" id="workerwarn" hidden></div>
 
     <div class="card pinbox" id="pinbox">
       <b>🔑 Admin PIN</b>
@@ -310,12 +315,18 @@
     }
 
     let refreshing = false, lastSig = "";
+    const WORKER_VERSION = 4;
     async function refresh() {
       if (!pinEl.value || refreshing) { if (!pinEl.value) setConn(false, "PIN needed"); return; }
       refreshing = true;
       try { localStorage.setItem("bezirk.adminpin", pinEl.value); } catch (_) {}
       try {
-        const [st, pr] = await Promise.all([call("/status", "GET"), call("/progress", "GET")]);
+        const [st, pr, ver] = await Promise.all([call("/status", "GET"), call("/progress", "GET"), call("/version", "GET").catch(() => ({ version: 0 }))]);
+        // the worker is pasted into Cloudflare by hand: say so loudly when the deployed code is older than this page expects
+        const w = $("#workerwarn");
+        w.hidden = (ver.version || 0) >= WORKER_VERSION;
+        if (!w.hidden) w.innerHTML = `<b>⚠️ The Cloudflare worker is outdated</b> (deployed: ${ver.version ? "v" + ver.version : "old"}, needed: v${WORKER_VERSION}). Missions can get lost.
+          <ol><li>Open <b>worker/worker.js</b> on GitHub, copy all of it.</li><li>Cloudflare → Workers → bezirkssaufen → <b>Edit code</b> → paste over everything → <b>Deploy</b>.</li><li>Come back here; this box disappears.</li></ol>`;
         live = { devices: st.devices, started: st.started, startedAt: st.startedAt, steps: pr.steps || {}, ok: true };
         $("#pinbox").classList.add("ok");
         setConn(true, "live · " + hhmm());
@@ -376,7 +387,12 @@
       try {
         const { result } = await call("/send", "POST", { to: target, title, body, ch });
         const parts = Object.entries(result).map(([w, r]) => `${name[w]}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`);
-        addLog(`<span class="good">✓ ${hhmm()}</span> ${esc(title)} → ${parts.join(", ")}`);
+        const missed = Object.entries(result).filter(([, r]) => !r.sent).map(([w]) => name[w]);
+        addLog(`<span class="${missed.length ? "err" : "good"}">${missed.length ? "⚠" : "✓"} ${hhmm()}</span> ${esc(title)} → ${parts.join(", ")}`);
+        if (missed.length) {
+          addLog(`<span class="err">⚠ No notification reached ${missed.join(" and ")}.</span> The mission still pops up as soon as the game app is open on her phone (it checks every 15 s). To fix the notifications: open the game on her phone → ☰ menu → “Turn on mission alerts”, then check the phone tile above says “📱 connected”.`);
+          alert(`⚠ No notification reached ${missed.join(" and ")}.\n\nThe mission still appears when the game app is open on her phone. To fix notifications: on her phone open the game → ☰ menu → "Turn on mission alerts".`);
+        }
       } catch (e) { addLog(`<span class="err">✗ ${hhmm()}</span> ${esc(title)} — ${esc(e.message)}`); ok = false; }
       refresh();
       return ok;

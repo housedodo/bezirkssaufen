@@ -100,9 +100,11 @@ export default {
       }
 
       if (path === "/inbox" && req.method === "POST") {
-        const { endpoint } = await req.json();
+        // the service worker identifies the phone by its push endpoint; the open app also says who it is,
+        // so missions reach the app even when notifications are off or the subscription got lost
+        const { endpoint, who: asked } = await req.json();
         for (const who of WHO) {
-          if ((await getSubs(env, who)).some((s) => s.endpoint === endpoint)) {
+          if (asked === who || (endpoint && (await getSubs(env, who)).some((s) => s.endpoint === endpoint))) {
             const msg = JSON.parse((await env.KV.get(`msg:${who}`)) || "null");
             const recent = JSON.parse((await env.KV.get(`recent:${who}`)) || "[]");
             return json({ ...(msg || { title: "New mission 🎯", body: "Open the app." }), recent });
@@ -163,7 +165,7 @@ export default {
 
       // ── lobby: the game only starts when the host says so ──
       // which code is deployed? (bump when worker.js changes; CLAUDE.md → Open items says what to expect)
-      if (path === "/version" && req.method === "GET") return json({ version: 3 });
+      if (path === "/version" && req.method === "GET") return json({ version: 4 });
 
       if (path === "/game" && req.method === "GET") {
         const g = JSON.parse((await env.KV.get("game")) || "null");
