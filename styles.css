@@ -589,3 +589,19 @@ body[data-theme="paper"] .locked { text-align: center; color: var(--muted); font
 .price { font-size: 19px; font-weight: 700; }
 .btn.buy { min-height: 44px; padding: 8px 14px; font-size: 15px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; border: 0; }
 .btn.buy:disabled { background: var(--line); color: var(--muted); }
+
+/* ── Sara: challenges in the paper theme ───────────────────── */
+body[data-theme="paper"] .ch-banner { font-family: var(--body); }
+body[data-theme="paper"] .ch-banner.ev { background: var(--accent); color: var(--accent-ink); }
+body[data-theme="paper"] .ch-card,
+body[data-theme="paper"] .quiz { background: var(--surface); border: 1.5px solid var(--line); box-shadow: 0 10px 24px -20px rgba(60, 40, 10, .5); }
+body[data-theme="paper"] .ch-card p { color: var(--text); }
+body[data-theme="paper"] .ch-title { font-weight: 600; letter-spacing: -.01em; }
+body[data-theme="paper"] .q-text { font-weight: 600; }
+body[data-theme="paper"] .q-opt { background: var(--bg); border-color: var(--line); color: var(--text); font-family: var(--body); font-weight: 400; }
+body[data-theme="paper"] .q-opt:active { border-color: var(--accent); }
+body[data-theme="paper"] .ch-line { background: #2b2118; color: #f3ead8; font-family: var(--display); font-style: italic; font-weight: 400; }
+body[data-theme="paper"] .field { background: var(--surface); }
+body[data-theme="paper"] .clock { font-family: var(--display); font-weight: 600; }
+body[data-theme="paper"] .count-num { font-family: var(--display); }
+body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97); }

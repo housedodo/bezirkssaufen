@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Sara's book-themed challenges (10) | `story.js` (end: `SARA_CHALLENGES`), `app.js` (challenge engine, Sara clue flow), `styles.css`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -71,6 +71,11 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   Ottilie's real page (blurb quotes what the locals just said) and 3 dark-romance decoys. Buying the real one →
   "Order confirmed", parcel = souvenir page + riddle + guessing. Buying a decoy → penalty sips (1, 2, 3 … per stop,
   added to `sips`), the book goes into her haul (🌶️ counter in the top bar, listed in the finale).
+  - **10 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
+    6 "📖 Reading room" events (+3: Herb's pop quiz @VII, dramatic reading @II, back-cover blurb @XI, title this bar @XIII,
+    five-star reviews @XV, chapter toast @V) and 4 "⚡ Sudden plot twist" intermissions (+2: one word each @IX, Herb's nap
+    @III, silence in the library @XIV, book swap @XVI). Order at a stop: intermission → event → shop → riddle → guess.
+    The blurb and reviews appear in the finale next to the haul.
 - **Sarah** (dating theme):
   - 10 teammate profiles with full photos (name/tags/bio *below* the photo, nothing over the face) and round
     face avatars.
@@ -129,16 +134,20 @@ See [Open items](#open-items).
   that has a riddle needs a `real` entry (the last stop, Lend, has no shop).
 - `STORIES.sara.howTo` overrides the intro's "How it works".
 
+- `SARA_CHALLENGES` do not exist as a separate object: Sara's challenges are added to `CHALLENGES` with keys `s_*`
+  (end of `story.js`) and attached to stops via `SARA_EVENTS` / `SARA_INTERMISSIONS` (district id → key). Extra
+  optional challenge fields: `fieldLabel` (write), `noteLabel` (notes), `clockSub`, `doneLabel` (timer).
+
 ### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`)
 `char, phase (pick|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
-hearts, sips, myBio, superLikes[], solvedGaveUp, bought, shopWrong[], haul[]`. Per-step fields (incl. `bought`, `shopWrong`) are reset by `stepReset()` on arrival; `haul` and `sips` are cumulative.
+hearts (❤️ for Sarah, 🔖 for Sara), sips, myBio, superLikes[], solvedGaveUp, bought, shopWrong[], haul[]`. Per-step fields (incl. `bought`, `shopWrong`) are reset by `stepReset()` on arrival; `haul` and `sips` are cumulative.
 Adding a new key: add it to `fresh()` so old saved games still load.
 
 ### Flow
 `render()` → `renderChrome()` + one of `renderPick / renderIntro / renderClue / renderTravel / renderDone`.
 For Sarah, `renderClue()` → `renderDatingClue()`, which shows in order: intermission (if any, not done) → event
 challenge (if any, not done) → profile swipe (if profile, not liked) → chat message + riddle + guessing.
-For Sara, `renderClue()` shows `renderShop()` while `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the
+For Sara, `renderClue()` first shows a pending intermission/event via `renderChallenge()`, then `renderShop()` while `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the
 normal encounter + riddle + guessing screen follows (with an "Order confirmed" ribbon).
 `flash()` shows full-screen overlays (match, countdown, +❤️). `set(patch)` saves and re-renders.
 
@@ -196,7 +205,8 @@ There are no automated tests in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **GitHub Pages** not confirmed enabled yet (Settings → Pages → `main` / root).
-- **Sara**'s shop is her only mechanic so far; could add book-themed event challenges like Sarah's (e.g. library card expired). Decoy listings are PG-13 parodies — tone up/down as wanted.
+- Sara's challenge texts (dramatic-reading lines, decoy titles) are PG-13 parodies — tone up/down as wanted.
+- Sara's timers (45 s / 60 s) and the 90 s blurb are untested on a real phone with real hands; adjust `seconds` if too long/short.
 - **Lend finale** (both stories) is a plain message — could get a special ending.
 - Likes (❤️) are score-only; penalty sips aren't enforced by the app (the group does it).
 - Player photos are from a small source image; higher-res versions would look sharper on phones.
@@ -209,7 +219,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
+- 2026-10-14 · `e86a442` · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
 - 2026-10-14 · `6bb66bd` · Dominik (Claude) · Sarah: 10 challenges (6 events +3 ❤️, 4 sudden intermissions +2 ❤️), pass penalty sips, ❤️ counter, finale with crew bio and super likes; README schedule.
 - 2026-10-14 · `98caddc` · Dominik (Claude) · Sarah: 10 full-photo profiles (Felix, Marcus, Jonas, Nico, Samuel added), info below photo, face avatars, floating like/pass buttons, toasts at top.

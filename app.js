@@ -59,6 +59,7 @@
   const story = () => STORIES[state.char];
   const isDating = () => state.char && story().theme === "dating";
   const here = () => ROUTE[state.step];
+  const unit = () => (isDating() ? "❤️" : "🔖"); // reward icon (stored in state.hearts)
   // Sara's Bookbazaar: the stop has a shop page that must be cleared before the riddle.
   const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id];
   const hasShop = () => shopAt(here());
@@ -128,7 +129,7 @@
       state.phase === "intro" ? "Ready?" : `District ${arrived} of ${TOTAL}`;
     $("#drinks").textContent = !arrived ? ""
       : isDating() ? `🍻 ${arrived} · ❤️ ${state.hearts}`
-      : state.haul.length ? `🍻 ${arrived} · 🌶️ ${state.haul.length}` : `🍻 ${arrived}`;
+      : `🍻 ${arrived} · 🔖 ${state.hearts}${state.haul.length ? ` · 🌶️ ${state.haul.length}` : ""}`;
 
     $("#progress").innerHTML = ROUTE.map((d, i) => {
       const cls = i < state.step || state.phase === "done" ? "done"
@@ -241,6 +242,8 @@
     const s = story();
     const d = here();
     const stop = s.stops[d];
+    if (stop.intermission && !state.imDone) return renderChallenge(stop.intermission, "intermission");
+    if (stop.event && !state.evDone) return renderChallenge(stop.event, "event");
     if (hasShop() && !state.bought) return renderShop();
 
     app.innerHTML = `
@@ -469,9 +472,10 @@
     const c = CHALLENGES[key];
     const d = here();
     const ch = state.ch || {};
+    const dating = isDating();
     const banner = mode === "intermission"
-      ? `<p class="ch-banner im">⚡ Sudden intermission!</p>`
-      : `<p class="ch-banner ev">💔 No matches nearby · ${DISTRICTS[d].name}</p>`;
+      ? `<p class="ch-banner im">${dating ? "⚡ Sudden intermission!" : "⚡ Sudden plot twist!"}</p>`
+      : `<p class="ch-banner ev">${dating ? "💔 No matches nearby" : "📖 Reading room"} · ${DISTRICTS[d].name}</p>`;
     let body = "";
 
     if (c.type === "quiz") {
@@ -502,8 +506,8 @@
       } else {
         const left = ch.endsAt - Date.now();
         body = left > 0
-          ? `<p class="clock" id="clock">${mmss(left)}</p><p class="clock-sub">No talking. No phone. Just vibes.</p>`
-          : `<p class="clock done">0:00</p><button class="btn primary big" id="confirm">Time's up — collect your likes</button>`;
+          ? `<p class="clock" id="clock">${mmss(left)}</p><p class="clock-sub">${c.clockSub || "No talking. No phone. Just vibes."}</p>`
+          : `<p class="clock done">0:00</p><button class="btn primary big" id="confirm">${c.doneLabel || "Time's up — collect your likes"}</button>`;
       }
     } else if (c.type === "write") {
       const started = !!ch.endsAt;
@@ -511,26 +515,26 @@
       body = `
         ${started ? `<p class="clock small" id="clock">${left > 0 ? mmss(left) : "Time! Hit save."}</p>`
                   : `<button class="btn ghost" id="startclock">⏱️ Start ${c.seconds} seconds</button>`}
-        <label class="field-label" for="bio">Sarah's profile</label>
+        <label class="field-label" for="bio">${c.fieldLabel || "Sarah's profile"}</label>
         <textarea id="bio" class="field" rows="5" placeholder="${esc(c.placeholder || "")}">${esc(ch.text ?? state.myBio ?? "")}</textarea>
         <button class="btn primary big" id="confirm" ${(ch.text ?? "").trim() ? "" : "disabled"}>${c.confirmLabel}</button>`;
     } else if (c.type === "notes") {
       const notes = ch.notes || Array(c.count).fill("");
       body = `
         ${notes.map((n, i) => `
-          <label class="field-label" for="note${i}">Super like #${i + 1}</label>
+          <label class="field-label" for="note${i}">${c.noteLabel || "Super like"} #${i + 1}</label>
           <textarea id="note${i}" class="field note" data-note="${i}" rows="2" placeholder="${esc(c.placeholder || "")}">${esc(n)}</textarea>`).join("")}
         <button class="btn primary big" id="confirm" ${notes.every((n) => n.trim()) ? "" : "disabled"}>${c.confirmLabel}</button>`;
     }
 
     app.innerHTML = `
-      <section class="screen clue dating challenge ${mode}">
+      <section class="screen clue ${dating ? "dating " : ""}challenge ${mode}">
         ${banner}
         <article class="ch-card">
           <span class="ch-icon" aria-hidden="true">${c.icon}</span>
           <h2 class="ch-title">${c.title}</h2>
           ${paras(c.story)}
-          <p class="ch-reward">Reward: +${c.reward} ❤️</p>
+          <p class="ch-reward">Reward: +${c.reward} ${unit()}</p>
         </article>
         <div class="ch-body">${body}</div>
       </section>`;
@@ -593,8 +597,10 @@
   async function complete(c, mode) {
     buzz([30, 40, 30, 40, 30]);
     await flash(`
-      <p class="match-title">+${c.reward} ❤️</p>
-      <p class="match-sub">${mode === "intermission" ? "Intermission survived." : "Profile boosted."} Your likes are back.</p>`, 1400, "boost");
+      <p class="match-title">+${c.reward} ${unit()}</p>
+      <p class="match-sub">${isDating()
+        ? `${mode === "intermission" ? "Intermission survived." : "Profile boosted."} Your likes are back.`
+        : `${mode === "intermission" ? "Plot twist survived." : "Chapter complete."} Ottilie's cart is open.`}</p>`, 1400, "boost");
     set({ hearts: state.hearts + c.reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
     window.scrollTo({ top: 0 });
   }
@@ -654,13 +660,16 @@
       ? `<div><b>${matches}</b><span>matches</span></div>
          <div><b>${state.hearts}</b><span>likes earned</span></div>
          <div><b>${state.sips}</b><span>penalty sips</span></div>`
-      : `<div><b>${TOTAL - 1}</b><span>pages bought</span></div>
+      : `<div><b>${state.hearts}</b><span>bookmarks</span></div>
          <div><b>${state.haul.length}</b><span>dark romances</span></div>
          <div><b>${state.sips}</b><span>penalty sips</span></div>`;
     const haulTitles = [...new Set(state.haul)];
-    const extras = !isDating() ? (haulTitles.length ? `
-      <article class="card memento"><p class="card-label">Your accidental dark-romance library 🌶️</p>
-        <ul class="memento-list">${haulTitles.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></article>` : "")
+    const extras = !isDating() ? `
+      ${state.myBio ? `<article class="card memento"><p class="card-label">Back cover of “Sara: A Life”, written by your crew</p><p class="memento-text">${esc(state.myBio)}</p></article>` : ""}
+      ${state.superLikes.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Five-star reviews of Sara ⭐</p>
+        <ul class="memento-list">${state.superLikes.filter(Boolean).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></article>` : ""}
+      ${haulTitles.length ? `<article class="card memento"><p class="card-label">Your accidental dark-romance library 🌶️</p>
+        <ul class="memento-list">${haulTitles.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></article>` : ""}`
       : `
       ${state.myBio ? `<article class="card memento"><p class="card-label">Your profile, written by your crew</p><p class="memento-text">${esc(state.myBio)}</p></article>` : ""}
       ${state.superLikes.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Your super likes ⭐</p>

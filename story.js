@@ -345,6 +345,7 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
     howTo: [
       "In every district, the locals tell you what Ottilie sold them.",
       "Open <b>Bookbazaar</b> and buy the one listing that matches. Wrong order = a dark romance in your haul and penalty sips (1, 2, 3 …).",
+      "Now and then there's a reading-room challenge or a sudden plot twist first: complete it to earn bookmarks 🔖 and open Ottilie's cart.",
       "The parcel contains Ottilie's note — the riddle. Guess the district it points to.",
       "Go there. Have a drink. Tap “we've arrived”.",
     ],
@@ -521,3 +522,94 @@ const SARA_SHOP = {
     5:  { p: "€0.00 + 1 falafel", d: "The last chapter (unfinished). Traded for a falafel at a kebab shop. Herb got the meat.", rv: "“She's always a little late. This time I'll wait.” ★★★★★" },
   },
 };
+
+// ─────────────────────── SARA'S CHALLENGES ───────────────────────
+// Same engine as Sarah's (see CHALLENGES above), but the reward is bookmarks (🔖, stored in `hearts`).
+//   event        – "📖 Reading room", before the shop (+3 🔖)
+//   intermission – "⚡ Sudden plot twist", pops up on arrival, before everything else (+2 🔖)
+// Optional extras on a challenge: fieldLabel (write), noteLabel (notes), clockSub (timer), doneLabel (timer).
+Object.assign(CHALLENGES, {
+  s_catquiz: {
+    type: "quiz", icon: "🐈", reward: 3,
+    title: "Herb's pop quiz",
+    story: "Herb only sits on the laps of well-read people. Three questions — get all three right and Ottilie's cart will open for you.",
+    questions: [
+      { q: "In Kafka's famous story “The Metamorphosis”, Gregor Samsa wakes up as a giant…", options: ["Cat", "Insect", "Teapot", "Librarian"], answer: 1 },
+      { q: "The musical “Cats” is based on poems by…", options: ["Edgar Allan Poe", "Roald Dahl", "T. S. Eliot", "Dr. Seuss"], answer: 2 },
+      { q: "In “Alice in Wonderland”, which cat slowly vanishes until only its grin is left?", options: ["Cheshire Cat", "Siamese Cat", "Persian Cat", "Bengal Cat"], answer: 0 },
+    ],
+  },
+  s_reading: {
+    type: "confirm", icon: "🎭", reward: 3,
+    title: "Dramatic reading",
+    story: "Ottilie needs a voice for her audiobook. Read one of these passages to the person behind the counter — lowest, most smouldering voice you own. Full commitment. Whoever giggles first drinks a sip. Don't like the passage? Get another one.",
+    lines: [
+      "You think you can run from me, Eleanor? The castle has three hundred doors. I own all of them.",
+      "I should hate you. I do hate you. Pass me that wine.",
+      "Your lips said no. Your eyebrows said 'continue'.",
+      "He looked at her the way a lion looks at a very small, very expensive handbag.",
+      "Tonight, the contract is void. Tonight, I am merely a man… with a very large library.",
+      "Do not speak of my brooding. I brood in private, like a gentleman.",
+    ],
+    confirmLabel: "✅ Read with feeling — the group says it counts",
+  },
+  s_blurb: {
+    type: "write", icon: "✍️", reward: 3, seconds: 90,
+    title: "Back cover blurb",
+    story: "Every great book needs a blurb. Hand the phone to your crew: 90 seconds to write the back cover of “Sara: A Life”. It gets printed in your finale.",
+    fieldLabel: "Back cover of “Sara: A Life”",
+    placeholder: "Sara — a woman who … Critics say …",
+    confirmLabel: "💾 Print the blurb",
+  },
+  s_titles: {
+    type: "confirm", icon: "📚", reward: 3,
+    title: "Title this bar",
+    story: "Everybody at the table invents a dark-romance title for tonight's bar — “The Duke of ___”, “Claimed in the ___”. The group votes for the best one. The author of the worst drinks a sip.",
+    confirmLabel: "✅ We have a winner",
+  },
+  s_reviews: {
+    type: "notes", icon: "⭐", reward: 3, count: 3,
+    title: "Five-star reviews",
+    story: "A book without reviews doesn't sell. Three people from your crew each write a five-star Bookbazaar review of Sara. Pass the phone around.",
+    noteLabel: "Review",
+    placeholder: "★★★★★ “Sara is …”",
+    confirmLabel: "⭐ Publish the reviews",
+  },
+  s_toast: {
+    type: "confirm", icon: "🥂", reward: 3, countdown: true,
+    title: "Chapter toast",
+    story: "Everyone names the last book that made them cry, laugh or fall asleep. Then a toast to Sara — the whole bar can count down with you.",
+    confirmLabel: "✅ Prost! The group saw it",
+  },
+  s_story: {
+    type: "confirm", icon: "🧵", reward: 2,
+    title: "Plot twist: one word each",
+    story: "Build a story around the table, one word at a time, starting with “Once upon a…”. It ends when somebody says “THE END” — or when it turns into a dark romance. Whoever breaks the chain takes a sip.",
+    confirmLabel: "✅ The story has an ending",
+  },
+  s_nap: {
+    type: "timer", icon: "😴", reward: 2, seconds: 45,
+    title: "Herb's nap",
+    story: "Herb sleeps 19 hours a day. For 45 seconds the whole table freezes like a sleeping cat. Anyone who moves, laughs or speaks drinks one sip.",
+    clockSub: "Shhh. Herb is dreaming about tuna.",
+    doneLabel: "Herb woke up — collect your bookmarks",
+  },
+  s_silence: {
+    type: "timer", icon: "🤫", reward: 2, seconds: 60,
+    title: "Silence in the library",
+    story: "The librarian has spoken. One minute: no talking, no phone. Order your next drink by miming it. Whoever speaks drinks a sip.",
+    clockSub: "Shhh. This is a library.",
+    doneLabel: "Library's open — collect your bookmarks",
+  },
+  s_swap: {
+    type: "confirm", icon: "🔖", reward: 2,
+    title: "Book swap",
+    story: "Everybody recommends one book to the person on their left and has to sell it in a single sentence. Sara's pick must be something she will actually read this year.",
+    confirmLabel: "✅ Everyone recommended something",
+  },
+});
+// Where they appear on Sara's route (district id → challenge key).
+const SARA_EVENTS = { 7: "s_catquiz", 2: "s_reading", 11: "s_blurb", 13: "s_titles", 15: "s_reviews", 5: "s_toast" };
+const SARA_INTERMISSIONS = { 9: "s_story", 3: "s_nap", 14: "s_silence", 16: "s_swap" };
+Object.entries(SARA_EVENTS).forEach(([d, k]) => { STORIES.sara.stops[d].event = k; });
+Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].intermission = k; });
