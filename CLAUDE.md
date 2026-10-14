@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Shared "both do it" missions + safer admin page (pick recipient first, list filtered) | `story.js` (end: `d_*` challenges), `admin.html` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
