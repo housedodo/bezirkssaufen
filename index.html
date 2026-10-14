@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bezirkssaufen</title>
+  <meta name="description" content="17 districts of Graz, 17 drinks, two birthday adventures.">
+  <meta name="theme-color" content="#16121f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bezirk">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=Barlow:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="night">
+  <header class="topbar" id="topbar" hidden>
+    <button class="icon-btn" id="journal-btn" aria-label="Open journal">
+      <span aria-hidden="true">☰</span>
+    </button>
+    <div class="topbar-title">
+      <span class="topbar-story" id="topbar-story"></span>
+      <span class="topbar-count" id="topbar-count"></span>
+    </div>
+    <span class="drinks" id="drinks" aria-label="Drinks so far"></span>
+  </header>
+
+  <div class="progress" id="progress" hidden aria-hidden="true"></div>
+
+  <main id="app" aria-live="polite"></main>
+
+  <!-- Journal drawer -->
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="drawer" id="drawer" aria-label="Journal" hidden>
+    <div class="drawer-head">
+      <h2 id="drawer-title">Journal</h2>
+      <button class="icon-btn" id="drawer-close" aria-label="Close journal">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-foot">
+      <button class="text-btn" id="reset-btn">Start over / switch story</button>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="story.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

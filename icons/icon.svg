@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#16121f"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#f2b33d" stroke-width="14" stroke-dasharray="4 26" stroke-linecap="round"/>
+  <path d="M196 170h120v26c0 0 4 46-14 80c-12 22-14 40-14 60v26h-64v-26c0-20-2-38-14-60c-18-34-14-80-14-80z" fill="#f2b33d"/>
+  <path d="M184 150c10-22 34-26 46-16c10-16 40-18 52-2c16-10 40-2 44 18c4 18-14 26-20 26h-110c-14 0-22-12-12-26z" fill="#f4eee4"/>
+  <text x="256" y="420" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="58" fill="#f4eee4" letter-spacing="6">XVII</text>
+</svg>
