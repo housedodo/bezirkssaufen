@@ -1056,3 +1056,52 @@ const SARAH_HI = {
   "5": ["hi. I am Dragan. nice to meet you.", "hello! sorry for my English, my heart is good."]
 };
 Object.entries(SARAH_HI).forEach(([d, h]) => { const c = STORIES.sarah.stops[d].profile.chat; c.his = [c.hi, ...h]; });
+
+// ─────────────────────── SARA: six stops without the Bookbazaar ───────────────────────
+// At these districts the shop is replaced by a different small game (district id → game). Solving it unlocks the riddle exactly
+// like buying the right book does. `kind`: pages (put torn pages in order), judge (Herbert or Kafka), postcards, cover
+// (design a cover), stranger (collect words), hunt (find a bookmark in the bar). The encounter is shown above the game.
+const SARA_ALT = {
+  7: { kind: "pages", icon: "📜", title: "Torn pages",
+    intro: "Kafka tore the page into four strips. Put them back in the order the Zamboni driver told it. Tap the strips one by one.",
+    done: "The page is whole again.",
+    pieces: [
+      { pos: 2, t: "He bought two." },
+      { pos: 3, t: "Then she said even the gatekeeper of heaven needs something to read." },
+      { pos: 0, t: "A Zamboni driver chuckled and told Sara a story." },
+      { pos: 1, t: "The book lady sold a hockey player a book called How to Talk to Women." }
+    ] },
+  10: { kind: "judge", icon: "⚖️", title: "Herbert and Kafka judge",
+    intro: "Both cats listened to the cyclist. Now they argue about it, and exactly one of them tells the truth.",
+    done: "Kafka was right, and he will never let you forget it.",
+    q: "Who got uphill faster, the cyclist or the old lady with the book cart?",
+    opts: [
+      { who: "Herbert the Gracious", t: "The cyclist, of course. He had gears, a helmet and dignity.", ok: false, why: "Herbert is gracious, not correct. The cyclist said she was faster." },
+      { who: "Kafka the Schlimm", t: "The old lady. He said so himself. Pathetic.", ok: true },
+      { who: "Kafka the Schlimm", t: "Nobody. Gravity won, as always.", ok: false, why: "Kafka is schlimm, but not that schlimm. Listen to the cyclist again." }
+    ] },
+  12: { kind: "postcards", icon: "💌", title: "Ottilie's postcards",
+    intro: "Ottilie sends a postcard from every stop. Three arrived. Only one was written here. Which one?",
+    done: "Postmark confirmed. That one was written here.",
+    opts: [
+      { from: "Postmark: the Zamboni stop", t: "Dear Sara, I sold a hockey player two copies of the same book. He asked if heaven has a reading list. I said yes.", ok: false, why: "That card is from the Zamboni stop. What did the dog walker say?" },
+      { from: "Postmark: the spring", t: "Dear Sara, a very small dog cried today because of Herbert. I gave her a picture book. I need darker stock. Don't tell Kafka.", ok: true },
+      { from: "Postmark: the top of the road", t: "Dear Sara, I pushed the cart uphill and one cat rode on top like a figurehead. Then I rolled all the way back down.", ok: false, why: "That card is from the uphill road. What did the dog walker say?" }
+    ] },
+  14: { kind: "cover", icon: "🎨", title: "Cover designer",
+    intro: "The peacock demands a book about itself. Design the cover: choose a title, an author and a tagline, then read your cover out loud.",
+    done: "The peacock approves. Barely.",
+    groups: [
+      { key: "t", label: "Title", opts: ["The Peacock Always Wins", "Parking Ticket of the Heart", "Feathers of Fury"] },
+      { key: "a", label: "Author", opts: ["Pavo Plumage", "Wardena Strafzettel", "Gard N. Lawn"] },
+      { key: "g", label: "Tagline", opts: ["He dared the peacock. The peacock dared him back.", "She parked on the lawn. Her heart parked in his.", "Some fines can only be paid in kisses."] }
+    ] },
+  17: { kind: "stranger", icon: "🗣️", title: "Ask a stranger",
+    intro: "Ask three different people in this bar for one word each: the first word that comes to mind when they hear “last chapter”. Type the words in.",
+    done: "Three words. The last chapter is taking shape.",
+    count: 3 },
+  5: { kind: "hunt", icon: "🔖", title: "Bookmark hunt",
+    intro: "Find something in this bar that could be a bookmark: a beer mat, a cocktail stick, a receipt, a straw. Show it to the table, say where you found it and why it is the best bookmark in Gries. The table decides.",
+    done: "Bookmark approved.",
+    confirmLabel: "✅ The table approved the bookmark" }
+};

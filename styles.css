@@ -742,3 +742,20 @@ body[data-theme="paper"] .intro .first-clue p { font-size: 15.5px; }
 .version { margin: 18px 0 0; text-align: center; font-size: 12.5px; color: var(--muted); }
 
 .screen.no-anim { animation: none; }
+
+/* Sara: replacement games (SARA_ALT) */
+.alt-card { display: grid; gap: 10px; }
+.alt-intro, .alt-q { margin: 0; line-height: 1.45; }
+.alt-q { font-weight: 700; }
+.alt-label { margin: 6px 0 -2px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.alt-pieces { display: grid; gap: 8px; }
+.alt-seq { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-style: italic; }
+.alt-empty { list-style: none; margin-left: -22px; opacity: .6; }
+.q-opt.picked { border-color: var(--accent); }
+.postcard { text-align: left; display: grid; gap: 4px; padding: 12px 14px; border: 2px dashed var(--line); border-radius: 6px; background: #fffdf5; font: inherit; cursor: pointer; }
+.pc-stamp { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; opacity: .65; }
+.pc-text { font-style: italic; line-height: 1.4; }
+.cover-mock { display: grid; gap: 6px; padding: 18px 14px; text-align: center; border-radius: 10px; color: #fff; background: linear-gradient(160deg, #6a1235, #12060f); }
+.cover-mock b { font-size: 20px; }
+.cover-mock i { opacity: .85; }
+.cover-mock span { font-size: 13px; opacity: .9; }

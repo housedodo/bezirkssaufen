@@ -120,6 +120,22 @@ async function play(who, p) {
           await p.click('#like'); await p.waitForTimeout(2300); continue; }
         if (await p.$('#msg')) { await p.fill('#msg', 'hello, it is me ' + i); await p.press('#msg', 'Enter'); await p.waitForTimeout(800); continue; }
         if (await p.$('.chatpage') && !await p.$('[data-guess]')) continue; // his typing
+      } else if (await p.$('.alt-card') && !await p.$('[data-guess]')) { // Sara's replacement game instead of the shop
+        if (await p.$('.match-overlay')) { await p.waitForTimeout(700); continue; }
+        if (await p.$('[data-piece]:not([disabled])')) { // torn pages: tap in the right order (one wrong attempt at the first one)
+          if (!used.altWrong) { used.altWrong = true; const ps = await p.evaluate(() => [...document.querySelectorAll('[data-piece]')].map((b) => Number(b.dataset.piece))); const bad = [...ps].sort((a, b) => b - a); for (const v of bad) await p.click(`[data-piece="${v}"]`); await p.waitForTimeout(500); note(who, 'torn pages: wrong order, penalty'); continue; }
+          const next = await p.evaluate(() => Math.min(...[...document.querySelectorAll('[data-piece]:not([disabled])')].map((b) => Number(b.dataset.piece))));
+          await p.click(`[data-piece="${next}"]`); await p.waitForTimeout(450);
+          continue; }
+        if (await p.$('[data-alt-opt]')) {
+          if (!used.altOpt) { used.altOpt = true; const bad = await p.$('[data-alt-opt][data-ok="0"]'); await bad.click(); await p.waitForTimeout(500); note(who, 'alt game: wrong answer, penalty'); continue; }
+          await p.click('[data-alt-opt][data-ok="1"]'); await p.waitForTimeout(2000); continue; }
+        if (await p.$('[data-pick]')) {
+          if (await p.$('.cover-mock')) { await p.waitForTimeout(600); await p.click('#alt-done'); await p.waitForTimeout(2500); continue; }
+          for (const g of ['t', 'a', 'g']) { if (!(await p.$(`[data-pick^="${g}:"].picked`))) { await p.click(`[data-pick="${g}:1"]`); await p.waitForTimeout(500); break; } }
+          continue; }
+        if (await p.$('[data-word]')) { const ws = await p.$$('[data-word]'); for (const [k, w] of ws.entries()) await w.fill('word' + k); await p.click('#alt-done'); await p.waitForTimeout(2000); continue; }
+        if (await p.$('#alt-done')) { await p.click('#alt-done'); await p.waitForTimeout(2000); continue; }
       } else if (await p.$('[data-buy]') && !await p.$('[data-guess]')) {
         if (await p.$('[data-read]')) { await p.locator('[data-read]').first().click(); await p.waitForTimeout(450); continue; } // blurbs must be read out loud first
         const st = await stateOf(p);

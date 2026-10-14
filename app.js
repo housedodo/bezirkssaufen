@@ -42,7 +42,9 @@
     bch: {},         // progress inside the surprise mission (separate from `ch`)
     missions: [],    // ids of surprise missions already done
     // book story (Sara)
-    bought: false,   // the right listing was bought at the current step
+    bought: false,   // the right listing was bought (or the replacement game solved) at the current step
+    alt: {},         // Sara: progress in the replacement game of this stop (SARA_ALT)
+    words: [],       // Sara: words collected from strangers (finale)
     shopWrong: [],   // titles of dark romances bought by mistake at the current step
     haul: [],        // all dark romances bought by mistake (whole game)
   });
@@ -83,7 +85,9 @@
   let lobbyT = null, lobbyL = null, lobbyCheckNow = null, introHint = false;
   let chatT = null; // timer for the typing indicator in Sarah's chat
   // Sara's Bookbazaar: the stop has a shop page that must be cleared before the riddle.
-  const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id];
+  const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id] && !(typeof SARA_ALT !== "undefined" && SARA_ALT[id]);
+  const altAt = (id) => !isDating() && typeof SARA_ALT !== "undefined" && !!SARA_ALT[id];
+  const hasAlt = () => altAt(here());
   const hasShop = () => shopAt(here());
   const next = () => ROUTE[state.step + 1];
   const label = (id) => `${DISTRICTS[id].roman} · ${DISTRICTS[id].name}`;
@@ -379,7 +383,7 @@
     });
   }
 
-  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [], sipsStep: 0, revealed: false, waiting: false, timeoutUntil: 0, chat: [], read: [] });
+  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, alt: {}, shopWrong: [], sipsStep: 0, revealed: false, waiting: false, timeoutUntil: 0, chat: [], read: [] });
 
   // Shared "Where to next?" block (district guessing).
   function guessBlock() {
@@ -430,6 +434,7 @@
     if (stop.intermission && !state.imDone) return renderChallenge(stop.intermission, "intermission");
     if (stop.event && !state.evDone) return renderChallenge(stop.event, "event");
     if (hasShop() && !state.bought) return renderShop();
+    if (hasAlt() && !state.bought) return renderAlt();
 
     app.innerHTML = `
       <section class="screen clue">
@@ -438,7 +443,7 @@
           <span class="here-roman">${DISTRICTS[d].roman}</span>
           <span class="here-name">${DISTRICTS[d].name}</span>
         </div>
-        ${hasShop() ? `<p class="order-ok">📦 Order confirmed — the parcel with Ottilie's note has arrived.</p>` : ""}
+        ${hasShop() ? `<p class="order-ok">📦 Order confirmed — the parcel with Ottilie's note has arrived.</p>` : hasAlt() ? `<p class="order-ok">📜 Page unlocked — Ottilie's note has arrived.</p>` : ""}
 
         <article class="card encounter">
           <p class="card-label">${s.narrator}</p>
@@ -456,14 +461,14 @@
   const starsOf = (n) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
   const COVER_ICONS = ["🖤", "🌹", "🗡️", "🦇", "🔥", "🐺", "👑", "🕯️", "⛓️", "🌙"];
 
-  // Four listings that all look alike: the real one, two generic decoys and one real listing of ANOTHER stop
+  // Three listings that all look alike: the real one, one generic decoy and one real listing of ANOTHER stop
   // (always sold out). Which is right can only be told by matching the blurb to what the local just said.
   const PUBLISHERS = ["Dark Desires Verlag", "Nachtschatten Press", "Midnight Quill Books", "Crimson Spine Verlag"];
-  const REAL_SLOT = [2, 0, 3, 1, 1, 3, 0, 2, 3, 1, 2, 0, 1, 2, 0, 3];
+  const REAL_SLOT = [2, 0, 1, 1, 2, 0, 2, 1, 0, 1, 2, 0, 1, 2, 0, 2];
   function shopOffers() {
     const N = SARA_SHOP.decoys.length;
-    const generic = [0, 1].map((k) => {
-      const i = (state.step * 2 + k) % N;
+    const generic = [0].map((k) => {
+      const i = (state.step * 7 + 3) % N; // gcd(7, 30) = 1: a different decoy at every stop
       return { id: `d${i}`, key: i, kind: "decoy", delivers: !SARA_SHOP.soldDecoys.includes(i), ...SARA_SHOP.decoys[i] };
     });
     const others = ROUTE.slice(0, -1).filter((dd) => dd !== here() && SARA_SHOP.real[dd]);
@@ -525,7 +530,7 @@
         <div class="shop-head">
           <p class="shop-logo">📚 ${SARA_SHOP.name}</p>
           <div class="shop-search"><span>🔍</span> “The Library of Herbert and Kafka”</div>
-          <p class="shop-count">1 match · 3 “recommended for you”</p>
+          <p class="shop-count">1 match · 2 “recommended for you”</p>
         </div>
         <p class="shop-tip">💡 ${SARA_SHOP.tip}</p>
         <p class="read-progress ${allRead ? "done" : ""}">${allRead ? "✅ All pages read. You may order." : `📖 Pages read: <b>${readCount}/${offers.length}</b> — read each page out loud to the table to unlock ordering`}</p>
@@ -539,6 +544,103 @@
     app.querySelectorAll("[data-buy]").forEach((b) => b.addEventListener("click", () => buy(b.dataset.buy)));
     bindCancel();
     $("#reveal")?.addEventListener("click", () => { set({ revealed: true, hearts: state.hearts - COSTS.reveal }); toast(`🔍 Listing revealed · −${COSTS.reveal} ${unit()}`); });
+  }
+
+
+  // ── Sara: replacement games instead of the shop (SARA_ALT) ──
+  async function altWrong(html) {
+    const n = state.shopWrong.length + 1;
+    buzz(150);
+    await modal(`<p class="modal-kicker">🍺 Not quite</p>${html}<p class="modal-sips">Wrong: ${n} ${n === 1 ? "sip" : "sips"}</p>`, "Try again");
+    set({ shopWrong: [...state.shopWrong, "w" + n], sips: state.sips + n, sipsStep: state.sipsStep + n, alt: {} });
+  }
+  async function altDone(readHtml) {
+    const a = SARA_ALT[here()];
+    const item = story().stops[here()].item;
+    buzz([30, 40, 30]);
+    if (readHtml) await modal(readHtml, "Done reading 🔥");
+    await flash(`<p class="match-title">Page unlocked 📜</p><p class="match-sub">${esc(a.done)}</p>`, 1500, "boost");
+    set({ bought: true, alt: {} });
+    window.scrollTo({ top: 0 });
+    toast(`<span class="toast-icon">${item.icon}</span> Added to journal: ${item.name}`);
+  }
+  function renderAlt() {
+    const s = story();
+    const d = here();
+    const stop = s.stops[d];
+    const a = SARA_ALT[d];
+    const n = state.shopWrong.length;
+    const alt = state.alt || {};
+    let body = "";
+    if (a.kind === "pages") {
+      const seq = alt.seq || [];
+      body = `
+        <ol class="alt-seq">${seq.map((p) => `<li>${esc(a.pieces.find((x) => x.pos === p).t)}</li>`).join("") || `<li class="alt-empty">Tap the strips in the right order…</li>`}</ol>
+        <div class="alt-pieces">${a.pieces.map((p) => `<button class="q-opt" data-piece="${p.pos}" ${seq.includes(p.pos) ? "disabled" : ""}>${esc(p.t)}</button>`).join("")}</div>`;
+    } else if (a.kind === "judge") {
+      body = `<p class="alt-q">${esc(a.q)}</p><div class="alt-pieces">${a.opts.map((o, i) => `<button class="q-opt" data-alt-opt="${i}" data-ok="${o.ok ? 1 : 0}"><b>${esc(o.who)}:</b> ${esc(o.t)}</button>`).join("")}</div>`;
+    } else if (a.kind === "postcards") {
+      body = `<div class="alt-pieces">${a.opts.map((o, i) => `<button class="postcard" data-alt-opt="${i}" data-ok="${o.ok ? 1 : 0}"><span class="pc-stamp">${esc(o.from)}</span><span class="pc-text">${esc(o.t)}</span></button>`).join("")}</div>`;
+    } else if (a.kind === "cover") {
+      const pick = alt.pick || {};
+      const done = a.groups.every((g) => pick[g.key] != null);
+      body = `${a.groups.map((g) => `<p class="alt-label">${g.label}</p><div class="alt-pieces">${g.opts.map((o, i) => `<button class="q-opt ${pick[g.key] === i ? "picked" : ""}" data-pick="${g.key}:${i}">${esc(o)}</button>`).join("")}</div>`).join("")}
+        ${done ? `<div class="cover-mock"><b>${esc(a.groups[0].opts[pick.t])}</b><i>${esc(a.groups[1].opts[pick.a])}</i><span>${esc(a.groups[2].opts[pick.g])}</span></div><button class="btn primary" id="alt-done">📣 Read the cover out loud</button>` : ""}`;
+    } else if (a.kind === "stranger") {
+      body = `${Array.from({ length: a.count }, (_, i) => `<input class="field" data-word type="text" maxlength="30" placeholder="Word from person ${i + 1}" aria-label="Word ${i + 1}">`).join("")}
+        <button class="btn primary" id="alt-done">✅ Got three words</button>`;
+    } else {
+      body = `<button class="btn primary" id="alt-done">${esc(a.confirmLabel)}</button>`;
+    }
+    app.innerHTML = `
+      <section class="screen clue shop alt">
+        <div class="here">
+          <span class="here-label">You're in</span>
+          <span class="here-roman">${DISTRICTS[d].roman}</span>
+          <span class="here-name">${DISTRICTS[d].name}</span>
+        </div>
+        <article class="card encounter">
+          <p class="card-label">${s.narrator}</p>
+          ${paras(stop.encounter)}
+        </article>
+        <article class="card alt-card">
+          <p class="card-label">${a.icon} ${esc(a.title)}</p>
+          <p class="alt-intro">${esc(a.intro)}</p>
+          ${n ? `<p class="pass-line">🍺 Penalty: <b>${n} ${n === 1 ? "sip" : "sips"}</b> so far at this stop.</p>` : ""}
+          ${cancelBtn()}
+          ${body}
+        </article>
+        <p class="locked">Solve it and Ottilie's note arrives.</p>
+      </section>`;
+    bindCancel();
+    app.querySelectorAll("[data-piece]").forEach((b) => b.addEventListener("click", async () => {
+      const seq = [...(state.alt.seq || []), Number(b.dataset.piece)];
+      if (seq.length < a.pieces.length) return set({ alt: { seq } });
+      if (seq.every((p, i) => p === i)) {
+        set({ alt: { seq } });
+        await altDone(`<p class="modal-kicker">📣 Read the page out loud to the table</p><h2 class="modal-title">${esc(a.title)}</h2><blockquote class="passage">${a.pieces.slice().sort((x, y) => x.pos - y.pos).map((p) => esc(p.t)).join(" ")}</blockquote>`);
+      } else await altWrong(`<h2 class="modal-title">${esc(a.title)}</h2><p class="soldout-msg">That is not the order the driver told it. The strips fly back into a pile.</p>`);
+    }));
+    app.querySelectorAll("[data-alt-opt]").forEach((b) => b.addEventListener("click", async () => {
+      const o = a.opts[Number(b.dataset.altOpt)];
+      if (o.ok) await altDone(); else await altWrong(`<h2 class="modal-title">${esc(a.title)}</h2><p class="soldout-msg">${esc(o.why)}</p>`);
+    }));
+    app.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("click", () => {
+      const [k, i] = b.dataset.pick.split(":");
+      set({ alt: { pick: { ...(state.alt.pick || {}), [k]: Number(i) } } });
+    }));
+    $("#alt-done")?.addEventListener("click", async () => {
+      if (a.kind === "cover") {
+        const pk = state.alt.pick;
+        await altDone(`<p class="modal-kicker">📣 Read the cover out loud</p><h2 class="modal-title">${esc(a.groups[0].opts[pk.t])}</h2><p class="modal-by">by ${esc(a.groups[1].opts[pk.a])}</p><blockquote class="passage">${esc(a.groups[2].opts[pk.g])}</blockquote>`);
+      } else if (a.kind === "stranger") {
+        const inputs = [...app.querySelectorAll("[data-word]")];
+        const words = inputs.map((i) => i.value.trim());
+        if (words.some((w) => !w)) { inputs.forEach((i) => { if (!i.value.trim()) { i.classList.remove("shake"); void i.offsetWidth; i.classList.add("shake"); } }); return; }
+        state.words = [...state.words, ...words];
+        await altDone();
+      } else await altDone();
+    });
   }
 
   // Centered card the player has to close (used for passages and "sold out").
@@ -1098,6 +1200,8 @@
       ${state.myBio ? `<article class="card memento"><p class="card-label">Back cover of “Sara: A Life”, written by your crew</p><p class="memento-text">${esc(state.myBio)}</p></article>` : ""}
       ${state.superLikes.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Five-star reviews of Sara ⭐</p>
         <ul class="memento-list">${state.superLikes.filter(Boolean).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></article>` : ""}
+      ${state.words.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Words strangers gave you for the last chapter 🗣️</p>
+        <p class="memento-text">${state.words.filter(Boolean).map((w) => esc(w)).join(" · ")}</p></article>` : ""}
       ${haulTitles.length ? `<article class="card memento"><p class="card-label">Your accidental dark-romance library 🌶️</p>
         <ul class="memento-list">${haulTitles.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></article>` : ""}`
       : `
@@ -1122,7 +1226,7 @@
 
   function announceItem() {
     if (isDating()) return; // dating app: souvenirs show in the chat card and the journal instead
-    if (hasShop()) return;  // bookshop: the page is announced when it is bought
+    if (hasShop() || hasAlt()) return;  // bookshop / replacement game: the page is announced when it is unlocked
     const stop = story().stops[here()];
     if (stop) toast(`<span class="toast-icon">${stop.item.icon}</span> Added to journal: ${stop.item.name}`);
   }
@@ -1156,7 +1260,7 @@
           const st = s.stops[d];
           const log = state.log[i];
           const note = log ? (log.gaveUp ? "gave up" : log.wrong === 0 ? "first try" : `${log.wrong} wrong`) : "here now";
-          const shopping = i === state.step && state.phase === "clue" && shopAt(d) && !state.bought;
+          const shopping = i === state.step && state.phase === "clue" && (shopAt(d) || altAt(d)) && !state.bought;
           const icon = shopping ? `<span class="j-icon">🛒</span>` : st.profile
             ? `<img class="j-photo" src="${st.profile.face || st.profile.photo}" alt="">`
             : `<span class="j-icon">${st.event && typeof CHALLENGES !== "undefined" ? CHALLENGES[st.event].icon : st.item.icon}</span>`;
