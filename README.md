@@ -55,6 +55,10 @@ The riddle you read in a district points to the **next** row.
 | V Gries | "Gries" = gravel, Griesplatz, Karlau prison wall |
 | IV Lend | Kunsthaus "Friendly Alien", Lendplatz — finale |
 
+## Sara's Bookbazaar
+
+At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's real page (the blurb repeats what the locals just said) and 3 dark-romance decoys. Only the right purchase delivers Ottilie's note (the riddle). A wrong order = a dark romance in her haul and penalty sips (1, 2, 3 … per stop). The finale shows her accidental library.
+
 ## Sarah's dating app ("Icebreaker")
 
 - **Player stops** show a teammate's profile. **Like** → "It's a match!" → his message and the riddle. **Pass** → he swipes back in and Sarah owes penalty sips (1st pass 1 sip, 2nd pass 2 sips, …). She can't skip him — he's her only lead.

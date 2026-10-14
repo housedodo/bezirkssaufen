@@ -555,3 +555,37 @@ body[data-theme="dating"] .toast.show { transform: translate(-50%, 0); }
 
 .memento .memento-text { font-size: 17px; line-height: 1.45; white-space: pre-line; }
 .memento-list { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+
+/* ── Sara: Bookbazaar (shop) ───────────────────────────────── */
+body[data-theme="paper"] .match-overlay { background: rgba(48, 22, 18, .96); }
+body[data-theme="paper"] .match-overlay.boost { background: rgba(110, 32, 28, .96); }
+body[data-theme="paper"] .match-title { font-family: var(--display); font-weight: 600; font-style: italic; }
+body[data-theme="paper"] .pass-line { font-weight: 600; margin: 4px 0 12px; }
+body[data-theme="paper"] .locked { text-align: center; color: var(--muted); font-style: italic; margin: 14px 0 0; }
+.order-ok { margin: 0 0 12px; padding: 10px 14px; border: 1px dashed var(--accent); border-radius: 10px; color: var(--accent); font-style: italic; text-align: center; }
+.shop-head { margin: 18px 0 8px; }
+.shop-logo { margin: 0 0 8px; font-size: 24px; font-weight: 700; letter-spacing: -.01em; color: var(--accent); }
+.shop-search { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 15px; color: var(--muted); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.shop-count { margin: 8px 4px 0; font-size: 13.5px; color: var(--muted); }
+.shop-tip { margin: 8px 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--bg-2); font-size: 14.5px; font-style: italic; }
+.offers { display: grid; gap: 14px; }
+.offer { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 12px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 10px 24px -20px rgba(60, 40, 10, .5); }
+.offer.owned { opacity: .55; }
+.cover { align-self: start; aspect-ratio: 2 / 3; border-radius: 4px 8px 8px 4px; display: grid; place-items: center; font-size: 34px; box-shadow: inset 6px 0 0 rgba(0,0,0,.25), 0 6px 12px -6px rgba(0,0,0,.5); }
+.cover-real { background: linear-gradient(160deg, #d9c49b, #b89a64); }
+.offer-main { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.offer-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.obadge { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--bg-2); color: var(--text); font-family: var(--body); }
+.obadge.only { background: var(--accent); color: var(--accent-ink); }
+.obadge.spons { background: #e6dcc3; color: var(--muted); }
+.obadge.best { background: #ffdf8a; color: #4a3600; }
+.offer-title { margin: 2px 0 0; font-size: 18px; line-height: 1.2; font-weight: 600; }
+.offer-by { margin: 0; font-size: 13px; color: var(--muted); }
+.offer-desc { margin: 2px 0 0; font-size: 14.5px; line-height: 1.4; }
+.offer-rv { margin: 0; font-size: 13px; color: var(--muted); font-style: italic; }
+.offer-meta { font-size: 13px; color: var(--muted); }
+.offer-meta .stars { color: #c9801e; letter-spacing: 1px; }
+.offer-buy { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.price { font-size: 19px; font-weight: 700; }
+.btn.buy { min-height: 44px; padding: 8px 14px; font-size: 15px; background: var(--accent); color: var(--accent-ink); border-radius: 999px; border: 0; }
+.btn.buy:disabled { background: var(--line); color: var(--muted); }

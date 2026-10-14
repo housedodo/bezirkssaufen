@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Sara's "Bookbazaar" shop (buy the right book to unlock the riddle) | `story.js` (Sara + new `SARA_SHOP`), `app.js` (Sara clue flow, finale), `styles.css` (shop), `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -66,7 +66,11 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   next-stop screen (bar, planned time, bus/tram leg, Maps link), journal drawer, finale with confetti.
 - Progress saved per phone in `localStorage` (`bezirkssaufen.v1`); "Start over" in the ☰ journal.
 - Route follows the **JJ Odyssey** plan (Google Sheet "JJ Odyssey"), see [Route](#route).
-- **Sara**: full story for all 17 districts (encounter, souvenir page, riddle, hint), paper theme. No challenges yet.
+- **Sara** (paper theme): full story for all 17 districts (encounter, souvenir page, riddle, hint) plus the
+  **Bookbazaar** shop (Amazon/eBay-style fake marketplace). At each of the 16 stops with a riddle she sees 4 listings:
+  Ottilie's real page (blurb quotes what the locals just said) and 3 dark-romance decoys. Buying the real one →
+  "Order confirmed", parcel = souvenir page + riddle + guessing. Buying a decoy → penalty sips (1, 2, 3 … per stop,
+  added to `sips`), the book goes into her haul (🌶️ counter in the top bar, listed in the finale).
 - **Sarah** (dating theme):
   - 10 teammate profiles with full photos (name/tags/bio *below* the photo, nothing over the face) and round
     face avatars.
@@ -87,7 +91,7 @@ See [Open items](#open-items).
 | File | What it is |
 |---|---|
 | `index.html` | Shell: top bar, progress bar, `<main id="app">`, journal drawer, toast. Loads fonts, `story.js`, `app.js`. |
-| `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `GIVE_UP_AFTER`, `CHALLENGES`, `STORIES`. |
+| `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `GIVE_UP_AFTER`, `CHALLENGES`, `STORIES`, `SARA_SHOP` (end of file). |
 | `app.js` | All logic and rendering (one IIFE, template strings into `#app`). |
 | `styles.css` | Base + three themes via `body[data-theme]`: `night` (picker), `dating` (Sarah), `paper` (Sara). `ice` theme CSS is legacy/unused. |
 | `sw.js` | Service worker, cache name `VERSION`, list of files cached for offline use (incl. all player images). |
@@ -119,15 +123,23 @@ See [Open items](#open-items).
   - `write` — `seconds` (optional clock), textarea → saved to `state.myBio`.
   - `notes` — `count` textareas → appended to `state.superLikes`.
 
+- `SARA_SHOP` — `{ name, tip, decoys[30], real{districtId} }`. `decoys[i] = {t, a, d, s(spice 1–5), p}`. At route
+  index `step` the shop shows decoys `(step*3+k) % 30` for k=0..2; the real listing sits at position `(step*2+1) % 4`
+  and takes its title/icon from the stop's `item`. `real[id] = {p, d, rv}` (price joke, blurb, review). Every Sara stop
+  that has a riddle needs a `real` entry (the last stop, Lend, has no shop).
+- `STORIES.sara.howTo` overrides the intro's "How it works".
+
 ### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`)
 `char, phase (pick|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
-hearts, sips, myBio, superLikes[], solvedGaveUp`. Per-step fields are reset by `stepReset()` on arrival.
+hearts, sips, myBio, superLikes[], solvedGaveUp, bought, shopWrong[], haul[]`. Per-step fields (incl. `bought`, `shopWrong`) are reset by `stepReset()` on arrival; `haul` and `sips` are cumulative.
 Adding a new key: add it to `fresh()` so old saved games still load.
 
 ### Flow
 `render()` → `renderChrome()` + one of `renderPick / renderIntro / renderClue / renderTravel / renderDone`.
 For Sarah, `renderClue()` → `renderDatingClue()`, which shows in order: intermission (if any, not done) → event
 challenge (if any, not done) → profile swipe (if profile, not liked) → chat message + riddle + guessing.
+For Sara, `renderClue()` shows `renderShop()` while `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the
+normal encounter + riddle + guessing screen follows (with an "Order confirmed" ribbon).
 `flash()` shows full-screen overlays (match, countdown, +❤️). `set(patch)` saves and re-renders.
 
 ### Gotchas we already hit
@@ -184,7 +196,7 @@ There are no automated tests in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **GitHub Pages** not confirmed enabled yet (Settings → Pages → `main` / root).
-- **Sara** has no challenges yet (idea: book-themed version of Sarah's mechanic, e.g. library card expired).
+- **Sara**'s shop is her only mechanic so far; could add book-themed event challenges like Sarah's (e.g. library card expired). Decoy listings are PG-13 parodies — tone up/down as wanted.
 - **Lend finale** (both stories) is a plain message — could get a special ending.
 - Likes (❤️) are score-only; penalty sips aren't enforced by the app (the group does it).
 - Player photos are from a small source image; higher-res versions would look sharper on phones.
@@ -197,7 +209,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
+- 2026-10-14 · earlier commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
 - 2026-10-14 · `6bb66bd` · Dominik (Claude) · Sarah: 10 challenges (6 events +3 ❤️, 4 sudden intermissions +2 ❤️), pass penalty sips, ❤️ counter, finale with crew bio and super likes; README schedule.
 - 2026-10-14 · `98caddc` · Dominik (Claude) · Sarah: 10 full-photo profiles (Felix, Marcus, Jonas, Nico, Samuel added), info below photo, face avatars, floating like/pass buttons, toasts at top.
 - 2026-10-14 · `70ef8b8` · Dominik (Claude) · Sarah's story rebuilt as the Icebreaker dating app (profiles, like/pass, match screen, chat messages).

@@ -339,7 +339,15 @@ Your crew has a drink for you. Prost! 🎂`,
 
 It belongs to <b>Ottilie Pfotenhauer</b>, a travelling bookseller with a squeaky book cart and a fat grey cat named Herb. She'll sell it to the right person. But she never stays anywhere long, and she leaves notes instead of waiting.
 
+Her cart has an online shop that follows her around: <b>Bookbazaar</b>. It is full of "recommendations for you" — mostly dark romance. Ignore them.
+
 It's your birthday, Sara. Today you get that book. You just have to be on time for once.`,
+    howTo: [
+      "In every district, the locals tell you what Ottilie sold them.",
+      "Open <b>Bookbazaar</b> and buy the one listing that matches. Wrong order = a dark romance in your haul and penalty sips (1, 2, 3 …).",
+      "The parcel contains Ottilie's note — the riddle. Guess the district it points to.",
+      "Go there. Have a drink. Tap “we've arrived”.",
+    ],
     stops: {
       1: {
         encounter: `The woman behind the bakery counter points at the door. "The old lady with the book cart and the fat cat? Sold me a cookbook ten minutes ago, paid for her coffee in bookmarks. She said someone would come asking. She left this for you."`,
@@ -448,5 +456,68 @@ Your crew has a drink for you. Prost! 🎂`,
         item: { icon: "📕", name: "The Library of Herb and Kafk" },
       },
     },
+  },
+};
+
+// ─────────────────────── SARA'S BOOKBAZAAR (shop) ───────────────────────
+// At every Sara stop with a riddle she lands on a fake marketplace. One listing
+// is Ottilie's real page (its blurb quotes what the locals just told her);
+// the rest are dark-romance decoys. Buying the real one unlocks the riddle,
+// buying a decoy costs penalty sips (1, 2, 3 …) and goes into her "haul".
+// Each stop shows 4 offers: the real one + 3 decoys taken from DECOYS.
+// Spice is 1–5 🌶️. Titles are parodies, keep them PG-13.
+const SARA_SHOP = {
+  name: "Bookbazaar",
+  tip: "Ottilie never sells her pages under a fancy title. Buy the listing that matches what the locals told you.",
+  decoys: [
+    { t: "Bound to the Baron", a: "L. Nightshade", d: "He owns the castle. And the contract. And, unfortunately, your attention.", s: 4, p: "€9.99" },
+    { t: "Ruthless Kings & Velvet Crows", a: "V. Ravenscroft", d: "A crown, a cage, a very long staircase.", s: 3, p: "€11.49" },
+    { t: "The Mafia Boss's Midnight Debt", a: "Dante Moretti-Black", d: "You owe him one favour. He wants it at 3 a.m.", s: 5, p: "€8.99" },
+    { t: "Wicked Little Vows", a: "S. Thornfield", d: "Till death do us part. He's not joking.", s: 4, p: "€10.99" },
+    { t: "Kiss of the Vampire Accountant", a: "Count A. Bilanz", d: "He drains your tax return. And your will to resist.", s: 3, p: "€7.99" },
+    { t: "Captive of the Highland Duke", a: "M. McDarkly", d: "Rain, whisky, brooding. Mostly brooding.", s: 4, p: "€9.49" },
+    { t: "Fifty Shades of Herb", a: "E. L. Pfote", d: "A cat. A cushion. A very controlling nap schedule.", s: 2, p: "€6.66" },
+    { t: "Hunted by the Hockey Villain", a: "Brooke Blackice", d: "Enemies on the rink, something worse in the penalty box.", s: 5, p: "€12.00" },
+    { t: "Sinful Heirs of Schloss Schwarz", a: "G. von Verderben", d: "Eight siblings, one will, zero boundaries.", s: 4, p: "€10.49" },
+    { t: "His Dark Obsession, Vol. 7", a: "N. Crimson", d: "Volumes 1–6 sold out. He's still obsessed.", s: 5, p: "€13.99" },
+    { t: "Thorns, Crowns & Bad Decisions", a: "R. Hex", d: "Never trust a prince with a hedge trimmer.", s: 3, p: "€9.99" },
+    { t: "The Devil Wears a Dirndl", a: "A. Teufel", d: "Fresh from the Almabtrieb. Seductive. Mostly sheep.", s: 3, p: "€8.49" },
+    { t: "Forbidden by the Fallen Angel", a: "Seraphina Blackwing", d: "Heaven's loss, your bedtime reading.", s: 4, p: "€10.99" },
+    { t: "Ruined by the Ruthless CEO", a: "K. Steelman", d: "He bought your company. Then your Sundays.", s: 4, p: "€11.99" },
+    { t: "Claimed in the Catacombs", a: "Morgana Dusk", d: "Cold stone, warm candles, an unfortunate clause in the lease.", s: 5, p: "€9.99" },
+    { t: "Dark Heart of the Dragon Dentist", a: "F. Zahn", d: "He breathes fire. And pulls teeth. Open wide.", s: 2, p: "€7.49" },
+    { t: "Wedded to the Warlord", a: "Ilse Ironhand", d: "An arranged marriage, a very arranged castle.", s: 4, p: "€10.00" },
+    { t: "Tangled in His Shadows", a: "J. Umbra", d: "He has no reflection. You have no excuse.", s: 3, p: "€8.99" },
+    { t: "The Stalker Next Door, Season 2", a: "P. Spähmann", d: "He moved in. You moved on. He's coming.", s: 4, p: "€9.29" },
+    { t: "Beauty and the Bastard", a: "Belle Grimm", d: "Fairy tales were never this rude.", s: 3, p: "€8.99" },
+    { t: "Vengeance in Velvet", a: "Carmilla Reiter", d: "A masquerade. A dagger. Sensible shoes not included.", s: 4, p: "€11.49" },
+    { t: "Blood, Bourbon & Bad Boys", a: "Tex Dark", d: "Nothing good happens after the third bourbon.", s: 4, p: "€9.99" },
+    { t: "The Professor's Forbidden Footnotes", a: "Dr. E. Fußnote", d: "Office hours. After hours. Peer-reviewed passion.", s: 3, p: "€12.49" },
+    { t: "Owned by the Outlaw", a: "Wylie Black", d: "Wanted: dead or alive. Preferably his.", s: 4, p: "€8.49" },
+    { t: "Sold to the Shadow Sheikh", a: "N. Dunkelmann", d: "An auction, a desert, a laminated contract.", s: 5, p: "€10.99" },
+    { t: "Obsessed with the Ex-Priest", a: "Magdalena Sünde", d: "Forgive me, Father, for the following 400 pages.", s: 4, p: "€9.49" },
+    { t: "The Gravedigger's Reluctant Bride", a: "O. Moor", d: "Till death us do part. Again. For the third time.", s: 3, p: "€7.99" },
+    { t: "Midnight Pact with the Mountain Lord", a: "A. Gipfel", d: "Cold peaks, hot temper, no mobile reception.", s: 4, p: "€9.99" },
+    { t: "Possessive Pirates of the Mur", a: "Captain H. Schwarzbart", d: "The Mur has pirates. Nobody asked how.", s: 3, p: "€8.99" },
+    { t: "Dangerous Liaisons at the Grazer Opernball", a: "Gräfin Dahlia Dunkel", d: "Waltz now. Regret later. Dress code: ruin.", s: 4, p: "€10.99" },
+  ],
+  // The real listing per district: blurb quotes the encounter, price is a joke.
+  real: {
+    1:  { p: "€0.00 + 1 coffee", d: "Slightly used. Smells of croissant. One (1) cat hair included, free of charge. As seen at the bakery.", rv: "“Paid for her coffee in bookmarks. Honest woman.” ★★★★★" },
+    6:  { p: "€2.00", d: "Page 1 of the legendary cat book. Sold at the tram stop, right after one very good map of Graz.", rv: "“Herb wanted to see the Zamboni.” ★★★★★" },
+    7:  { p: "€3.50", d: "Kafk meets the Zamboni. Originally sold at the ice rink, next to a hockey player's two copies of 'How to Talk to Women'.", rv: "“Even the gatekeeper of heaven needs something to read.” ★★★★☆" },
+    8:  { p: "€1.99", d: "Herb on the radio. Meowed into the microphone for four full minutes. Recorded at the TV studio.", rv: "“Ratings were incredible.” ★★★★★" },
+    9:  { p: "€4.00", d: "Herb's horoscope, as read by an actual astronomer: Taurus. Explains a lot.", rv: "“Prediction: nap.” ★★★★☆" },
+    2:  { p: "€2.00 + 1 song", d: "Sold to a piano student for two euros and one (1) song. Kafk plays piano. Badly.", rv: "“Had to play her a song. Worth it.” ★★★★★" },
+    10: { p: "€5.00", d: "Herb, Captain of the Cart. Spotted riding on top of the books uphill like a figurehead. Faster than a cyclist.", rv: "“Pushed a cart uphill faster than me.” ★★★★★" },
+    3:  { p: "€0.99", d: "A footnote about tuna. Paid for with cat food vouchers after a book was 41 years overdue.", rv: "“Fine accepted. Cat food vouchers.” ★★★☆☆" },
+    11: { p: "€3.00", d: "The candle incident. Scorched slightly. Herb knocked over three candles in a church; we left quickly.", rv: "“Prayed for a worthy reader.” ★★★★☆" },
+    12: { p: "€2.50", d: "Herb sleeps for 19 hours. Includes a children's book as apology for hissing at a dog by the spring.", rv: "“My dog cried. 5 stars anyway.” ★★★★☆" },
+    13: { p: "€6.00", d: "Kafk refuses a bath. Bought by the hut keeper along with a ghost story and a bag of cat treats (eaten by Herb).", rv: "“Herb ate the treats.” ★★★★★" },
+    14: { p: "€2.00 + parking ticket", d: "The Peacock War. Herb vs. peacock, 0–1. Book cart parked illegally on the palace lawn.", rv: "“The peacock won.” ★★★★★" },
+    15: { p: "€4.50", d: "The butler did it. Reveals the murderer. One police officer is still upset about that.", rv: "“Told him who did it. Spoilers!” ★★★☆☆" },
+    16: { p: "€3.50", d: "Herb, sommelier. Written during one hour and half a glass of wine, in a notebook.", rv: "“Every last chapter deserves a beer.” ★★★★★" },
+    17: { p: "€1.50", d: "Herb cheats at billiards. Cat sat on the table, balls nudged into the wrong pockets. Won four games.", rv: "“My balls ended up in the wrong pockets.” ★★★★☆" },
+    5:  { p: "€0.00 + 1 falafel", d: "The last chapter (unfinished). Traded for a falafel at a kebab shop. Herb got the meat.", rv: "“She's always a little late. This time I'll wait.” ★★★★★" },
   },
 };

@@ -30,6 +30,10 @@
     sips: 0,         // penalty sips for passing
     myBio: "",       // profile written by the crew
     superLikes: [],  // super likes written by the crew
+    // book story (Sara)
+    bought: false,   // the right listing was bought at the current step
+    shopWrong: [],   // titles of dark romances bought by mistake at the current step
+    haul: [],        // all dark romances bought by mistake (whole game)
   });
 
   let state = load();
@@ -55,6 +59,9 @@
   const story = () => STORIES[state.char];
   const isDating = () => state.char && story().theme === "dating";
   const here = () => ROUTE[state.step];
+  // Sara's Bookbazaar: the stop has a shop page that must be cleared before the riddle.
+  const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id];
+  const hasShop = () => shopAt(here());
   const next = () => ROUTE[state.step + 1];
   const label = (id) => `${DISTRICTS[id].roman} · ${DISTRICTS[id].name}`;
   const paras = (text) =>
@@ -120,7 +127,8 @@
     $("#topbar-count").textContent =
       state.phase === "intro" ? "Ready?" : `District ${arrived} of ${TOTAL}`;
     $("#drinks").textContent = !arrived ? ""
-      : isDating() ? `🍻 ${arrived} · ❤️ ${state.hearts}` : `🍻 ${arrived}`;
+      : isDating() ? `🍻 ${arrived} · ❤️ ${state.hearts}`
+      : state.haul.length ? `🍻 ${arrived} · 🌶️ ${state.haul.length}` : `🍻 ${arrived}`;
 
     $("#progress").innerHTML = ROUTE.map((d, i) => {
       const cls = i < state.step || state.phase === "done" ? "done"
@@ -184,7 +192,7 @@
     });
   }
 
-  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false });
+  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [] });
 
   // Shared "Where to next?" block (district guessing).
   function guessBlock() {
@@ -233,6 +241,7 @@
     const s = story();
     const d = here();
     const stop = s.stops[d];
+    if (hasShop() && !state.bought) return renderShop();
 
     app.innerHTML = `
       <section class="screen clue">
@@ -241,6 +250,7 @@
           <span class="here-roman">${DISTRICTS[d].roman}</span>
           <span class="here-name">${DISTRICTS[d].name}</span>
         </div>
+        ${hasShop() ? `<p class="order-ok">📦 Order confirmed — the parcel with Ottilie's note has arrived.</p>` : ""}
 
         <article class="card encounter">
           <p class="card-label">${s.narrator}</p>
@@ -252,6 +262,102 @@
         ${guessBlock()}
       </section>`;
     bindGuess();
+  }
+
+  // ── Sara: Bookbazaar (shop) ────────────────────────────────
+  const starsOf = (n) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+  const COVER_ICONS = ["🖤", "🌹", "🗡️", "🦇", "🔥", "🐺", "👑", "🕯️", "⛓️", "🌙"];
+
+  function shopOffers() {
+    const N = SARA_SHOP.decoys.length;
+    const decoys = [0, 1, 2].map((k) => {
+      const i = (state.step * 3 + k) % N;
+      return { id: `d${i}`, i, real: false, ...SARA_SHOP.decoys[i] };
+    });
+    const real = { id: "real", real: true, ...SARA_SHOP.real[here()], ...story().stops[here()].item };
+    const offers = [...decoys];
+    offers.splice((state.step * 2 + 1) % 4, 0, real); // position of the real one varies
+    return offers;
+  }
+
+  function offerCard(o) {
+    const owned = state.shopWrong.includes(o.id);
+    const cover = o.real
+      ? `<div class="cover cover-real" aria-hidden="true"><span>${o.icon}</span></div>`
+      : `<div class="cover" style="background:linear-gradient(160deg,hsl(${(o.i * 47) % 360} 55% 24%),hsl(${(o.i * 47 + 40) % 360} 60% 10%))" aria-hidden="true"><span>${COVER_ICONS[o.i % COVER_ICONS.length]}</span></div>`;
+    const meta = o.real
+      ? `<span class="stars">★★★★★</span> <span class="rv">1 review</span>`
+      : `<span class="stars">${starsOf(4)}</span> <span class="rv">4.${(o.i * 3) % 6 + 3} (${(1000 + o.i * 371).toLocaleString("en")})</span>`;
+    const badges = o.real
+      ? `<span class="obadge only">Only 1 left</span>`
+      : `${o.i % 3 === 0 ? `<span class="obadge spons">Sponsored</span>` : ""}${o.i % 4 === 1 ? `<span class="obadge best">Bestseller</span>` : ""}
+         <span class="obadge spice">${"🌶️".repeat(o.s)}</span>`;
+    return `
+      <article class="offer ${o.real ? "offer-real" : ""} ${owned ? "owned" : ""}">
+        ${cover}
+        <div class="offer-main">
+          <div class="offer-badges">${badges}</div>
+          <h3 class="offer-title">${esc(o.real ? o.name : o.t)}</h3>
+          <p class="offer-by">${o.real ? "Sold by <b>Ottilie's Cart 🐾</b>" : `by ${esc(o.a)} · Dark Desires Verlag`}</p>
+          <p class="offer-desc">${o.real ? esc(o.d) : `<i>${esc(o.d)}</i>`}</p>
+          ${o.real ? `<p class="offer-rv">${esc(o.rv)}</p>` : ""}
+          <div class="offer-meta">${meta}</div>
+          <div class="offer-buy">
+            <span class="price">${o.p}</span>
+            <button class="btn buy" data-buy="${o.id}" ${owned ? "disabled" : ""}>${owned ? "📦 Owned" : "🛒 Buy now"}</button>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function renderShop() {
+    const s = story();
+    const d = here();
+    const stop = s.stops[d];
+    const n = state.shopWrong.length;
+    app.innerHTML = `
+      <section class="screen clue shop">
+        <div class="here">
+          <span class="here-label">You're in</span>
+          <span class="here-roman">${DISTRICTS[d].roman}</span>
+          <span class="here-name">${DISTRICTS[d].name}</span>
+        </div>
+        <article class="card encounter">
+          <p class="card-label">${s.narrator}</p>
+          ${paras(stop.encounter)}
+        </article>
+        <div class="shop-head">
+          <p class="shop-logo">📚 ${SARA_SHOP.name}</p>
+          <div class="shop-search"><span>🔍</span> “The Library of Herb and Kafk”</div>
+          <p class="shop-count">1 match · 3 “recommended for you”</p>
+        </div>
+        <p class="shop-tip">💡 ${SARA_SHOP.tip}</p>
+        ${n ? `<p class="pass-line">🍺 Penalty: <b>${n} ${n === 1 ? "sip" : "sips"}</b> for the last wrong order. Read the listings properly.</p>` : ""}
+        <div class="offers">${shopOffers().map(offerCard).join("")}</div>
+        <p class="locked">Buy the right listing and the parcel with Ottilie's note arrives.</p>
+      </section>`;
+    app.querySelectorAll("[data-buy]").forEach((b) => b.addEventListener("click", () => buy(b.dataset.buy)));
+  }
+
+  async function buy(id) {
+    const o = shopOffers().find((x) => x.id === id);
+    if (!o || state.bought) return;
+    buzz([30, 40, 30]);
+    if (o.real) {
+      await flash(`
+        <p class="match-title">Order confirmed 📦</p>
+        <p class="match-sub">Right book. Ottilie's parcel is on its way — and it's already here.</p>`, 1500, "boost");
+      set({ bought: true });
+      window.scrollTo({ top: 0 });
+      toast(`<span class="toast-icon">${o.icon}</span> Added to journal: ${o.name}`);
+    } else {
+      const n = state.shopWrong.length + 1;
+      buzz(150);
+      await flash(`
+        <p class="match-title">Delivered 📦</p>
+        <p class="match-sub">“${esc(o.t)}” is now yours. Not a clue. A lifestyle.<br>🍺 ${n} ${n === 1 ? "sip" : "sips"}</p>`, 2200, "boost");
+      set({ shopWrong: [...state.shopWrong, id], haul: [...state.haul, o.t], sips: state.sips + n });
+    }
   }
 
   // ── Sarah: dating-app clue screen ──────────────────────────
@@ -543,19 +649,22 @@
     const s = story();
     const d = here();
     const stop = s.stops[d];
-    const firstTries = state.log.filter((l) => l.wrong === 0 && !l.gaveUp).length;
     const matches = ROUTE.filter((id) => s.stops[id].profile).length;
     const stats = isDating()
       ? `<div><b>${matches}</b><span>matches</span></div>
          <div><b>${state.hearts}</b><span>likes earned</span></div>
          <div><b>${state.sips}</b><span>penalty sips</span></div>`
-      : `<div><b>${TOTAL}</b><span>districts</span></div>
-         <div><b>${TOTAL}</b><span>drinks</span></div>
-         <div><b>${firstTries}</b><span>first-try guesses</span></div>`;
-    const extras = isDating() ? `
+      : `<div><b>${TOTAL - 1}</b><span>pages bought</span></div>
+         <div><b>${state.haul.length}</b><span>dark romances</span></div>
+         <div><b>${state.sips}</b><span>penalty sips</span></div>`;
+    const haulTitles = [...new Set(state.haul)];
+    const extras = !isDating() ? (haulTitles.length ? `
+      <article class="card memento"><p class="card-label">Your accidental dark-romance library 🌶️</p>
+        <ul class="memento-list">${haulTitles.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></article>` : "")
+      : `
       ${state.myBio ? `<article class="card memento"><p class="card-label">Your profile, written by your crew</p><p class="memento-text">${esc(state.myBio)}</p></article>` : ""}
       ${state.superLikes.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Your super likes ⭐</p>
-        <ul class="memento-list">${state.superLikes.filter(Boolean).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></article>` : ""}` : "";
+        <ul class="memento-list">${state.superLikes.filter(Boolean).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></article>` : ""}`;
     app.innerHTML = `
       <section class="screen done">
         <div class="here">
@@ -574,6 +683,7 @@
 
   function announceItem() {
     if (isDating()) return; // dating app: souvenirs show in the chat card and the journal instead
+    if (hasShop()) return;  // bookshop: the page is announced when it is bought
     const stop = story().stops[here()];
     if (stop) toast(`<span class="toast-icon">${stop.item.icon}</span> Added to journal: ${stop.item.name}`);
   }
@@ -607,10 +717,11 @@
           const st = s.stops[d];
           const log = state.log[i];
           const note = log ? (log.gaveUp ? "gave up" : log.wrong === 0 ? "first try" : `${log.wrong} wrong`) : "here now";
-          const icon = st.profile
+          const shopping = i === state.step && state.phase === "clue" && shopAt(d) && !state.bought;
+          const icon = shopping ? `<span class="j-icon">🛒</span>` : st.profile
             ? `<img class="j-photo" src="${st.profile.face || st.profile.photo}" alt="">`
             : `<span class="j-icon">${st.event && typeof CHALLENGES !== "undefined" ? CHALLENGES[st.event].icon : st.item.icon}</span>`;
-          const sub = st.profile ? `${esc(st.profile.name)} #${st.profile.number} · ${st.item.name}`
+          const sub = shopping ? "Still shopping…" : st.profile ? `${esc(st.profile.name)} #${st.profile.number} · ${st.item.name}`
             : st.event && typeof CHALLENGES !== "undefined" ? `${CHALLENGES[st.event].title} · ${st.item.name}` : st.item.name;
           return `<li>
             ${icon}
