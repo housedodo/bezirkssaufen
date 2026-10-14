@@ -747,13 +747,25 @@ Object.assign(CHALLENGES, {
     story: "Everyone does a ten-second impression of Herbert: slow stretch, ignoring a human, staring at nothing. The group crowns the best Herbert. Everyone else takes a sip.",
     confirmLabel: "✅ A winning Herbert has been crowned",
   },
+  s_locker: {
+    type: "confirm", icon: "🏒", reward: 1,
+    title: "Locker room speech",
+    story: "Intermission in the locker room. Sara gives a 30-second pre-game speech before the next district, as if it were the final against Jakob's team. The table is the team and cheers on every dramatic pause. Whoever doesn't cheer takes a sip.",
+    confirmLabel: "✅ The team is fired up",
+  },
+  s_fanfic: {
+    type: "confirm", icon: "✍️", reward: 1,
+    title: "One-line fanfic",
+    story: "Sara writes the first line of a fanfic about two people at the table: dramatic, full of tension, terrible metaphors, nothing explicit. Then everybody adds one word each, clockwise, until the sentence ends. Read the whole thing out loud.",
+    confirmLabel: "✅ The fanfic has been read",
+  },
 });
 // Where they appear on Sara's route (district id → challenge key).
 // Sarah and Sara play at the same time, so nothing of Sara's lands on a stop where Sarah has an
 // intermission, and Sara's intermissions avoid Sarah's events too (check the ROUTE order in README.md).
 // Stop I (Innere Stadt) is only the introduction: no challenges for either girl there, they start from the 2nd district.
 const SARA_EVENTS = { 9: "s_catquiz", 2: "s_reading", 3: "s_firstlines", 8: "s_poetry", 11: "s_blurb", 13: "s_titles", 15: "s_reviews", 16: "s_toast" };
-const SARA_INTERMISSIONS = { 6: "s_impression", 8: "s_story", 3: "s_nap", 14: "s_silence", 5: "s_swap" };
+const SARA_INTERMISSIONS = { 6: "s_impression", 8: "s_story", 3: "s_nap", 14: "s_silence", 5: "s_swap", 10: "s_locker", 17: "s_fanfic" };
 Object.entries(SARA_EVENTS).forEach(([d, k]) => { STORIES.sara.stops[d].event = k; });
 Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].intermission = k; });
 

@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v36) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v37) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -77,14 +77,14 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   one follows an irregular fixed list (`REAL_SLOT`). Buying the real one → "Order confirmed", parcel = souvenir page +
   riddle + guessing. **Every listing shows a short spicy excerpt (a weird dark-romance page, ~25–30 words) instead of a blurb, and she has to read each one out loud first:** the text is hidden behind "📖 Read this page out loud" buttons (a big card, "Done reading 🔥"), a progress line shows `n/4`, and all Buy buttons stay locked ("🔒 Read all pages") until all four were opened (`state.read`, reset per stop); read pages stay visible so she can compare them. A wrong order costs penalty sips (1, 2, 3 … per stop, `sips`) and is either **delivered** (courier line, the book goes into her haul, 🌶️ counter, finale) or **"unfortunately sold
   out"** (no haul); that listing is then greyed out ("Owned" / "Sold out"). "Reveal the real listing" costs 2 🔖.
-  - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
+  - **15 challenges** (13 book-themed + 2 hockey/fanfic) (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
     8 "📖 Reading room" events (+2: pop quiz @IX, dramatic reading @II, name that first line @III, menu poetry @VIII,
-    back-cover blurb @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 5 "⚡ Sudden plot twist"
+    back-cover blurb @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 7 "⚡ Sudden plot twist"
     intermissions (+1: Herbert impression @VI, one word each @VIII, Herbert's nap @III, silence in the library @XIV, book
-    swap @V; `SARA_EVENTS` / `SARA_INTERMISSIONS` in `story.js` are authoritative). **Stop I (Innere Stadt) is only the
+    swap @V, locker room speech @X, one-line fanfic @XVII; `SARA_EVENTS` / `SARA_INTERMISSIONS` in `story.js` are authoritative). **Stop I (Innere Stadt) is only the
     introduction: no challenges for either girl, they start from the 2nd district.** **Sarah and Sara play at the same
     time**, so Sara has nothing on a stop where Sarah has an intermission, and her intermissions avoid Sarah's events too.
-    Check this when moving any challenge. (Total separation is impossible: 23 challenges, 15 stops.)
+    Check this when moving any challenge. (Total separation is impossible: 25 challenges, 15 stops; the locker room speech and fanfic deliberately sit on stops where Sarah has a ⚡, and stops 3 and 10 are still open for Sara.)
     Order at a stop: intermission → event → shop → riddle → guess.
     The blurb and reviews appear in the finale next to the haul.
 - **Sarah** (dating theme):
@@ -296,7 +296,7 @@ v29 only gets this self-update after one manual full restart.
 | 4 | VIII St. Peter | Cuba Bar/Cafe | 12:00 | Bus 64 | Felix #9 | ⚡ one word each · 📖 menu poetry |
 | 5 | IX Waltendorf | Martin Auer, Waltendorfer Hauptstr. 31 | 13:00 | Bus 64 | 💔 biochem quiz | 📖 Herbert's pop quiz |
 | 6 | II St. Leonhard | Martin Auer Schillerplatz | 14:00 | 1 km on foot | 💔 pick-up line | 📖 dramatic reading |
-| 7 | X Ries | Auer, Ragnitzstraße 91 | 15:00 | Bus 64 + 58 | ⚡ super likes → Marcus #77 | — |
+| 7 | X Ries | Auer, Ragnitzstraße 91 | 15:00 | Bus 64 + 58 | ⚡ super likes → Marcus #77 | ⚡ locker room speech |
 | 8 | III Geidorf | Bierbaron | 16:00 | Bus 58 | Luca #4 | ⚡ Herbert's nap · 📖 name that first line |
 | 9 | XI Mariatrost | Sorger, Mariatrosterstr. 24 | 17:00 | Bus 58 | 💔 crew writes bio | 📖 back cover blurb |
 | 10 | XII Andritz | Flowers Cafe Lounge | 18:00 | Bus 58 + 41 | ⚡ no hands → Jonas #17 | — |
@@ -304,7 +304,7 @@ v29 only gets this self-update after one manual full restart.
 | 12 | XIV Eggenberg | Das Eggenberg | 20:00 | Bus 65 (or taxi) | Nico #8 | ⚡ silence in the library |
 | 13 | XV Wetzelsdorf | Liwi Pub | 21:00 | Bus 62 | 💔 penalty box | 📖 five-star reviews |
 | 14 | XVI Straßgang | Clocktower (closes 23:00) | 22:00 | Bus 65 | 💔 goal celebration | 📖 chapter toast |
-| 15 | XVII Puntigam | Pools, Bar & Billard (Cineplexx) | 23:00 | Bus 65 | ⚡ bottle cap → Samuel #10 | — |
+| 15 | XVII Puntigam | Pools, Bar & Billard (Cineplexx) | 23:00 | Bus 65 | ⚡ bottle cap → Samuel #10 | ⚡ one-line fanfic |
 | 16 | V Gries | Die Beate | 00:00 | E5 + 67 | Dragan #55 | ⚡ book swap |
 | 17 | IV Lend | Wherever we wanna verend | 01:00 | on foot | finale (jersey #99) | finale (the book) |
 
@@ -365,7 +365,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sarah's chat shortened: no question, no fun fact, only one red flag; the opener is a random hi/hello (some cool, some cringe, 3 per guy); cache v36.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara: two new ⚡ intermissions where she had nothing: "Locker room speech" @X Ries and "One-line fanfic" @XVII Puntigam (+1 🔖 each); stops VII and XII are still empty (host will add). Cache v37.
+- 2026-10-14 · `0583eea` · Dominik (Claude) · Sarah's chat shortened: no question, no fun fact, only one red flag; the opener is a random hi/hello (some cool, some cringe, 3 per guy); cache v36.
 - 2026-10-14 · `f3881ee` · Dominik (Claude) · Sarah's chat: every guy first asks a variation of "do you want to hear a fun fact?" (she answers, then the fact), and his texts no longer contain any emoji; cache v35.
 - 2026-10-14 · `8ee8d35` · Dominik (Claude) · Sarah's chat feels like texting a real person: the red-flag texts are no longer labelled/pink, and she gets to answer after each one (hi → question → answer → text → answer → text → answer → hockey question → answer → tip); cache v34.
 - 2026-10-14 · `f969b8a` · Dominik (Claude) · Fix: Sarah's chat flickered (the whole screen re-faded on every redraw, also in Sara's shop reading and quiz answers). Now only the newest bubble animates, chat scroll is instant, `markRedraw()` in `app.js` adds `.no-anim` when the same screen is redrawn; cache v33.
