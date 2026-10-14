@@ -6,7 +6,9 @@
 //   POST /solved     {who, step}           step sync: "I solved stop <step>" → {both, released, other}; both phones poll this
 //   GET  /progress                         admin only: per step who has solved, and released steps
 //   POST /release    {step}                admin only: let both continue although one hasn't solved (override)
-//   POST /reset                            admin only: forget all progress (do this before the game starts)
+//   POST /reset                            admin only: forget all progress AND send new players back to the lobby
+//   GET  /game                             public: {started} — phones show "Under construction" until this is true
+//   POST /start                            admin only: start the game, push "the game has started" to both phones
 // Pushes are sent WITHOUT payload (no encryption needed, only a VAPID signature). The phone then fetches
 // the text from /inbox. Needs: KV binding `KV`, secrets ADMIN_PIN + VAPID_PRIVATE_JWK, vars VAPID_PUBLIC + VAPID_SUBJECT.
 
@@ -146,15 +148,31 @@ export default {
       if (path === "/reset" && req.method === "POST") {
         if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
         const list = await env.KV.list({ prefix: "prog:" });
-        await Promise.all(list.keys.map((k) => env.KV.delete(k.name)));
+        await Promise.all([...list.keys.map((k) => env.KV.delete(k.name)), env.KV.delete("game")]);
         return json({ ok: true, cleared: list.keys.length });
+      }
+
+      // ── lobby: the game only starts when the host says so ──
+      if (path === "/game" && req.method === "GET") {
+        const g = JSON.parse((await env.KV.get("game")) || "null");
+        return json({ started: !!g, startedAt: g ? g.startedAt : null });
+      }
+
+      if (path === "/start" && req.method === "POST") {
+        if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
+        const g = JSON.parse((await env.KV.get("game")) || "null") || { startedAt: Date.now() };
+        await env.KV.put("game", JSON.stringify(g), { expirationTtl: 172800 });
+        const result = {};
+        for (const who of WHO) result[who] = await pushTo(env, who, "🎂 The game has started!", "Open the app: your story and your first clue are waiting.");
+        return json({ ok: true, startedAt: g.startedAt, result });
       }
 
       if (path === "/status" && req.method === "GET") {
         if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
         const out = {};
         for (const who of WHO) out[who] = (await getSubs(env, who)).length;
-        return json({ ok: true, devices: out });
+        const g = JSON.parse((await env.KV.get("game")) || "null");
+        return json({ ok: true, devices: out, started: !!g, startedAt: g ? g.startedAt : null });
       }
     } catch (e) {
       return json({ error: String(e && e.message || e) }, 500);

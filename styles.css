@@ -637,3 +637,17 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .install-card { margin: 14px 0; }
 .install-card p { margin: 0 0 6px; }
 .install-card .push-note { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+
+/* ── Lobby ("Under construction") ──────────────────────────── */
+.lobby { text-align: center; padding-top: 28px; }
+.lobby-icon { font-size: 76px; margin: 0; line-height: 1; cursor: default; animation: wobble 2.4s ease-in-out infinite; user-select: none; }
+@keyframes wobble { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+.lobby .title { margin: 4px 0 10px; }
+.lobby-line { font-size: 18px; font-style: italic; color: var(--muted); min-height: 3.2em; margin: 0 8px 14px; }
+.lobby-card { text-align: left; margin: 10px 0; }
+.lobby-card p { margin: 0 0 8px; }
+.lobby-status { color: var(--muted); font-size: 14px; min-height: 1.4em; margin: 10px 0 0; }
+.first-clue .clue-from { margin: 0 0 6px; font-weight: 600; opacity: .85; }
+.first-clue .btn { margin-top: 8px; }
+.first-clue .btn.ghost { color: inherit; border-color: currentColor; background: transparent; }
+.lobby-icon { margin-bottom: 10px; }

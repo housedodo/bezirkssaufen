@@ -42,6 +42,13 @@
     <p class="status" id="status" style="margin:8px 0 0">Enter the PIN to see which phones are registered.</p>
   </div>
 
+  <h2>0 · Start the game</h2>
+  <div class="card" id="gamebox">
+    <p class="status" id="gamestatus" style="margin:0 0 10px">Enter the PIN to see the game status.</p>
+    <button id="startgame" style="width:100%;font-size:18px;padding:16px;background:#5fd38d;color:#06260f">🚀 Start the game</button>
+    <p class="status" style="margin:8px 0 0">Both phones get a notification and unlock: each reads her own story and gets the first clue (Auer, Innere Stadt).</p>
+  </div>
+
   <h2>1 · Who gets it?</h2>
   <div class="who" id="who">
     <button data-to="sarah">Sarah</button>
@@ -64,7 +71,7 @@
   <h2>3 · Game sync</h2>
   <p class="sub">Neither girl continues until both solved the stop. Here you see who is waiting, and can let them through anyway.</p>
   <div class="card" id="sync"><span class="status">Enter the PIN to see progress.</span></div>
-  <button id="reset" style="margin-top:8px;background:var(--card);color:var(--bad);border:1.5px solid var(--line)">Reset all progress (before the game)</button>
+  <button id="reset" style="margin-top:8px;background:var(--card);color:var(--bad);border:1.5px solid var(--line)">Reset all progress + back to the lobby (before the game)</button>
 
   <h2>Sent</h2>
   <div id="log"><span class="status">Nothing sent yet.</span></div>
@@ -95,10 +102,25 @@
       if (!pinEl.value) return;
       try { localStorage.setItem("bezirk.adminpin", pinEl.value); } catch (_) {}
       try {
-        const { devices } = await call("/status", "GET");
+        const { devices, started, startedAt } = await call("/status", "GET");
         el.innerHTML = `Registered phones: Sarah <b>${devices.sarah}</b> · Sara <b>${devices.sara}</b>`;
+        const g = $("#gamestatus");
+        g.innerHTML = started ? `<span class="good">✓ Game started at ${new Date(startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>` : `Game not started: players are in the “Under construction” lobby.`;
       } catch (e) { el.innerHTML = `<span class="err">${e.message}</span>`; }
     }
+    $("#startgame").addEventListener("click", async (e) => {
+      if (!confirm("Start the game now?\n\nSarah and Sara both get a notification and their story begins.")) return;
+      e.target.disabled = true;
+      const row = document.createElement("div");
+      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      try {
+        const { result } = await call("/start", "POST");
+        row.innerHTML = `<span class="good">✓ ${time}</span> Game started → ` + Object.entries(result).map(([w, r]) => `${w === "sarah" ? "Sarah" : "Sara"}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`).join(", ");
+      } catch (err) { row.innerHTML = `<span class="err">✗ ${time}</span> Start failed — ${err.message}`; }
+      const log = $("#log"); if (log.querySelector(".status")) log.innerHTML = ""; log.prepend(row);
+      e.target.disabled = false;
+      refreshStatus();
+    });
     pinEl.addEventListener("change", () => { refreshStatus(); refreshSync(); });
     refreshStatus();
 
@@ -128,7 +150,7 @@
     refreshSync();
     setInterval(refreshSync, 5000);
     $("#reset").addEventListener("click", async () => {
-      if (!confirm("Forget ALL step progress for both players? Only do this before the game starts.")) return;
+      if (!confirm("Forget ALL step progress and put the game back to 'not started'? Phones already inside the game keep their own progress. Only do this before the game starts.")) return;
       try { const r = await call("/reset", "POST"); alert(`Cleared (${r.cleared} steps).`); } catch (e) { alert(e.message); }
       refreshSync();
     });

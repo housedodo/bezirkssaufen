@@ -700,3 +700,29 @@ Object.assign(CHALLENGES, {
     confirmLabel: "✅ Wishes made, drinks raised",
   },
 });
+
+// ─────────────────────── LOBBY + FIRST CLUE ───────────────────────
+// Before the host presses "Start game" (admin.html) a phone that picked a name only shows "Under construction".
+// These lines rotate on that screen.
+const LOBBY_LINES = [
+  "Our developers are still drinking. We mean: building. Hard.",
+  "A very tired hamster is wiring this app together. He asked for five more minutes.",
+  "Please do not touch anything. The paint is still wet. So is the beer.",
+  "404 — Fun not found yet. Arriving at the speed of a Graz tram.",
+  "Loading the pub crawl… 3% (the other 97% is in the fridge).",
+  "The host is polishing the surprises. Please stand by and look busy.",
+];
+
+// When the game starts each girl reads her story plus this little clue to the first meeting point
+// (Auer, Schmidtgasse, I Innere Stadt). Pressing "Start the quest" there begins stop I.
+const FIRST_HINT = "It's the café-bar Auer in the Schmidtgasse, in the Innere Stadt (the old town). Open it in Maps.";
+STORIES.sarah.firstClue = {
+  label: "New message · Jakob “Iceman” Eisner",
+  text: `<i>"You're late. I'm on my first drink in the old town, in the lane where the blacksmiths once worked, a few steps from the main square with the town hall and the Archduke's fountain. The bar is named after a meadow. Find me. Don't be slow."</i>`,
+  hint: FIRST_HINT,
+};
+STORIES.sara.firstClue = {
+  label: "A note from O.P.",
+  text: `<i>"Chapter One is baked, not written. Find the old town's blacksmith lane, a stone's throw from the main square with the town hall and the Archduke fountain. A bakery-bar named after the meadow. Your first page is waiting at the counter."</i>`,
+  hint: FIRST_HINT,
+};

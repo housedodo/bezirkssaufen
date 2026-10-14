@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Lobby ("Under construction" after picking a name) + admin "Start game" with notification + first clue to Auer | `app.js`, `story.js`, `worker/worker.js`, `admin.html`, `push-config.js`, `styles.css`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -118,6 +118,16 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   reached for 4 polls the phone offers "continue anyway". Admin page section "3 · Game sync" shows who is waiting,
   has "Let them through" per step and "Reset all progress" (**press it before the game**; KV data also expires after
   48 h; the in-app "Start over" does not touch the worker).
+
+- **Lobby + Start game**: after installing and choosing a name (`pick`) a phone goes to phase `lobby`: a funny "🚧 Under
+  construction" screen (rotating `LOBBY_LINES`, nothing clickable except "Not Sara? Pick again"; no top bar). It polls
+  worker `GET /game` every 5 s (and on app focus) and unlocks into `intro` by itself. The host presses **🚀 Start the
+  game** in `admin.html` (`POST /start`): the worker stores `game`, sends a "🎂 The game has started!" push to both
+  phones, and the lobbies unlock. In `intro` each girl reads her story, **the first clue to the meeting point** (`firstClue`
+  in `story.js`: blacksmith lane near the main square → Auer Schmidtgasse; free hint + Maps link) and, once sitting at
+  Auer, presses **Start the quest** (→ stop I: Bookbazaar / dating profile). Off with `lobby: false` in `push-config.js`
+  or when no `workerUrl` is set. Emergency exit if the server is down: tap the 🚧 7 times. "Reset all progress" in the
+  admin page also puts the game back to "not started" (only matters for phones that haven't entered yet).
 
 ### Not done / ideas
 See [Open items](#open-items).
@@ -241,6 +251,7 @@ There are no automated tests in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **Mission alerts** need the one-time Cloudflare setup in `worker/README.md` and a real-iPhone test (only unit-tested with mocks; Web Push can't run headless). Do it the day before.
+- **Game day order**: (1) both install + choose their name, (2) press "Reset all progress + back to the lobby" in admin.html, (3) at the start press "Start the game".
 - **Step sync** and mission alerts are only tested with mocks: do a real two-phone run the evening before (and press "Reset all progress" in the admin page afterwards).
 - **GitHub Pages** not confirmed enabled yet (Settings → Pages → `main` / root).
 - Sara's challenge texts (dramatic-reading lines, decoy titles) are PG-13 parodies — tone up/down as wanted.
@@ -257,7 +268,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · First stop is introduction only: intro button is now "Start the quest" (sit down at Auer, press it, then the shop / dating app starts); no challenges at stop I (Sara's menu poetry became a +2 event @VIII); cats renamed to Herbert and Kafka everywhere (book: "The Library of Herbert and Kafka", intro mentions both cats); cache v17.
+- 2026-10-14 · this commit · Dominik (Claude) · Lobby: after choosing a name the app shows "Under construction" until the host presses Start game in admin.html (notification to both, lobbies unlock by themselves); intro now has a first clue to Auer (hint + Maps); worker `/game`, `/start`, `/reset` clears game; **redeploy `worker/worker.js`**; cache v18.
+- 2026-10-14 · `5f35368` · Dominik (Claude) · First stop is introduction only: intro button is now "Start the quest" (sit down at Auer, press it, then the shop / dating app starts); no challenges at stop I (Sara's menu poetry became a +2 event @VIII); cats renamed to Herbert and Kafka everywhere (book: "The Library of Herbert and Kafka", intro mentions both cats); cache v17.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
 - 2026-10-14 · `847b92a` · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.

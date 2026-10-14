@@ -15,7 +15,7 @@
   // ── State ──────────────────────────────────────────────────
   const fresh = () => ({
     char: null,      // "sarah" | "sara"
-    phase: "pick",   // pick | intro | clue | travel | done
+    phase: "pick",   // pick | lobby | intro | clue | travel | done
     step: 0,         // index into ROUTE of the district they are in
     wrong: [],       // wrong district ids guessed at the current step
     hint: false,     // hint revealed at the current step
@@ -75,6 +75,9 @@
   // Step sync: both phones must have solved the current stop before either continues (needs the worker, see worker/README.md).
   const syncOn = () => typeof PUSH !== "undefined" && !!PUSH.workerUrl && PUSH.syncSteps !== false;
   let pollT = null;
+  // Lobby: until the host presses "Start game" a phone that picked a name only shows "Under construction".
+  const lobbyOn = () => typeof PUSH !== "undefined" && !!PUSH.workerUrl && PUSH.lobby !== false;
+  let lobbyT = null, lobbyL = null, lobbyCheckNow = null, introHint = false;
   // Sara's Bookbazaar: the stop has a shop page that must be cleared before the riddle.
   const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id];
   const hasShop = () => shopAt(here());
@@ -130,7 +133,7 @@
 
   // ── Chrome (top bar, progress) ─────────────────────────────
   function renderChrome() {
-    const inGame = state.char && state.phase !== "pick";
+    const inGame = state.char && state.phase !== "pick" && state.phase !== "lobby";
     document.body.dataset.theme = state.char ? story().theme : "night";
     $("#topbar").hidden = !inGame;
     $("#mission-pill").hidden = !(inGame && state.phase !== "intro" && state.bonus && state.bonus.paused);
@@ -260,7 +263,7 @@
         <div class="pick-head">
           <p class="kicker">Graz · 17 Bezirke · 17 Drinks</p>
           <h1 class="logo">Bezirks&shy;saufen</h1>
-          <p class="lede">Two birthdays. Two stories. One very long day out.<br>Pick your own story — and no peeking at the other phone.</p>
+          <p class="lede">Two birthdays. Two stories. One very long day out.<br>Choose your name — and no peeking at the other phone.</p>
         </div>
         <div class="pick-grid">${card("sarah")}${card("sara")}</div>
         <p class="fineprint">Progress is saved on this phone. Add it to your home screen so it works like an app.</p>
@@ -268,9 +271,62 @@
       </section>`;
     fillInstall(app.querySelector("[data-install-slot]"));
     app.querySelectorAll("[data-pick]").forEach((b) =>
-      b.addEventListener("click", () => set({ ...fresh(), char: b.dataset.pick, phase: "intro", bonus: state.bonus, missions: state.missions }))
+      b.addEventListener("click", () => set({ ...fresh(), char: b.dataset.pick, phase: lobbyOn() ? "lobby" : "intro", bonus: state.bonus, missions: state.missions }))
     );
   }
+
+  // ── Lobby ("Under construction") ───────────────────────────
+  function renderLobby() {
+    const s = story();
+    app.innerHTML = `
+      <section class="screen lobby">
+        <p class="lobby-icon" id="lobby-icon" aria-hidden="true">🚧</p>
+        <p class="kicker">Hi ${esc(s.name)}!</p>
+        <h1 class="title">Under construction</h1>
+        <p class="lobby-line" id="lobby-line">${LOBBY_LINES[0]}</p>
+        <div class="card lobby-card">
+          <p>You're all set. This screen unlocks by itself the moment the host starts the game, and your phone will buzz.</p>
+          <p class="push-note">Keep the app installed and notifications on. Nothing else to do. Really.</p>
+        </div>
+        ${installSlot()}
+        ${pushSlot()}
+        <p class="lobby-status" id="lobby-status"></p>
+        <button class="text-btn" id="lobby-back">Not ${esc(s.name)}? Pick again</button>
+      </section>`;
+    fillInstall(app.querySelector("[data-install-slot]"));
+    fillPush(app.querySelector("[data-push-slot]"));
+    $("#lobby-back").addEventListener("click", () => {
+      if (confirm("Go back and choose your name again?")) { state = { ...fresh(), bonus: state.bonus, missions: state.missions }; save(); render(); }
+    });
+    // Emergency exit for the host (e.g. the server is down): tap the hard hat 7 times.
+    let taps = 0;
+    $("#lobby-icon").addEventListener("click", () => { if (++taps >= 7) set({ phase: "intro" }); });
+    let li = 0, fails = 0;
+    lobbyL = setInterval(() => { li = (li + 1) % LOBBY_LINES.length; const el = $("#lobby-line"); if (el) el.textContent = LOBBY_LINES[li]; }, 6000);
+    const check = async () => {
+      try {
+        const r = await fetch(`${PUSH.workerUrl}/game?t=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error("bad status");
+        const j = await r.json();
+        fails = 0;
+        if (state.phase !== "lobby") return;
+        if (j.started) {
+          clearInterval(lobbyT); lobbyT = null;
+          buzz([80, 60, 80, 60, 200]);
+          await flash(`<p class="match-title">It's on! 🎂</p><p class="match-sub">The host has started the game.</p>`, 1600, "boost");
+          set({ phase: "intro" });
+          window.scrollTo({ top: 0 });
+        }
+      } catch (_) {
+        const st = $("#lobby-status");
+        if (++fails >= 3 && st) st.textContent = "Can't reach the server right now. Check your connection — we keep trying.";
+      }
+    };
+    lobbyCheckNow = check;
+    check();
+    lobbyT = setInterval(check, 5000);
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && state.phase === "lobby" && lobbyCheckNow) lobbyCheckNow(); });
 
   function renderIntro() {
     const s = story();
@@ -286,15 +342,25 @@
         <p class="kicker">Happy birthday, ${s.name}</p>
         <h1 class="title">${s.title}</h1>
         <div class="card story">${paras(s.intro)}</div>
+        ${s.firstClue ? `
+        <article class="card riddle first-clue">
+          <p class="card-label">Your first lead — where to go</p>
+          <p class="clue-from">${s.firstClue.label}</p>
+          ${paras(s.firstClue.text)}
+          ${introHint
+            ? `<p class="hint"><b>Hint:</b> ${s.firstClue.hint}</p><a class="btn ghost" href="${mapsUrl(first)}" target="_blank" rel="noopener">Open in Maps</a>`
+            : `<button class="btn ghost" id="introhint">💡 Need a hint?</button>`}
+        </article>` : ""}
         <div class="card how">
           <h2>How it works</h2>
           <ol>${steps.map((t) => `<li>${t}</li>`).join("")}</ol>
         </div>
         ${pushSlot()}
-        <p class="start-note">Sit down at ${stopInfo(first) ? `<b>${stopInfo(first).venue}</b> (<b>${label(first)}</b>, ca. ${stopInfo(first).time})` : `<b>${label(first)}</b>`}, get your first drink — then press the button. The quest starts as soon as you do.</p>
+        <p class="start-note">Found the place? Sit down, get your first drink — then press the button. The quest starts as soon as you do.</p>
         <button class="btn primary big" id="start">Start the quest 🍻</button>
       </section>`;
     fillPush(app.querySelector("[data-push-slot]"));
+    $("#introhint")?.addEventListener("click", () => { introHint = true; render(); });
     $("#start").addEventListener("click", () => {
       set({ phase: "clue", step: 0, ...stepReset() });
       announceItem();
@@ -962,6 +1028,9 @@
   function render() {
     if (tick) { clearInterval(tick); tick = null; }
     if (pollT) { clearInterval(pollT); pollT = null; }
+    if (lobbyT) { clearInterval(lobbyT); lobbyT = null; }
+    if (lobbyL) { clearInterval(lobbyL); lobbyL = null; }
+    lobbyCheckNow = null;
     if (!state.char) state.phase = "pick";
     renderChrome();
     const b = state.bonus;
@@ -969,7 +1038,7 @@
       renderChallenge(b.key, "surprise");
       return;
     }
-    ({ pick: renderPick, intro: renderIntro, clue: renderClue, travel: renderTravel, done: renderDone }[state.phase] || renderPick)();
+    ({ pick: renderPick, lobby: renderLobby, intro: renderIntro, clue: renderClue, travel: renderTravel, done: renderDone }[state.phase] || renderPick)();
   }
 
   render();

@@ -61,6 +61,12 @@ At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's r
 
 **Sara's challenges** (earn 🔖 bookmarks, done before the shop; none at stop I, the intro): events — pop quiz @IX · dramatic reading @II · name that first line @III · menu poetry @VIII · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — Herbert impression @VI · one word each @VIII · Herbert's nap @III · silence in the library @XIV · book swap @V. Sara's stops never coincide with Sarah's intermissions.
 
+## Game day (host)
+
+1. Both girls install the app and choose their name. They only see "Under construction" until you start.
+2. In `admin.html`: enter the PIN, check both phones are registered, press **Reset all progress + back to the lobby**.
+3. When everyone is ready, press **🚀 Start the game**. Both phones get a notification; each girl reads her story and a first clue to the meeting point (Auer, Schmidtgasse, Innere Stadt). At Auer they press **Start the quest**.
+
 ## Spending points, and moving on together
 
 Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sips of the current stop (2), make someone else do a challenge for you (3), Sara can have the real Bookbazaar listing marked (2). Only when **both** phones have solved the district (correct guess) does the next-stop screen appear; the host can release a stuck stop in `admin.html` → "Game sync".
