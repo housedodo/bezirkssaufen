@@ -68,7 +68,7 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   transition: background-color .4s ease, color .4s ease;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 body[data-theme="ice"] {
   background:
@@ -462,24 +462,20 @@ body[data-theme="dating"] .j-note { text-transform: none; letter-spacing: 0; }
 }
 .profile.swipe-left { transform: translateX(-120%) rotate(-14deg); opacity: 0; }
 .profile.swipe-right { transform: translateX(120%) rotate(14deg); opacity: 0; }
-.profile-photo { position: relative; aspect-ratio: 358 / 440; background: #cfd8e6; }
-.profile-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
-.profile-band {
-  position: absolute; left: 12px; right: 12px; bottom: 12px;
-  padding: 12px 14px; border-radius: 18px;
-  background: rgba(18, 21, 44, .8); color: #ffffff;
-  display: flex; flex-direction: column; gap: 6px;
-}
+.profile-photo { aspect-ratio: 716 / 983; background: #cfd8e6; }
+.profile-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-info { padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
 .profile-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.profile-name { font-size: 28px; font-weight: 800; line-height: 1; }
-.profile-loc { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.profile-name { font-size: 28px; font-weight: 800; line-height: 1; color: var(--text); }
+.profile-loc { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; white-space: nowrap; color: var(--muted); }
 .profile-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .18); }
-.tag-main { background: var(--accent); }
-.profile-bio { margin: 0; padding: 14px 18px 16px; font-size: 15.5px; line-height: 1.45; color: #3a3f5c; }
+.tag { font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: #e3eefb; color: #1b3f73; }
+.tag-main { background: #ffe1e4; color: #b3192c; }
+.profile-bio { margin: 2px 0 0; font-size: 15.5px; line-height: 1.45; color: #3a3f5c; }
 .locked { text-align: center; color: var(--muted); font-size: 14px; margin: 14px 0 0; }
-.pass-line { text-align: center; color: var(--accent); font-weight: 600; margin: 6px 0 0; }
-.swipe-btns { display: flex; justify-content: center; align-items: center; gap: 36px; margin: 16px 0 8px; }
+.pass-line { color: var(--accent); font-weight: 600; margin: -4px 0 12px; }
+.swipe-btns { position: sticky; bottom: calc(14px + var(--safe-bottom)); z-index: 5; display: flex; justify-content: center; align-items: center; gap: 36px; margin: 16px 0 8px; pointer-events: none; }
+.swipe-btns .round { pointer-events: auto; }
 .round { border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; transition: transform .12s ease; }
 .round:active { transform: scale(.92); }
 .round.pass { width: 64px; height: 64px; background: #ffffff; color: #5a6080; box-shadow: 0 10px 24px -12px rgba(27, 31, 59, .5); }
@@ -488,7 +484,7 @@ body[data-theme="dating"] .j-note { text-transform: none; letter-spacing: 0; }
 /* Matched / message view */
 .chat { background: #ffffff; border-radius: 24px; padding: 16px; margin-bottom: 14px; box-shadow: 0 14px 34px -24px rgba(27, 31, 59, .45); }
 .matched { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.matched-photo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: top; flex: none; }
+.matched-photo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex: none; }
 .avatar { width: 52px; height: 52px; border-radius: 50%; background: #ffe1e4; display: grid; place-items: center; font-size: 26px; flex: none; }
 .matched-main { display: flex; flex-direction: column; min-width: 0; }
 .matched-name { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
@@ -511,7 +507,11 @@ body[data-theme="dating"] .j-note { text-transform: none; letter-spacing: 0; }
 .match-overlay.show { opacity: 1; }
 .match-inner { text-align: center; display: grid; justify-items: center; gap: 16px; }
 .match-title { font-family: "Outfit", sans-serif; font-size: 44px; font-weight: 800; letter-spacing: -0.02em; margin: 0; transform: rotate(-4deg); }
-.match-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; object-position: top; border: 5px solid #ffffff; }
+.match-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid #ffffff; }
 .match-sub { font-size: 17px; font-weight: 600; margin: 0; max-width: 18em; }
 
-.j-photo { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; flex: none; }
+.j-photo { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
+
+/* In the dating app the swipe buttons live at the bottom: show toasts at the top instead */
+body[data-theme="dating"] .toast { bottom: auto; top: calc(78px + var(--safe-top)); transform: translate(-50%, -20px); }
+body[data-theme="dating"] .toast.show { transform: translate(-50%, 0); }

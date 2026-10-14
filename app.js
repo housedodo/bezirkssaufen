@@ -234,18 +234,18 @@
       <article class="profile" id="profile">
         <div class="profile-photo">
           <img src="${p.photo}" alt="${esc(p.name)}, ${p.age}, hockey player #${p.number}">
-          <div class="profile-band">
-            <div class="profile-row">
-              <span class="profile-name">${esc(p.name)}, ${p.age}</span>
-              <span class="profile-loc">${ICON_PIN} ${DISTRICTS[d].name}</span>
-            </div>
-            <div class="profile-tags">
-              <span class="tag tag-main">#${p.number} · ${esc(p.position)}</span>
-              ${p.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
-            </div>
-          </div>
         </div>
-        <p class="profile-bio">${p.bio}</p>
+        <div class="profile-info">
+          <div class="profile-row">
+            <span class="profile-name">${esc(p.name)}, ${p.age}</span>
+            <span class="profile-loc">${ICON_PIN} ${DISTRICTS[d].name}</span>
+          </div>
+          <div class="profile-tags">
+            <span class="tag tag-main">#${p.number} · ${esc(p.position)}</span>
+            ${p.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
+          </div>
+          <p class="profile-bio">${p.bio}</p>
+        </div>
       </article>`;
   }
 
@@ -259,10 +259,9 @@
     if (p && !state.liked) {
       app.innerHTML = `
         <section class="screen clue dating">
-          <p class="match-kicker"><span class="dot"></span> New match nearby · ${DISTRICTS[d].name}</p>
-          ${profileCard(p, d)}
-          <p class="locked">Like him to see where Jakob went next.</p>
+          <p class="match-kicker"><span class="dot"></span> New match nearby · ${DISTRICTS[d].name} · like him to see where Jakob went</p>
           ${state.passes ? `<p class="pass-line">${PASS_LINES[Math.min(state.passes, PASS_LINES.length - 1)]}</p>` : ""}
+          ${profileCard(p, d)}
           <div class="swipe-btns">
             <button class="round pass" id="pass" aria-label="Pass">${ICON_X}</button>
             <button class="round like" id="like" aria-label="Like">${ICON_HEART}</button>
@@ -284,7 +283,7 @@
     // 2) Liked teammate, or a regular message from someone in the district.
     const header = p
       ? `<div class="matched">
-           <img src="${p.photo}" alt="" class="matched-photo">
+           <img src="${p.face || p.photo}" alt="" class="matched-photo">
            <div class="matched-main">
              <span class="matched-name">${esc(p.name)} <span class="badge">Matched</span></span>
              <span class="matched-sub">#${p.number} · ${esc(p.position)} · ${DISTRICTS[d].name}</span>
@@ -320,7 +319,7 @@
     o.innerHTML = `
       <div class="match-inner">
         <p class="match-title">It's a match!</p>
-        <img src="${p.photo}" alt="" class="match-photo">
+        <img src="${p.face || p.photo}" alt="" class="match-photo">
         <p class="match-sub">${esc(p.name)} liked you back. He has something to tell you…</p>
       </div>`;
     document.body.appendChild(o);
@@ -438,7 +437,7 @@
           const log = state.log[i];
           const note = log ? (log.gaveUp ? "gave up" : log.wrong === 0 ? "first try" : `${log.wrong} wrong`) : "here now";
           const icon = st.profile
-            ? `<img class="j-photo" src="${st.profile.photo}" alt="">`
+            ? `<img class="j-photo" src="${st.profile.face || st.profile.photo}" alt="">`
             : `<span class="j-icon">${st.item.icon}</span>`;
           const sub = st.profile ? `${esc(st.profile.name)} #${st.profile.number} · ${st.item.name}` : st.item.name;
           return `<li>
