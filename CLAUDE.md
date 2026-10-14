@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Sara's book-themed challenges (10) | `story.js` (end: `SARA_CHALLENGES`), `app.js` (challenge engine, Sara clue flow), `styles.css`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
