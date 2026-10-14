@@ -276,6 +276,9 @@ cache name), so you can check what a phone runs. If a phone still shows old beha
 reopen it online; as a last resort remove the home-screen icon and add it again. A phone that runs a version *before*
 v29 only gets this self-update after one manual full restart.
 
+### Coverage check: a person and a book in every district (checked 2026-10-14)
+Every one of the 17 districts has an **encounter** in both stories. **Sarah:** 10 districts have a teammate profile + chat (I Matze, VI Elias, VII Tomasz, VIII Felix, X Marcus, III Luca, XII Jonas, XIV Nico, XVII Samuel, V Dragan); the other 7 have a chat message from a local person (IX astronomer, II cello student, XI sacristan, XIII hut keeper, XV police officer, XVI bartender, IV Lend: Jakob himself, the finale). **Sara:** every district has an encounter + souvenir page; the 16 districts with a riddle (all except IV Lend, the finale) also have a disguised **real book** in `SARA_SHOP.real` (I Crumbs & Consequences, VI Last Tram to Ruin, VII Two Copies One Broken Heart, VIII Dead Air Hot Mic, IX Written in the Stars, II A Song for a Sonnet, X Uphill Both Ways, III Overdue for a Miracle, XI Candlelit Sins, XII The Hound and the Hiss, XIII Ghost Stories for Greedy Lovers, XIV Parking Violations of the Heart, XV Whodunit? Him., XVI Half a Glass of Obsession, XVII Wrong Pockets, V Dictionary of Desire). Lend has no shop: the book itself is handed over in the finale. Keep this true when adding or moving districts.
+
 ### Gotchas we already hit
 - `.screen` has a fade-in animation; a redraw of the same screen must not replay it (flicker) → `markRedraw()` adds `.no-anim` when phase/step/screen class are unchanged.
 - Anything that slides off-screen widened the page and broke centred overlays → `html`/`body`/`main` use
@@ -365,7 +368,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
+- 2026-10-14 · this commit · Dominik (Claude) · Handbook: new "Coverage check" section (every district has a person/encounter, and a real book for Sara in all 16 riddle districts).
+- 2026-10-14 · `previous` · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
 - 2026-10-14 · `c9514e2` · Dominik (Claude) · Sara: two new ⚡ intermissions where she had nothing: "Locker room speech" @X Ries and "One-line fanfic" @XVII Puntigam (+1 🔖 each); stops VII and XII are still empty (host will add). Cache v37.
 - 2026-10-14 · `0583eea` · Dominik (Claude) · Sarah's chat shortened: no question, no fun fact, only one red flag; the opener is a random hi/hello (some cool, some cringe, 3 per guy); cache v36.
 - 2026-10-14 · `f3881ee` · Dominik (Claude) · Sarah's chat: every guy first asks a variation of "do you want to hear a fun fact?" (she answers, then the fact), and his texts no longer contain any emoji; cache v35.
