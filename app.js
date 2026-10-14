@@ -754,11 +754,15 @@
     // hi → a warm-but-weird question (she answers) → two more texts (she answers each) → ask (she answers) → "doesn't matter, here's what I heard" → his tip
     const script = [
       ...(c.q ? [{ t: c.hi }, { t: c.q, reply: true }] : [{ t: c.hi, reply: true }]),
+      ...(c.fact ? [{ t: c.fact.offer, reply: true }, { t: c.fact.text }] : []),
       ...(c.flags || []).map((t) => ({ t, reply: true })),
       { t: c.ask, reply: true },
       { t: c.reveal },
       { t: p.bio },
     ];
+    // his texts are plain texts: no emoji
+    const noEmoji = (t) => String(t).replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/ {2,}/g, " ").replace(/\s+([?.!,])/g, "$1").trim();
+    script.forEach((e) => { e.t = noEmoji(e.t); });
     const msgs = state.chat;
     const him = msgs.filter((m) => m.from === "him").length;
     const her = msgs.filter((m) => m.from === "her").length;

@@ -955,7 +955,7 @@ Object.entries(SARAH_FLIRT).forEach(([d, f]) => {
 // Two red flags per guy, sent after her first answer and before he asks about the ice hockey guy. Made to be read out loud.
 const SARAH_FLAGS = {
   "1": [
-    "fun fact: I've never lost an argument. I just leave and order another Spritzer.",
+    "I've never lost an argument. I just leave and order another Spritzer.",
     "also my ex and I are “just friends”. she has a key to my flat. and to my dog."
   ],
   "6": [
@@ -1000,7 +1000,7 @@ Object.entries(SARAH_FLAGS).forEach(([d, f]) => { STORIES.sarah.stops[d].profile
 // ─────────────────────── SARAH: a genuine-but-weird question before the red flags ───────────────────────
 // Chat order: `hi`, then this question (she answers), then the two red flags, then `ask` (she answers), `reveal`, the tip.
 const SARAH_QUESTIONS = {
-  "1": "random question: do you also feel sorry for the last olive at the bottom of the glass? genuinely curious 🫒",
+  "1": "random question: do you also feel sorry for the last olive at the bottom of the glass? genuinely curious",
   "6": "do you think my hair has its own personality? be honest. I've started saying good morning to it.",
   "7": "weird question: when you're sad, what do you do? I talk to my gloves. they listen.",
   "8": "serious question: what does silence sound like to you? I've been trying to record it for weeks.",
@@ -1012,3 +1012,19 @@ const SARAH_QUESTIONS = {
   "5": "what do you miss most from when you were small? me: my grandmother's soup. and my tooth. I miss both."
 };
 Object.entries(SARAH_QUESTIONS).forEach(([d, t]) => { STORIES.sarah.stops[d].profile.chat.q = t; });
+
+// ─────────────────────── SARAH: "do you want to hear a fun fact?" ───────────────────────
+// Chat order: `hi`, question (she answers), `fact.offer` (she answers), `fact.text`, the two texts of SARAH_FLAGS, `ask` ...
+const SARAH_FACTS = {
+  "1": ["do you want to hear a fun fact?", "olives are stone fruits, like cherries. so technically the last olive in the glass is a tiny peach."],
+  "6": ["can I tell you a fun fact?", "a day on Venus is longer than its year. so Venus is always running late. I relate."],
+  "7": ["wanna hear a fun fact?", "an octopus has three hearts and still gets ghosted. I feel that."],
+  "8": ["quick, do you want a fun fact?", "bananas are berries but strawberries aren't. nature is lying to us."],
+  "10": ["fun fact incoming. are you in?", "honey never spoils. they found edible honey in ancient egyptian tombs. that's my relationship goal."],
+  "3": ["I have a fun fact. do you want it?", "wombat poop is cube shaped. I think about this more than I should."],
+  "12": ["do you want to hear a fun fact? it's a good one", "sloths can hold their breath for up to forty minutes, longer than dolphins. respect."],
+  "14": ["may I share a fun fact with you?", "a group of flamingos is called a flamboyance. I'm just saying I'd fit in."],
+  "17": ["do you want a fun fact or are you more of a silence person?", "scotland's national animal is the unicorn. a creature that doesn't exist, and it still loses less than I do at pool."],
+  "5": ["ok fun fact time. yes or no?", "cows have best friends and get stressed when they're separated. I'd like to be someone's cow."]
+};
+Object.entries(SARAH_FACTS).forEach(([d, f]) => { STORIES.sarah.stops[d].profile.chat.fact = { offer: f[0], text: f[1] }; });
