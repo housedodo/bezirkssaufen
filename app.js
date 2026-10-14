@@ -46,8 +46,14 @@
   const label = (id) => `${DISTRICTS[id].roman} · ${DISTRICTS[id].name}`;
   const paras = (text) =>
     text.trim().split(/\n\s*\n/).map((p) => `<p>${p.trim()}</p>`).join("");
-  const mapsUrl = (id) =>
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Graz " + DISTRICTS[id].name)}`;
+  const stopInfo = (id) => (typeof STOPS !== "undefined" && STOPS[id]) || null;
+  const mapsUrl = (id) => {
+    const s = stopInfo(id);
+    const q = s && s.venue && !/wherever/i.test(s.venue)
+      ? `${s.venue}, ${DISTRICTS[id].name}, Graz`
+      : `Graz ${DISTRICTS[id].name}`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  };
   const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (_) {} };
 
   function toast(html, ms = 2600) {
@@ -126,7 +132,7 @@
             <li>Go there. Have a drink. Tap “we've arrived”.</li>
           </ol>
         </div>
-        <p class="start-note">You start where you are: <b>${label(first)}</b>.</p>
+        <p class="start-note">You start where you are: <b>${label(first)}</b>${stopInfo(first) ? ` — ${stopInfo(first).venue}, ca. ${stopInfo(first).time}` : ""}.</p>
         <button class="btn primary big" id="start">We're in the ${DISTRICTS[first].name} 🍻</button>
       </section>`;
     $("#start").addEventListener("click", () => {
@@ -221,9 +227,15 @@
           <span class="dest-roman">${DISTRICTS[n].roman}</span>
           <span class="dest-name">${DISTRICTS[n].name}</span>
         </div>
-        <p class="travel-note">Finish your drink here in ${DISTRICTS[here()].name}, then head over. Find a bar, get a drink in hand — then tap the button.</p>
+        ${stopInfo(n) ? `
+        <div class="card plan">
+          <div class="plan-row"><span class="plan-k">Bar</span><span class="plan-v"><b>${stopInfo(n).venue}</b></span></div>
+          <div class="plan-row"><span class="plan-k">Planned</span><span class="plan-v">ca. ${stopInfo(n).time}</span></div>
+          <div class="plan-row"><span class="plan-k">Getting there</span><span class="plan-v">${stopInfo(n).how}</span></div>
+        </div>` : ""}
+        <p class="travel-note">Finish your drink here in ${DISTRICTS[here()].name}, then head over. Get a drink in hand — then tap the button.</p>
         <button class="btn primary big" id="arrive">We're in ${DISTRICTS[n].name} 🍻</button>
-        <a class="btn ghost" href="${mapsUrl(n)}" target="_blank" rel="noopener">Show ${DISTRICTS[n].name} on the map</a>
+        <a class="btn ghost" href="${mapsUrl(n)}" target="_blank" rel="noopener">Open in Maps</a>
       </section>`;
     $("#arrive").addEventListener("click", () => {
       const step = state.step + 1;

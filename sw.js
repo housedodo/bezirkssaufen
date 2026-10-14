@@ -1,6 +1,6 @@
 // Offline cache: the whole game works without signal once opened once.
 // Bump VERSION whenever you change story.js or any other file.
-const VERSION = "bezirk-v1";
+const VERSION = "bezirk-v2";
 const CORE = [
   "./",
   "index.html",

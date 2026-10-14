@@ -336,6 +336,13 @@ body[data-theme="paper"] .dest { border-style: double; border-width: 5px; }
 body[data-theme="paper"] .dest-name { font-weight: 600; }
 .travel-note { color: var(--muted); margin: 0 4px 6px; }
 
+/* ── Plan card (bar, time, connection) ─────────────────────── */
+.plan { text-align: left; margin: 2px 0 4px; padding: 14px 16px; display: grid; gap: 8px; }
+.plan-row { display: grid; grid-template-columns: 104px 1fr; gap: 10px; align-items: baseline; }
+.plan-k { font-family: var(--display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+body[data-theme="paper"] .plan-k { font-style: italic; text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 400; }
+.plan-v { font-size: 15.5px; line-height: 1.35; }
+
 /* ── Finale ────────────────────────────────────────────────── */
 .finale p { font-size: 18px; }
 .big-item { font-size: 18px; color: var(--text); font-weight: 600; }
