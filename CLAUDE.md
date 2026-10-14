@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v37) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v38) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -365,7 +365,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sara: two new ⚡ intermissions where she had nothing: "Locker room speech" @X Ries and "One-line fanfic" @XVII Puntigam (+1 🔖 each); stops VII and XII are still empty (host will add). Cache v37.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
+- 2026-10-14 · `c9514e2` · Dominik (Claude) · Sara: two new ⚡ intermissions where she had nothing: "Locker room speech" @X Ries and "One-line fanfic" @XVII Puntigam (+1 🔖 each); stops VII and XII are still empty (host will add). Cache v37.
 - 2026-10-14 · `0583eea` · Dominik (Claude) · Sarah's chat shortened: no question, no fun fact, only one red flag; the opener is a random hi/hello (some cool, some cringe, 3 per guy); cache v36.
 - 2026-10-14 · `f3881ee` · Dominik (Claude) · Sarah's chat: every guy first asks a variation of "do you want to hear a fun fact?" (she answers, then the fact), and his texts no longer contain any emoji; cache v35.
 - 2026-10-14 · `8ee8d35` · Dominik (Claude) · Sarah's chat feels like texting a real person: the red-flag texts are no longer labelled/pink, and she gets to answer after each one (hi → question → answer → text → answer → text → answer → hockey question → answer → tip); cache v34.
