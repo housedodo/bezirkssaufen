@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | "Adventure day" framing (birthdays already happened), full two-player playthrough + fixes | `story.js`, `app.js`, `worker/worker.js` (start notification text), `admin.html`, `README.md`, `manifest`, `index.html` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
