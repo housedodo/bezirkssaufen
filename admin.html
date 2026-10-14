@@ -113,6 +113,46 @@
     .warnbox { margin-top:14px; border-color:rgba(255,209,102,.5); background:rgba(255,209,102,.08); font-size:14.5px; }
     .warnbox b { color:var(--warn); }
     .warnbox ol { margin:6px 0 0; padding-left:20px; }
+    /* ── control-room look ── */
+    :root { --bg:#0b0e17; --card:#151a28; --card2:#1d2336; --line:#252c42; --sarah:#ff4f8b; --sara:#e0a040; --both:#8a7bff; }
+    body { font-family:Outfit,system-ui,-apple-system,sans-serif; }
+    .top { background:rgba(11,14,23,.92); }
+    .top h1 { font:800 20px "Barlow Condensed",system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+    .top h1 span { color:var(--accent); }
+    .conn.live { color:var(--ok); } .dot.on { box-shadow:0 0 10px var(--ok); }
+    .game { background:linear-gradient(160deg,#1a2138,#12172a); border-radius:20px; padding:16px; gap:14px; }
+    .game { flex-wrap:wrap; }
+    #startgame { flex:1 0 100%; }
+    .game .clock { white-space:nowrap; font:800 44px/1 "Barlow Condensed",system-ui,sans-serif; letter-spacing:.02em; }
+    .game .state { flex:1; min-width:0; }
+    .game .state b { font-size:15px; }
+    .ring { width:68px; height:68px; border-radius:50%; flex:none; display:grid; place-items:center; background:conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); }
+    .ring span { width:54px; height:54px; border-radius:50%; background:#12172a; display:grid; place-items:center; font-weight:800; font-size:15px; }
+    .pl { border-radius:18px; position:relative; overflow:hidden; border-top:0; padding-top:15px; }
+    .pl::before { content:""; position:absolute; inset:0 0 auto 0; height:3px; background:var(--c); }
+    .pl-stop b { font:800 22px "Barlow Condensed",system-ui,sans-serif; letter-spacing:.02em; }
+    .release { background:#2a2410; border-color:#6b5a1a; color:var(--warn); }
+    .who { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:5px; gap:6px; top:calc(52px + env(safe-area-inset-top) + 4px); }
+    .who button { background:transparent; border:0; color:var(--muted); border-radius:12px; font-weight:700; }
+    .who button.on { box-shadow:0 6px 18px rgba(0,0,0,.35); }
+    .who button[data-to=sarah].on { box-shadow:0 6px 18px rgba(255,79,139,.35); }
+    .mission { grid-template-columns:46px 1fr auto; border-radius:16px; border-left-width:1px; border-left-color:var(--line); }
+    .mission .ic { font-size:26px; background:rgba(255,255,255,.06); border-radius:12px; height:46px; display:grid; place-items:center; padding:0; }
+    .mission .go { background:var(--c); color:#fff; border-radius:12px; padding:11px 14px; }
+    .mission.sent .go { background:var(--card2); color:var(--muted); }
+    .mission.due { border-color:rgba(255,179,71,.7); box-shadow:0 0 0 1px rgba(255,179,71,.25); }
+    .sec { margin:16px 2px 0; font:700 11px Outfit,sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+    .sec + .list { margin-top:8px; }
+    /* route timeline */
+    .tl { position:relative; padding:4px 0 4px 6px; }
+    .tl::before { content:""; position:absolute; left:15px; top:14px; bottom:14px; width:4px; border-radius:4px; background:linear-gradient(var(--accent) 0 var(--tp,0%), var(--line) 0); }
+    .tlrow { display:grid; grid-template-columns:22px 1fr auto; align-items:center; gap:8px; height:30px; font-size:14px; color:var(--muted); position:relative; }
+    .tlrow i { width:12px; height:12px; border-radius:50%; background:var(--line); margin-left:4px; position:relative; z-index:1; }
+    .tlrow.done { color:#c9cfe0; } .tlrow.done i { background:var(--accent); }
+    .tlrow.now { color:#fff; font-weight:700; } .tlrow.now i { background:#fff; box-shadow:0 0 0 4px rgba(255,255,255,.2); }
+    .tlrow .tm { font-size:12px; }
+    .pin { font-size:11px; font-weight:800; border-radius:10px; padding:1px 7px; color:#fff; margin-left:4px; }
+    .pin.sarah { background:var(--sarah); } .pin.sara { background:var(--sara); }
     @media (max-width:370px) { .players { grid-template-columns:1fr; } }
   </style>
 </head>
@@ -135,7 +175,8 @@
 
     <!-- ── live overview ── -->
     <div class="card game" id="gamebox">
-      <div class="state" id="gamestatus"><b>Game not started</b><span class="muted">The girls see “Under construction”.</span></div>
+      <div class="state"><div class="clock" id="clock">--:--</div><div id="gamestatus"><b>Game not started</b><span class="muted">The girls see “Under construction”.</span></div></div>
+      <div class="ring" id="ring" style="--p:0"><span id="ringtxt">0%</span></div>
       <button id="startgame">🚀 Start</button>
     </div>
     <p class="muted" id="status" style="font-size:13px;margin:8px 2px 0">Registered phones: …</p>
@@ -153,6 +194,11 @@
     <div id="presets"></div>
 
     <!-- ── more ── -->
+    <details class="fold" id="tlfold">
+      <summary>🗺️ Route timeline <span class="muted" id="tlsum" style="font-weight:400;font-size:13px"></span></summary>
+      <div class="inner"><div class="tl" id="tl"></div></div>
+    </details>
+
     <details class="fold">
       <summary>✏️ Write your own message</summary>
       <div class="inner">
@@ -186,7 +232,7 @@
     const $ = (s) => document.querySelector(s);
     const cfg = self.PUSH || {};
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-    const hhmm = (t = Date.now()) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const hhmm = (t = Date.now()) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
     const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
     let to = null;
     let live = { devices: { sarah: 0, sara: 0 }, started: false, startedAt: null, steps: {}, ok: false };
@@ -272,6 +318,8 @@
       $("#gamestatus").innerHTML = live.started
         ? `<b class="good">✓ Game started at ${hhmm(live.startedAt)}</b><span class="muted">Stop sync and missions are live.</span>`
         : `<b>Game not started</b><span class="muted">The girls see “Under construction”. Press Start when everyone is at Auer.</span>`;
+      drawClock();
+      drawTimeline();
       $("#status").innerHTML = `Registered phones: Sarah <b>${live.devices.sarah}</b> · Sara <b>${live.devices.sara}</b>`;
       $("#players").innerHTML = ["sarah", "sara"].map((w) => {
         const n = live.devices[w] || 0;
@@ -288,6 +336,29 @@
       $("#players").querySelectorAll("[data-release]").forEach((b) => b.addEventListener("click", () => release(Number(b.dataset.release))));
       drawSync();
       for (const t of ["sarah", "sara", "both"]) $("#cnt-" + t).textContent = `${sentCount(t)}/${missionKeys(t).length} sent`;
+    }
+    function progressOf() {
+      const a = whereIs("sarah").at, b = whereIs("sara").at;
+      return { a, b, min: Math.min(a, b), max: Math.max(a, b) };
+    }
+    function drawClock() {
+      $("#clock").textContent = hhmm();
+      const pr = progressOf();
+      const pct = live.started ? Math.round(pr.min / (ROUTE.length - 1) * 100) : 0;
+      $("#ring").style.setProperty("--p", pct);
+      $("#ringtxt").textContent = pct + "%";
+    }
+    setInterval(drawClock, 20000);
+    function drawTimeline() {
+      const pr = progressOf();
+      const rows = ROUTE.map((d, i) => {
+        const cls = !live.started ? "" : i < pr.min ? "done" : (i === pr.min || i === pr.max) ? "now" : i < pr.max ? "done" : "";
+        const pins = ["sarah", "sara"].filter((w) => live.started && progressOf()[w === "sarah" ? "a" : "b"] === i).map((w) => `<span class="pin ${w}">${w === "sarah" ? "Sarah" : "Sara"}</span>`).join("");
+        return `<div class="tlrow ${cls}"><i></i><span>${DISTRICTS[d].roman} ${DISTRICTS[d].name}${pins}</span><span class="tm">${(STOPS[d] && STOPS[d].time) || ""}</span></div>`;
+      }).join("");
+      $("#tl").innerHTML = rows;
+      $("#tl").style.setProperty("--tp", live.started ? Math.round(pr.max / (ROUTE.length - 1) * 100) + "%" : "0%");
+      $("#tlsum").textContent = live.started ? `· Sarah ${pr.a + 1}/${ROUTE.length}, Sara ${pr.b + 1}/${ROUTE.length}` : "";
     }
     function releaseRow() {
       const stuck = Object.keys(live.steps).map(Number).filter((n) => { const p = live.steps[n]; return (p.sarah || p.sara) && !(p.sarah && p.sara) && !p.released; }).sort((a, b) => b - a)[0];
@@ -432,8 +503,11 @@
       };
       const wasOpen = box.querySelector("details.done-box")?.open;
       if (wasOpen != null) doneOpen = wasOpen;
+      const dueNow = open.filter((x) => x.due), later = open.filter((x) => !x.due);
       box.innerHTML = `
-        <div class="list">${open.length ? open.map(card).join("") : `<p class="empty">🎉 Everything for ${to === "both" ? "both" : name[to]} has been sent.</p>`}</div>
+        ${dueNow.length ? `<p class="sec">⭐ Fits now · ${dueNow.length}</p><div class="list">${dueNow.map(card).join("")}</div>` : ""}
+        ${later.length ? `<p class="sec">${dueNow.length ? "Later" : "Not sent yet"} · ${later.length}</p><div class="list">${later.map(card).join("")}</div>` : ""}
+        ${open.length ? "" : `<p class="empty">🎉 Everything for ${to === "both" ? "both" : name[to]} has been sent.</p>`}
         ${done.length ? `<details class="done-box"${doneOpen ? " open" : ""}><summary>✓ Done (${done.length})</summary><div class="list">${done.map(card).join("")}</div></details>` : ""}`;
       $("#mcount").textContent = `${done.length}/${items.length} sent to ${to === "both" ? "both" : name[to]}`;
       box.querySelectorAll(".mission").forEach((b) => b.addEventListener("click", async () => {

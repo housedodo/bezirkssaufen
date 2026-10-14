@@ -264,23 +264,27 @@
     const card = (key) => {
       const s = STORIES[key];
       return `
-        <button class="pick-card pick-${s.theme}" data-pick="${key}">
-          <span class="pick-art" aria-hidden="true">${s.theme === "paper" ? "📚" : "🏒"}</span>
-          <span class="pick-name">${s.name}</span>
-          <span class="pick-title">${s.title}</span>
-          <span class="pick-tag">${s.tagline}</span>
-          <span class="pick-go">This is me →</span>
+        <button class="st-card st-${s.theme}" data-pick="${key}">
+          <span class="st-em" aria-hidden="true">${s.theme === "paper" ? "📚" : "🏒"}</span>
+          <span class="st-name">${s.name}</span>
+          <span class="st-title">${s.title}</span>
+          <span class="st-tag">${s.tagline}</span>
+          <span class="st-go">This is me →</span>
         </button>`;
     };
     app.innerHTML = `
-      <section class="screen pick">
-        <div class="pick-head">
-          <p class="kicker">Enemies to lovers · 17 districts · 17 drinks</p>
-          <h1 class="logo">Heated<span class="logo-sub">Pages</span></h1>
-          <p class="lede">Two belated birthdays. Two stories. One adventure day.<br>Only one bed (at the end). Choose your name — and no peeking at the other phone.</p>
+      <section class="screen pick st">
+        <div class="st-hero">
+          <div class="st-half st-ice"></div><div class="st-half st-fire"></div>
+          <svg class="st-crack" viewBox="0 0 390 430" preserveAspectRatio="none" aria-hidden="true"><polyline points="226,0 214,70 236,130 205,200 224,260 190,330 166,430" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2.5"/></svg>
+          <span class="st-stick st-s1" aria-hidden="true">🏒</span><span class="st-stick st-s2" aria-hidden="true">📖</span>
+          <img class="st-emblem" src="icons/icon-192.png" alt="">
+          <p class="st-kicker">Enemies to lovers · 17 districts · 17 drinks</p>
+          <h1 class="st-logo"><b>Heated</b><span>Pages</span></h1>
         </div>
-        <div class="pick-grid">${card("sarah")}${card("sara")}</div>
-        <p class="fineprint">Progress is saved on this phone. Add it to your home screen so it works like an app.</p>
+        <p class="st-lede">Two belated birthdays. Two stories.<br>One adventure day. Choose your side.</p>
+        <div class="st-pair">${card("sarah")}${card("sara")}</div>
+        <p class="st-fine">No peeking at the other phone. Progress is saved on this phone, so add it to your home screen.</p>
         ${installSlot()}
       </section>`;
     fillInstall(app.querySelector("[data-install-slot]"));
