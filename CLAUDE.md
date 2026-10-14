@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Short read-aloud intro (less text at the start), Nico's "ex-#99 crying on Insta" remark | `story.js` (intros, `firstClue`, `SARAH_FLIRT[14]`), `app.js` (intro, lobby card), `styles.css`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
