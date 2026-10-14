@@ -632,3 +632,8 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .deleg { background: var(--surface); border: 1.5px dashed var(--accent); border-radius: 18px; padding: 16px; text-align: center; }
 .deleg-title { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
 .deleg p { margin: 0 0 10px; }
+
+/* install card */
+.install-card { margin: 14px 0; }
+.install-card p { margin: 0 0 6px; }
+.install-card .push-note { font-size: 14.5px; color: var(--muted); line-height: 1.45; }

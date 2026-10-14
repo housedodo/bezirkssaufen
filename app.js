@@ -215,6 +215,33 @@
   }
   const pushSlot = () => (pushCfg() && state.char ? `<div class="card push-card" data-push-slot></div>` : "");
 
+  // ── Install as an app (Android Chrome: real install prompt; iPhone: Share → Add to Home Screen) ──
+  let installEvt = null;
+  const isAndroid = () => /Android/i.test(navigator.userAgent);
+  const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const installSlot = () => `<div class="card install-card" data-install-slot hidden></div>`;
+  function fillInstall(el) {
+    if (!el) return;
+    if (isStandalone() || (!installEvt && !isAndroid() && !isIOS())) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = installEvt
+      ? `<p><b>📲 Install the app</b></p><p class="push-note">Opens full screen like a real app and keeps working offline.</p><button class="btn primary" data-install>Install</button>`
+      : isIOS()
+        ? `<p><b>📲 Install the app</b></p><p class="push-note">Tap <b>Share</b> → <b>Add to Home Screen</b>, then open it from the new icon.</p>`
+        : `<p><b>📲 Install the app</b></p><p class="push-note">Open the browser menu <b>⋮</b> and choose <b>Install app</b> (or <b>Add to Home screen</b>), then open it from the new icon.</p>`;
+    el.querySelector("[data-install]")?.addEventListener("click", async () => {
+      const ev = installEvt;
+      if (!ev) return;
+      ev.prompt();
+      try { await ev.userChoice; } catch (_) {}
+      installEvt = null;
+      document.querySelectorAll("[data-install-slot]").forEach(fillInstall);
+    });
+  }
+  const fillInstallSlots = () => document.querySelectorAll("[data-install-slot]").forEach(fillInstall);
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; fillInstallSlots(); });
+  window.addEventListener("appinstalled", () => { installEvt = null; fillInstallSlots(); });
+
   // ── Screens ────────────────────────────────────────────────
   function renderPick() {
     const card = (key) => {
@@ -237,7 +264,9 @@
         </div>
         <div class="pick-grid">${card("sarah")}${card("sara")}</div>
         <p class="fineprint">Progress is saved on this phone. Add it to your home screen so it works like an app.</p>
+        ${installSlot()}
       </section>`;
+    fillInstall(app.querySelector("[data-install-slot]"));
     app.querySelectorAll("[data-pick]").forEach((b) =>
       b.addEventListener("click", () => set({ ...fresh(), char: b.dataset.pick, phase: "intro", bonus: state.bonus, missions: state.missions }))
     );
@@ -902,6 +931,8 @@
             <span class="j-note">${note}</span>
           </li>`;
         }).join("")}</ol>`;
+    $("#drawer-body").insertAdjacentHTML("beforeend", installSlot());
+    fillInstall($("#drawer-body").querySelector("[data-install-slot]"));
     if (pushCfg()) {
       $("#drawer-body").insertAdjacentHTML("beforeend", pushSlot());
       fillPush($("#drawer-body").querySelector("[data-push-slot]"));

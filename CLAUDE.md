@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | In-app "Install app" button (Android) | `app.js`, `styles.css`, `manifest.webmanifest`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -64,6 +64,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 ### Done
 - Installable offline web app (PWA): story picker, intro, clue + district guessing with hints (a district can never be skipped: there is no "just tell us"),
   next-stop screen (bar, planned time, bus/tram leg, Maps link), journal drawer, finale with confetti.
+- **Install card** on the story picker and in the ☰ drawer: Android Chrome gets a real "Install" button (`beforeinstallprompt`), other Android browsers a menu hint, iPhone the Share → Add to Home Screen hint; hidden once installed (standalone) and on desktop.
 - Progress saved per phone in `localStorage` (`bezirkssaufen.v1`); "Start over" in the ☰ journal.
 - Route follows the **JJ Odyssey** plan (Google Sheet "JJ Odyssey"), see [Route](#route).
 - **Sara** (paper theme): full story for all 17 districts (encounter, souvenir page, riddle, hint) plus the
@@ -254,7 +255,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
+- 2026-10-14 · this commit · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
+- 2026-10-14 · earlier commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
 - 2026-10-14 · `847b92a` · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
 - 2026-10-14 · earlier commit · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
