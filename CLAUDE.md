@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Admin page + push notifications (Cloudflare Worker, Web Push) | new `worker/`, `admin.html`, `push-config.js`; `app.js` (push card), `sw.js` (push handler), `styles.css` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
