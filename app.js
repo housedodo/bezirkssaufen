@@ -316,8 +316,7 @@
         <h1 class="title">Under construction</h1>
         <p class="lobby-line" id="lobby-line">${LOBBY_LINES[0]}</p>
         <div class="card lobby-card">
-          <p>You're all set. This screen unlocks by itself the moment the host starts the game, and your phone will buzz.</p>
-          <p class="push-note">Keep the app installed and notifications on. Nothing else to do. Really.</p>
+          <p>You're all set. This unlocks by itself when the host starts the game, and your phone will buzz.</p>
         </div>
         ${installSlot()}
         ${pushSlot()}
@@ -351,6 +350,7 @@
         ${s.app ? `<p class="app-logo">${s.app}</p>` : ""}
         <p class="kicker">Happy birthday, ${s.name}</p>
         <h1 class="title">${s.title}</h1>
+        <p class="read-aloud">📣 Read this out loud to the table</p>
         <div class="card story">${paras(s.intro)}</div>
         ${s.firstClue ? `
         <article class="card riddle first-clue">
@@ -361,15 +361,13 @@
             ? `<p class="hint"><b>Hint:</b> ${s.firstClue.hint}</p><a class="btn ghost" href="${mapsUrl(first)}" target="_blank" rel="noopener">Open in Maps</a>`
             : `<button class="btn ghost" id="introhint">💡 Need a hint?</button>`}
         </article>` : ""}
-        <div class="card how">
-          <h2>How it works</h2>
-          <ol>${steps.map((t) => `<li>${t}</li>`).join("")}</ol>
-        </div>
-        ${pushSlot()}
-        <p class="start-note">Found the place? Sit down, get your first drink — then press the button. The quest starts as soon as you do.</p>
+        <p class="start-note">Found the place? Sit down, get a drink — then press the button.</p>
         <button class="btn primary big" id="start">Start the quest 🍻</button>
+        <details class="how-fold">
+          <summary>How does it work?</summary>
+          <ol>${steps.map((t) => `<li>${t}</li>`).join("")}</ol>
+        </details>
       </section>`;
-    fillPush(app.querySelector("[data-push-slot]"));
     $("#introhint")?.addEventListener("click", () => { introHint = true; render(); });
     $("#start").addEventListener("click", () => {
       set({ phase: "clue", step: 0, ...stepReset() });

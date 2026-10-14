@@ -171,9 +171,7 @@ const STORIES = {
       "No players in a district? You're out of matches: complete a challenge to boost your profile and earn likes ❤️. Some challenges strike without warning.",
       "Read the tip, guess the district. Go there, have a drink, tap “We're in”.",
     ],
-    intro: `Word on the street: <b>Jakob "Iceman" Eisner</b> — defenceman, number 99, the most eligible man in Graz who owns a mouthguard — is out on the town today, from breakfast until whenever.
-
-He never stays anywhere long. But he talks. Teammates, bartenders, a cello student, a police officer: everyone saw him leave, and everyone has an opinion about where he went.
+    intro: `<b>Jakob "Iceman" Eisner</b>, number 99, is out on the town today and nobody can pin him down. His teammates saw him leave every bar, and they all love to talk.
 
 It's your birthday, Sarah. Today you find him.`,
     stops: {
@@ -341,13 +339,9 @@ Your crew has a drink for you. Prost! 🎂`,
     theme: "paper",
     narrator: "Overheard",
     clueLabel: "A note from O.P.",
-    intro: `There is exactly one copy left in the world of <b>"The Library of Herbert and Kafka"</b> — the definitive book about cats, out of print since forever.
+    intro: `There is exactly one copy left of <b>"The Library of Herbert and Kafka"</b>. It belongs to the travelling bookseller <b>Ottilie Pfotenhauer</b> and her cats, <b>Herbert the Gracious</b> and <b>Kafka the Schlimm</b>. She never waits, she only leaves notes.
 
-It belongs to <b>Ottilie Pfotenhauer</b>, a travelling bookseller with a squeaky book cart and two cats: <b>Herbert the Gracious</b> and <b>Kafka the Schlimm</b> (that's German for naughty, and the name fits). She'll sell it to the right person. But she never stays anywhere long, and she leaves notes instead of waiting.
-
-Her cart has an online shop that follows her around: <b>Bookbazaar</b>. It is full of "recommendations for you" — mostly dark romance. Ignore them.
-
-It's your birthday, Sara. Today you get that book. You just have to be on time for once.`,
+It's your birthday, Sara. Today you get that book.`,
     howTo: [
       "In every district, the locals tell you what Ottilie sold them.",
       "Open <b>Bookbazaar</b> and buy the one listing that matches. Wrong order = a dark romance in your haul and penalty sips (1, 2, 3 …).",
@@ -848,12 +842,12 @@ const LOBBY_LINES = [
 const FIRST_HINT = "It's the café-bar Auer in the Schmidtgasse, in the Innere Stadt (the old town). Open it in Maps.";
 STORIES.sarah.firstClue = {
   label: "New message · Jakob “Iceman” Eisner",
-  text: `<i>"You're late. I'm on my first drink in the old town, in the lane where the blacksmiths once worked, a few steps from the main square with the town hall and the Archduke's fountain. The bar is named after a meadow. Find me. Don't be slow."</i>`,
+  text: `<i>"You're late. I'm on my first drink in the old town, in the blacksmiths' lane near the main square with the town hall. The bar is named after a meadow. Find me."</i>`,
   hint: FIRST_HINT,
 };
 STORIES.sara.firstClue = {
   label: "A note from O.P.",
-  text: `<i>"Chapter One is baked, not written. Find the old town's blacksmith lane, a stone's throw from the main square with the town hall and the Archduke fountain. A bakery-bar named after the meadow. Your first page is waiting at the counter."</i>`,
+  text: `<i>"Chapter One is baked, not written. Find the old town's blacksmith lane, near the main square with the town hall. A bakery-bar named after the meadow. Your first page is waiting."</i>`,
   hint: FIRST_HINT,
 };
 
@@ -938,7 +932,7 @@ const SARAH_FLIRT = {
       "He's cropping you out of the group photo. Ten seconds.",
       "Nico: “I will remember this in 4K.”"
     ],
-    "hi": "hey 📸 hold on, great light, don't move",
+    "hi": "hey 📸 don't move, great light. btw did you see the ex-#99 crying on Insta? so cringe 😬",
     "ask": "so are you the one chasing the hockey guy? asking for the caption",
     "reveal": "doesn't matter, I got it all on camera anyway. here's what I filmed:"
   },

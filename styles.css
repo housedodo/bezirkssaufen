@@ -709,3 +709,25 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .passage { margin: 0 0 12px; padding: 14px 16px; background: var(--bg-2); border-left: 4px solid var(--accent); border-radius: 6px; text-align: left; font-style: italic; font-size: 16.5px; line-height: 1.5; }
 .soldout-msg { font-size: 18px; font-weight: 600; margin: 12px 0; line-height: 1.4; }
 .modal-sips { margin: 0 0 14px; font-weight: 700; color: var(--accent); }
+
+/* short intro */
+.read-aloud { margin: 6px 0 -2px; font-size: 14px; font-weight: 700; color: var(--accent); }
+.intro .story p { font-size: 18px; margin: 0 0 .6em; }
+.intro .story p:last-child { margin: 0; font-weight: 600; }
+.how-fold { margin: 14px 0 0; color: var(--muted); font-size: 15px; }
+.how-fold summary { cursor: pointer; text-align: center; padding: 6px; }
+.how-fold ol { margin: 8px 0 0; padding-left: 1.2em; line-height: 1.45; }
+.intro .title { font-size: clamp(30px, 9vw, 40px); margin: 0 0 8px; }
+.intro .kicker { margin-bottom: 2px; }
+.intro .card { padding: 14px 16px; margin-bottom: 10px; }
+.intro .story p { font-size: 17px; line-height: 1.45; }
+.intro .first-clue p { font-size: 16px; line-height: 1.45; margin: 0 0 .4em; }
+.intro .first-clue .card-label { margin-bottom: 4px; }
+.intro .btn.big { margin-top: 6px; }
+.intro .title { font-size: clamp(26px, 8vw, 34px); line-height: 1.05; }
+.intro .first-clue .btn { min-height: 42px; padding: 6px 12px; font-size: 16px; margin-top: 4px; }
+.intro .btn.big { min-height: 54px; font-size: 19px; }
+.intro .start-note { margin: 8px 0 4px; font-size: 15px; }
+.intro .read-aloud { margin-top: 2px; }
+body[data-theme="paper"] .intro .story p { font-size: 16px; line-height: 1.42; }
+body[data-theme="paper"] .intro .first-clue p { font-size: 15.5px; }

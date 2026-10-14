@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v24) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v25) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Short read-aloud intro (less text at the start), Nico's "ex-#99 crying on Insta" remark | `story.js` (intros, `firstClue`, `SARAH_FLIRT[14]`), `app.js` (intro, lobby card), `styles.css`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -138,7 +138,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   construction" screen (rotating `LOBBY_LINES`, nothing clickable except "Not Sara? Pick again"; no top bar). It polls
   worker `GET /game` every 5 s (and on app focus) and unlocks into `intro` by itself. The host presses **🚀 Start the
   game** in `admin.html` (`POST /start`): the worker stores `game`, sends a "🎂 The game has started!" push to both
-  phones, and the lobbies unlock. In `intro` each girl reads her story, **the first clue to the meeting point** (`firstClue`
+  phones, and the lobbies unlock. In `intro` (kept deliberately short, it fits one phone screen: title, a ~40-word story the girl **reads out loud to the table**, the first clue, the Start button; "How does it work?" is folded away and there is no notification card here) each girl reads her story and **the first clue to the meeting point** (`firstClue`
   in `story.js`: blacksmith lane near the main square → Auer Schmidtgasse; free hint + Maps link) and, once sitting at
   Auer, presses **Start the quest** (→ stop I: Bookbazaar / dating profile). Off with `lobby: false` in `push-config.js`
   or when no `workerUrl` is set. Emergency exit if the server is down: tap the 🚧 7 times. "Reset all progress" in the
@@ -225,8 +225,9 @@ See [Open items](#open-items).
   at slot `REAL_SLOT[step]` (app.js). The souvenir is still the stop's `item`. Every Sara stop that has a riddle needs a
   `real` entry (the last stop, Lend, has no shop).
 - `STORIES.sara.howTo` overrides the intro's "How it works".
+- `STORIES.<who>.intro` must stay short (it is read aloud before the game starts, 2 short paragraphs); long explanations belong in `howTo`, which is folded away in the intro.
 - `SARAH_FLIRT` (end of `story.js`) — per district id of a profile: `pass[3]` (timeout jokes), `hi`, `ask`, `reveal` (chat
-  script); copied onto `profile.passLines` and `profile.chat`. The chat's last bubble is the profile's `bio`.
+  script); copied onto `profile.passLines` and `profile.chat`. Nico's `hi` carries the joke about the ex-#99 crying on Insta ("so cringe"). The chat's last bubble is the profile's `bio`.
 - `STORIES.<who>.firstClue` — `{label, text, hint}`: the clue to the first meeting point (Auer, Schmidtgasse) shown in the
   intro after the host starts the game. `LOBBY_LINES` — rotating jokes on the "Under construction" screen.
 - `COSTS` — `{hint, cancel, delegate, reveal}`: what the points can buy (see Wallet above). `HINT_AFTER` — wrong guesses
@@ -352,7 +353,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sarah: 10 s timeout after a pass with a different joke per guy and pass; after a like a Tinder-style chat (hi → her reply → "looking for the ice hockey guy?" → her reply → "doesn't matter, here's what I heard" + tip) before the riddle. Sara: a wrong order now shows a weird dark-romance passage or an "unfortunately sold out" notice; the real book is disguised (same look as all listings, blurb only echoes the encounter) and one real listing of another stop is mixed in as an always-sold-out decoy; the real slot varies irregularly; cache v24.
+- 2026-10-14 · this commit · Dominik (Claude) · Much less text at the start: each intro is now a ~40-word story to read out loud ("📣 Read this out loud to the table"), a shorter first clue and the Start button on one screen; "How does it work?" folded away, notification card removed from the intro, shorter lobby card. Nico's chat opener now jokes about the ex-#99 crying on Insta ("so cringe"). Cache v25.
+- 2026-10-14 · `f4e2a9b` · Dominik (Claude) · Sarah: 10 s timeout after a pass with a different joke per guy and pass; after a like a Tinder-style chat (hi → her reply → "looking for the ice hockey guy?" → her reply → "doesn't matter, here's what I heard" + tip) before the riddle. Sara: a wrong order now shows a weird dark-romance passage or an "unfortunately sold out" notice; the real book is disguised (same look as all listings, blurb only echoes the encounter) and one real listing of another stop is mixed in as an always-sold-out decoy; the real slot varies irregularly; cache v24.
 - 2026-10-14 · `c39ea52` · Dominik (Claude) · Fix: tapping a mission notification did nothing. The service worker could hand the mission to the open admin window (same origin) instead of the game, and missions were hidden in the lobby/intro. Now: admin window is skipped, missions show in every phase except the name picker, new inbox safety net (`checkInbox`), lobby keeps polling for the game start under a mission screen; cache v23. No Worker change.
 - 2026-10-14 · `f87806e` · Dominik (Claude) · Handbook audit: state keys and phases (lobby, waiting), flow, files, new Infrastructure section (Pages, Worker, endpoints, secrets), route table now lists Sara's challenges, testing recipes (mocking the Worker, Playwright selectors), open items (real-device test, Worker redeploy, secrets), real commit hashes in the changelog.
 - 2026-10-14 · `afbd11e` · Dominik (Claude) · Host panel is installable as its own app "Heated Host" (own manifest, teal icon with star badge, own service worker, install button, opens offline); the game's app is unaffected.
