@@ -607,9 +607,33 @@ Object.assign(CHALLENGES, {
     story: "Everybody recommends one book to the person on their left and has to sell it in a single sentence. Sara's pick must be something she will actually read this year.",
     confirmLabel: "✅ Everyone recommended something",
   },
+  s_firstlines: {
+    type: "quiz", icon: "📖", reward: 3,
+    title: "Name that first line",
+    story: "Ottilie's cart has a trivia board: three famous opening lines, one book each. Get all three right.",
+    questions: [
+      { q: "“It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.”", options: ["Emma", "Pride and Prejudice", "Jane Eyre", "Wuthering Heights"], answer: 1 },
+      { q: "“It was a bright cold day in April, and the clocks were striking thirteen.”", options: ["Brave New World", "Fahrenheit 451", "1984", "The Handmaid's Tale"], answer: 2 },
+      { q: "“All children, except one, grow up.”", options: ["Matilda", "Peter Pan", "Alice in Wonderland", "Pinocchio"], answer: 1 },
+    ],
+  },
+  s_poetry: {
+    type: "confirm", icon: "📜", reward: 2,
+    title: "Menu poetry",
+    story: "No bookshelf to make spine poetry with — so use the drink menu. Everyone writes a two-line poem using only words from the menu or the beer mats. The best one gets read aloud to the table, in a dramatic voice.",
+    confirmLabel: "✅ The poem has been read",
+  },
+  s_impression: {
+    type: "confirm", icon: "🐱", reward: 2,
+    title: "Herb impression",
+    story: "Everyone does a ten-second impression of Herb: slow stretch, ignoring a human, staring at nothing. The group crowns the best Herb. Everyone else takes a sip.",
+    confirmLabel: "✅ A Herb has been crowned",
+  },
 });
 // Where they appear on Sara's route (district id → challenge key).
-const SARA_EVENTS = { 7: "s_catquiz", 2: "s_reading", 11: "s_blurb", 13: "s_titles", 15: "s_reviews", 5: "s_toast" };
-const SARA_INTERMISSIONS = { 9: "s_story", 3: "s_nap", 14: "s_silence", 16: "s_swap" };
+// Sarah and Sara play at the same time, so nothing of Sara's lands on a stop where Sarah has an
+// intermission, and Sara's intermissions avoid Sarah's events too (check the ROUTE order in README.md).
+const SARA_EVENTS = { 9: "s_catquiz", 2: "s_reading", 3: "s_firstlines", 11: "s_blurb", 13: "s_titles", 15: "s_reviews", 16: "s_toast" };
+const SARA_INTERMISSIONS = { 1: "s_poetry", 6: "s_impression", 8: "s_story", 3: "s_nap", 14: "s_silence", 5: "s_swap" };
 Object.entries(SARA_EVENTS).forEach(([d, k]) => { STORIES.sara.stops[d].event = k; });
 Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].intermission = k; });

@@ -71,10 +71,13 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   Ottilie's real page (blurb quotes what the locals just said) and 3 dark-romance decoys. Buying the real one →
   "Order confirmed", parcel = souvenir page + riddle + guessing. Buying a decoy → penalty sips (1, 2, 3 … per stop,
   added to `sips`), the book goes into her haul (🌶️ counter in the top bar, listed in the finale).
-  - **10 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
-    6 "📖 Reading room" events (+3: Herb's pop quiz @VII, dramatic reading @II, back-cover blurb @XI, title this bar @XIII,
-    five-star reviews @XV, chapter toast @V) and 4 "⚡ Sudden plot twist" intermissions (+2: one word each @IX, Herb's nap
-    @III, silence in the library @XIV, book swap @XVI). Order at a stop: intermission → event → shop → riddle → guess.
+  - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
+    7 "📖 Reading room" events (+3: pop quiz @IX, dramatic reading @II, name that first line @III, back-cover blurb
+    @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 6 "⚡ Sudden plot twist" intermissions (+2:
+    menu poetry @I, Herb impression @VI, one word each @VIII, Herb's nap @III, silence in the library @XIV, book swap
+    @V; `SARA_EVENTS` / `SARA_INTERMISSIONS` in `story.js` are authoritative). **Sarah and Sara play at the same time**, so Sara has nothing on a stop where
+    Sarah has an intermission, and her intermissions avoid Sarah's events too. Check this when moving any challenge.
+    Order at a stop: intermission → event → shop → riddle → guess.
     The blurb and reviews appear in the finale next to the haul.
 - **Sarah** (dating theme):
   - 10 teammate profiles with full photos (name/tags/bio *below* the photo, nothing over the face) and round
@@ -219,7 +222,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herb impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
+- 2026-10-14 · `92f3b2a` · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
 - 2026-10-14 · `e86a442` · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
 - 2026-10-14 · `6bb66bd` · Dominik (Claude) · Sarah: 10 challenges (6 events +3 ❤️, 4 sudden intermissions +2 ❤️), pass penalty sips, ❤️ counter, finale with crew bio and super likes; README schedule.
