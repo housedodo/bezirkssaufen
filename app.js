@@ -1169,6 +1169,9 @@
       $("#drawer-body").insertAdjacentHTML("beforeend", pushSlot());
       fillPush($("#drawer-body").querySelector("[data-push-slot]"));
     }
+    // which version is this phone running? (the service worker's cache name)
+    $("#drawer-body").insertAdjacentHTML("beforeend", `<p class="version" id="version"></p>`);
+    if (window.caches) caches.keys().then((ks) => { const k = ks.find((x) => /^bezirk-v\d+$/.test(x)); const el = $("#version"); if (el) el.textContent = k ? `App version ${k.replace("bezirk-", "")}` : ""; }).catch(() => {});
     $("#scrim").hidden = false;
     $("#drawer").hidden = false;
     requestAnimationFrame(() => document.body.classList.add("drawer-open"));
@@ -1252,6 +1255,22 @@
 
   // ── Offline support ────────────────────────────────────────
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+    // A new service worker means new files: reload once so an app that was only resumed also gets them.
+    const hadController = !!navigator.serviceWorker.controller;
+    const reloadWhenCalm = () => {
+      let last = 0;
+      try { last = Number(sessionStorage.getItem("bezirk.reloaded") || 0); } catch (_) {}
+      if (Date.now() - last < 60000) return; // never more than once a minute
+      const calm = () => !document.querySelector(".modal-overlay, .match-overlay") && !/^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || "");
+      const go = () => {
+        if (!calm()) return setTimeout(go, 4000);
+        try { sessionStorage.setItem("bezirk.reloaded", String(Date.now())); } catch (_) {}
+        location.reload();
+      };
+      go();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadController) reloadWhenCalm(); });
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").then((reg) => reg.update()).catch(() => {}));
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {}); });
   }
 })();

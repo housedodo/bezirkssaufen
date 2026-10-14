@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v28) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v29) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -267,6 +267,15 @@ follows (with an "Order confirmed" ribbon).
 `pushSync()` (re-registers the push subscription) and handles `?mission=` / service-worker messages (`receiveMission()`).
 Install cards: `installSlot()` / `fillInstall()`; push card: `pushSlot()` / `fillPush()`.
 
+### Updates on the phones
+GitHub Pages lets browsers reuse files for 10 minutes, and an app that is only *resumed* never reloads. So: `sw.js` fetches
+same-origin files with `cache: "no-cache"` (revalidates every time), `app.js` calls `registration.update()` on start and
+whenever the app becomes visible, and when a **new** service worker takes control the open app **reloads itself** (not
+while a text field is focused or a modal/overlay is open, at most once a minute). The ☰ menu shows "App version vNN" (the
+cache name), so you can check what a phone runs. If a phone still shows old behaviour: close the app completely and
+reopen it online; as a last resort remove the home-screen icon and add it again. A phone that runs a version *before*
+v29 only gets this self-update after one manual full restart.
+
 ### Gotchas we already hit
 - Anything that slides off-screen widened the page and broke centred overlays → `html`/`body`/`main` use
   `overflow-x: hidden/clip`. Keep `clip` on `body` (not `hidden`), or the sticky like/pass buttons stop working.
@@ -355,7 +364,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sara has to read every shop blurb out loud before she can order (blurbs hidden behind "Read the blurb out loud", progress `n/4`, Buy locked until all four opened, read blurbs stay visible; delivered passages say "read it out loud"). Sarah's chat: two 🚩 RED FLAG bubbles per guy (10 guys × 2, funny, to read aloud) after her first answer, "read the messages out loud" hint. Playthrough tool reads the blurbs; cache v28.
+- 2026-10-14 · this commit · Dominik (Claude) · Updates reach the phones reliably: the service worker revalidates every file (GitHub Pages' 10-minute cache made phones show the old shop after a merge), the app checks for updates on start/focus and reloads itself when a new service worker takes over (not while typing, max once a minute), and the ☰ menu shows "App version vNN"; cache v29.
+- 2026-10-14 · `8f19018` · Dominik (Claude) · Sara has to read every shop blurb out loud before she can order (blurbs hidden behind "Read the blurb out loud", progress `n/4`, Buy locked until all four opened, read blurbs stay visible; delivered passages say "read it out loud"). Sarah's chat: two 🚩 RED FLAG bubbles per guy (10 guys × 2, funny, to read aloud) after her first answer, "read the messages out loud" hint. Playthrough tool reads the blurbs; cache v28.
 - 2026-10-14 · `1635c4a` · Dominik (Claude) · "Adventure day" framing: both birthdays already happened, today they celebrate together (intros, finales "Happy adventure day", picker "Two belated birthdays… One adventure day", "Adventure day, <name>!", shared missions renamed Adventure clink / Dance-off / Adventure wishes, 🎉 instead of 🎂, store/manifest text; worker start notification "🎉 Adventure day has started!" → **redeploy `worker/worker.js`**). Fix found by a full playthrough: a phone that had already allowed notifications was never registered with the worker after choosing a name (Start would have notified 0 phones) → `pushSync()` after the name pick. New `tools/playthrough.mjs` (full two-player run, passes); cache v27.
 - 2026-10-14 · `ad22f38` · Dominik (Claude) · Much less text at the start: each intro is now a ~40-word story to read out loud ("📣 Read this out loud to the table"), a shorter first clue and the Start button on one screen; "How does it work?" folded away, notification card removed from the intro, shorter lobby card. Nico's chat opener now jokes about the ex-#99 crying on Insta ("so cringe"). Cache v25.
 - 2026-10-14 · `f4e2a9b` · Dominik (Claude) · Sarah: 10 s timeout after a pass with a different joke per guy and pass; after a like a Tinder-style chat (hi → her reply → "looking for the ice hockey guy?" → her reply → "doesn't matter, here's what I heard" + tip) before the riddle. Sara: a wrong order now shows a weird dark-romance passage or an "unfortunately sold out" notice; the real book is disguised (same look as all listings, blurb only echoes the encounter) and one real listing of another stop is mixed in as an always-sold-out decoy; the real slot varies irregularly; cache v24.

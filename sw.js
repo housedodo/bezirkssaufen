@@ -1,6 +1,6 @@
 // Offline cache: the whole game works without signal once opened once.
 // Bump VERSION whenever you change story.js or any other file.
-const VERSION = "bezirk-v28";
+const VERSION = "bezirk-v29";
 importScripts("push-config.js"); // self.PUSH = { workerUrl, vapidPublicKey }
 const CORE = [
   "./",
@@ -57,7 +57,7 @@ self.addEventListener("fetch", (e) => {
 
   // Network first (so story edits arrive), fall back to cache when offline.
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: "no-cache" }) // revalidate with the server: GitHub Pages lets browsers reuse files for 10 minutes
       .then((res) => {
         if (res && (res.ok || res.type === "opaque")) {
           const copy = res.clone();
