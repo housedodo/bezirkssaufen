@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Fix: tapping a mission notification does nothing (admin window steals the tap, missions hidden in lobby/intro) | `sw.js`, `app.js`, `styles.css` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
