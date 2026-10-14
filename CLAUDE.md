@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Remove "Just tell us" (no skipping districts); replace skip-challenge with "make someone else do it" | `app.js`, `story.js` (`COSTS`), `styles.css`, `README.md` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
