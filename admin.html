@@ -18,7 +18,11 @@
     button:disabled { opacity:.5; }
     .who { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; position:sticky; top:0; background:var(--bg); padding:8px 0; z-index:2; }
     .who button { background:var(--card); color:var(--text); border:2px solid var(--line); }
-    .who button.on { border-color:var(--accent); background:#33280f; color:var(--accent); }
+    .who button.on { color:#fff; border-color:transparent; }
+    .who button[data-to=sarah].on { background:#d6336c; } .who button[data-to=sara].on { background:#b8792f; } .who button[data-to=both].on { background:#6f5ce6; }
+    .target { margin:10px 0 0; padding:10px 14px; border-radius:12px; font-weight:700; text-align:center; background:var(--card); color:var(--muted); border:1.5px dashed var(--line); }
+    .target.sarah { background:#d6336c; color:#fff; border:0; } .target.sara { background:#b8792f; color:#fff; border:0; } .target.both { background:#6f5ce6; color:#fff; border:0; }
+    .mission.sarah { border-left:5px solid #d6336c; } .mission.sara { border-left:5px solid #b8792f; } .mission.both { border-left:5px solid #6f5ce6; }
     .status { font-size:14px; color:var(--muted); }
     .status b { color:var(--text); }
     .list { display:grid; gap:8px; }
@@ -38,22 +42,23 @@
     <p class="status" id="status" style="margin:8px 0 0">Enter the PIN to see which phones are registered.</p>
   </div>
 
-  <h2>Send to (for your own messages)</h2>
+  <h2>1 · Who gets it?</h2>
   <div class="who" id="who">
     <button data-to="sarah">Sarah</button>
     <button data-to="sara">Sara</button>
     <button data-to="both">Both</button>
   </div>
+  <p class="target" id="target">Nobody selected yet</p>
 
-  <h2>Your own mission</h2>
+  <h2>2 · Your own message</h2>
   <div class="card">
     <input id="title" placeholder="Title, e.g. ⚡ Mission: dance on the table" maxlength="120">
     <textarea id="body" placeholder="Details (optional)" maxlength="400"></textarea>
     <button id="send">Send</button>
   </div>
 
-  <h2>Surprise missions</h2>
-  <p class="sub">Tap one to send it to its owner. The notification opens that challenge in her app and she earns the reward for completing it (a mission already in progress is not disturbed).</p>
+  <h2>2 · Or a ready-made mission</h2>
+  <p class="sub" id="presets-sub">Pick who gets it first. The list then only shows missions that fit: Sarah's own, Sara's own, or the shared ones for both. The notification opens the challenge in the app and the reward counts.</p>
   <div id="presets"></div>
 
   <h2>Sent</h2>
@@ -92,16 +97,20 @@
     pinEl.addEventListener("change", refreshStatus);
     refreshStatus();
 
+    const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
     document.querySelectorAll("#who button").forEach((b) => b.addEventListener("click", () => {
       to = b.dataset.to;
       document.querySelectorAll("#who button").forEach((x) => x.classList.toggle("on", x === b));
+      const t = $("#target");
+      t.className = "target " + to;
+      t.textContent = to === "both" ? "Sending to: SARAH + SARA (both)" : `Sending to: ${to.toUpperCase()} only`;
+      renderPresets();
     }));
 
-    const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
     async function send(title, body, target = to, ch = null) {
       if (!target) return alert("Pick Sarah, Sara or Both first.");
       if (!title.trim()) return;
-      if (!confirm(`Send to ${name[target]}?\n\n${title}${body ? "\n" + body : ""}`)) return;
+      if (!confirm(`Send to ${target === "both" ? "BOTH Sarah and Sara" : name[target].toUpperCase() + " only"}?\n\n${title}${body ? "\n" + body : ""}`)) return;
       const row = document.createElement("div");
       const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       try {
@@ -120,22 +129,27 @@
       e.target.disabled = false;
     });
 
-    // Surprise missions: every challenge of both stories, intermissions first (in route order).
+    // Ready-made missions, filtered by the selected recipient so a wrong match is impossible:
+    //   Sarah → her intermissions + events · Sara → hers · Both → the shared missions (key starts with d_ / shared: true)
     const box = $("#presets");
-    if (typeof STORIES !== "undefined" && typeof CHALLENGES !== "undefined") {
-      const groups = [["sarah", "intermission", "Sarah · ⚡ intermissions"], ["sarah", "event", "Sarah · 💔 events"],
-                      ["sara", "intermission", "Sara · ⚡ plot twists"], ["sara", "event", "Sara · 📖 reading room"]];
-      groups.forEach(([who, kind, heading]) => {
-        const keys = ROUTE.map((d) => STORIES[who].stops[d][kind]).filter(Boolean);
+    function renderPresets() {
+      box.innerHTML = "";
+      if (!to || typeof STORIES === "undefined" || typeof CHALLENGES === "undefined") return;
+      const groups = to === "both"
+        ? [["Shared missions · both do it together", Object.keys(CHALLENGES).filter((k) => CHALLENGES[k].shared)]]
+        : [[`${name[to]} · ⚡ ${to === "sarah" ? "intermissions" : "plot twists"}`, ROUTE.map((d) => STORIES[to].stops[d].intermission).filter(Boolean)],
+           [`${name[to]} · ${to === "sarah" ? "💔 events" : "📖 reading room"}`, ROUTE.map((d) => STORIES[to].stops[d].event).filter(Boolean)]];
+      groups.forEach(([heading, keys]) => {
         if (!keys.length) return;
         const h = document.createElement("h2"); h.textContent = heading; box.appendChild(h);
         const list = document.createElement("div"); list.className = "list";
         keys.forEach((key) => {
           const c = CHALLENGES[key];
           const b = document.createElement("button");
-          b.className = "mission";
-          b.innerHTML = `<small>${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
-          b.addEventListener("click", () => send(`${c.icon} Surprise mission: ${c.title}`, "Tap to open it in the app.", who, key));
+          b.className = "mission " + to;
+          b.innerHTML = `<small>→ ${to === "both" ? "SARAH + SARA" : name[to].toUpperCase()} · ${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
+          b.addEventListener("click", () => send(`${c.icon} Surprise mission: ${c.title}`,
+            to === "both" ? "For both of you — do it together. Tap to open." : "Tap to open it in the app.", to, key));
           list.appendChild(b);
         });
         box.appendChild(list);

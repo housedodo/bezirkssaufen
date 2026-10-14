@@ -637,3 +637,59 @@ const SARA_EVENTS = { 9: "s_catquiz", 2: "s_reading", 3: "s_firstlines", 11: "s_
 const SARA_INTERMISSIONS = { 1: "s_poetry", 6: "s_impression", 8: "s_story", 3: "s_nap", 14: "s_silence", 5: "s_swap" };
 Object.entries(SARA_EVENTS).forEach(([d, k]) => { STORIES.sara.stops[d].event = k; });
 Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].intermission = k; });
+
+// ─────────────────────── SHARED MISSIONS (both girls) ───────────────────────
+// Only sent by the host from admin.html ("Both" tab), never attached to a stop. Theme-neutral wording because the
+// same text shows up on Sarah's and on Sara's phone; both do it at the same time, together.
+Object.assign(CHALLENGES, {
+  d_toast: {
+    type: "confirm", icon: "🥂", reward: 3, shared: true,
+    title: "Birthday clink",
+    story: "Find each other, wherever you are in the bar. Clink glasses, look each other in the eye and say one genuinely nice thing about the other. No jokes. The crew judges.",
+    confirmLabel: "✅ Clinked — the crew heard it",
+  },
+  d_selfie: {
+    type: "confirm", icon: "🤳", reward: 3, shared: true,
+    title: "Twin selfie",
+    story: "Take a selfie of the two of you in the exact same pose, with the most dramatic faces you can pull. A third person from the crew has to approve it.",
+    confirmLabel: "✅ Selfie approved",
+  },
+  d_swap: {
+    type: "confirm", icon: "🔄", reward: 2, shared: true,
+    title: "Drink swap",
+    story: "Swap drinks. Each of you takes a proper sip of the other's glass and has to guess what's in it. Wrong guess: another sip of your own.",
+    confirmLabel: "✅ Swapped and guessed",
+  },
+  d_compliments: {
+    type: "timer", icon: "💬", reward: 3, seconds: 45, shared: true,
+    title: "Compliment battle",
+    story: "Take turns giving each other compliments, no repeats, no hesitation, for 45 seconds. Whoever gets stuck first drinks a sip.",
+    clockSub: "Keep talking. Nice things only.",
+    doneLabel: "Battle over — collect your reward",
+  },
+  d_dance: {
+    type: "timer", icon: "💃", reward: 3, seconds: 30, shared: true,
+    title: "Birthday dance-off",
+    story: "Thirty seconds, the two of you, full commitment, in the middle of the bar. The crew films it. Standing still counts as losing.",
+    clockSub: "Dance. Now.",
+    doneLabel: "Last move — collect your reward",
+  },
+  d_stare: {
+    type: "confirm", icon: "👀", reward: 2, shared: true,
+    title: "Staring contest",
+    story: "Eye to eye, no blinking, no laughing. The first one to break takes a sip. A third person is the referee.",
+    confirmLabel: "✅ We have a loser",
+  },
+  d_rps: {
+    type: "confirm", icon: "✊", reward: 2, shared: true,
+    title: "Rock, paper, scissors",
+    story: "Best of three. The loser takes a sip and tells the winner one thing they are proud of this year.",
+    confirmLabel: "✅ Winner decided",
+  },
+  d_wish: {
+    type: "confirm", icon: "🌠", reward: 3, shared: true,
+    title: "Birthday wishes",
+    story: "Each of you makes one wish for the other's next year, out loud, in front of the whole crew. Then a drink to both wishes.",
+    confirmLabel: "✅ Wishes made, drinks raised",
+  },
+});
