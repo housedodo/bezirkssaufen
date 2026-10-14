@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Sara's "Bookbazaar" shop (buy the right book to unlock the riddle) | `story.js` (Sara + new `SARA_SHOP`), `app.js` (Sara clue flow, finale), `styles.css` (shop), `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
