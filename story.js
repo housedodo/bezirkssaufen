@@ -341,9 +341,9 @@ Your crew has a drink for you. Prost! 🎂`,
     theme: "paper",
     narrator: "Overheard",
     clueLabel: "A note from O.P.",
-    intro: `There is exactly one copy left in the world of <b>"The Library of Herb and Kafk"</b> — the definitive book about cats, out of print since forever.
+    intro: `There is exactly one copy left in the world of <b>"The Library of Herbert and Kafka"</b> — the definitive book about cats, out of print since forever.
 
-It belongs to <b>Ottilie Pfotenhauer</b>, a travelling bookseller with a squeaky book cart and a fat grey cat named Herb. She'll sell it to the right person. But she never stays anywhere long, and she leaves notes instead of waiting.
+It belongs to <b>Ottilie Pfotenhauer</b>, a travelling bookseller with a squeaky book cart and two cats: <b>Herbert</b>, who is fat and grey, and <b>Kafka</b>, who is always up to something. She'll sell it to the right person. But she never stays anywhere long, and she leaves notes instead of waiting.
 
 Her cart has an online shop that follows her around: <b>Bookbazaar</b>. It is full of "recommendations for you" — mostly dark romance. Ignore them.
 
@@ -363,39 +363,39 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
         hint: "The city's main tram hub, plus the Augarten park.",
       },
       6: {
-        encounter: `A man waiting for the tram. "She was here all morning. Sold me a map of Graz — I live here. Then she said sports biographies sell best near the rink, and Herb wanted to see the Zamboni."`,
-        item: { icon: "📄", name: "Page 1: “In which Herb meets Kafk”" },
+        encounter: `A man waiting for the tram. "She was here all morning. Sold me a map of Graz — I live here. Then she said sports biographies sell best near the rink, and Herbert wanted to see the Zamboni."`,
+        item: { icon: "📄", name: "Page 1: “In which Herbert meets Kafka”" },
         riddle: `<i>"South-east, where a 'lovely meadow' once was: the ice stadium and the football arena side by side, and a mall where the trams turn around. A hockey player there owes me library fines, by the way. Number 99. Rude."</i>`,
         hint: "Graz's ice hockey arena, next to the Merkur Arena and the Murpark mall.",
       },
       7: {
         encounter: `The Zamboni driver chuckles. "The book lady sold a hockey player a book called <i>How to Talk to Women</i>. He bought two. Then she said even the gatekeeper of heaven needs something to read."`,
-        item: { icon: "📄", name: "Page 7: “Kafk vs. the Zamboni”" },
-        riddle: `<i>"Find the old village church of the saint with the keys to heaven, north-east of here. Nearby there's a TV studio shaped like a layer cake, and a tiny forgotten jungle with a giant sequoia in it. Herb got lost in there once."</i>`,
+        item: { icon: "📄", name: "Page 7: “Kafka vs. the Zamboni”" },
+        riddle: `<i>"Find the old village church of the saint with the keys to heaven, north-east of here. Nearby there's a TV studio shaped like a layer cake, and a tiny forgotten jungle with a giant sequoia in it. Herbert got lost in there once."</i>`,
         hint: "The saint with the keys. The 'cake' is the ORF studio, the jungle is the 'Grazer Urwald'.",
       },
       8: {
-        encounter: `A radio host outside the TV studio. "She came on my show to plug the book. Herb meowed into the microphone for four minutes. Ratings were incredible. Then she said she wanted her cat's horoscope read, and walked north."`,
-        item: { icon: "📄", name: "Page 12: “Herb on the radio”" },
+        encounter: `A radio host outside the TV studio. "She came on my show to plug the book. Herbert meowed into the microphone for four minutes. Ratings were incredible. Then she said she wanted her cat's horoscope read, and walked north."`,
+        item: { icon: "📄", name: "Page 12: “Herbert on the radio”" },
         riddle: `<i>"A mystery! In the 1920s a famous medium held séances in the next district — they called her a seer. Today an observatory crowns one of its two hills and old villas line the other. In between, old clay pits became a nature reserve."</i>`,
         hint: "Ruckerlberg and Lustbühel (with the observatory). The 'Seherin von Waltendorf'.",
       },
       9: {
-        encounter: `An astronomer by the observatory. "She asked me for Herb's horoscope. I told her Herb is a Taurus. She said that explains a lot. Then she said the next chapter is about freedom."`,
-        item: { icon: "📄", name: "Page 23: “Herb's horoscope: nap”" },
+        encounter: `An astronomer by the observatory. "She asked me for Herbert's horoscope. I told her Herbert is a Taurus. She said that explains a lot. Then she said the next chapter is about freedom."`,
+        item: { icon: "📄", name: "Page 23: “Herbert's horoscope: nap”" },
         riddle: `<i>"The chapter of freedom: the saint who breaks prisoners' chains has his church just east of the old town, north-west of here. On the street named after him, the pianos of the music university drift out of the windows. Good music to read to."</i>`,
         hint: "The patron saint of prisoners. Church, street and arts university carry his name.",
       },
       2: {
         encounter: `A piano student with a book of sonnets. "She sold me this for two euros and a song. Literally — I had to play her a song. Then she said she was writing a road novel and pushed her cart uphill. East."`,
-        item: { icon: "📄", name: "Page 31: “Kafk plays the piano (badly)”" },
+        item: { icon: "📄", name: "Page 31: “Kafka plays the piano (badly)”" },
         riddle: `<i>"A road novel! East, a ridge road climbs out of town, where cars once raced uphill in front of up to seventy thousand people. An old toll house stands at its foot. There's no primary school in the whole district — so nobody up there has read my book."</i>`,
         hint: "A district named after a ridge, with the Stiftingtal and Ragnitz valleys.",
       },
       10: {
         encounter: `A cyclist resting at the top of the road. "An old lady pushing a book cart uphill. Faster than me. Her cat was riding on top of the books like a figurehead. Then she turned around and rolled all the way back down. Something about textbooks."`,
-        item: { icon: "📄", name: "Page 44: “Herb, Captain of the Cart”" },
-        riddle: `<i>"The scholars' chapter. Back west toward town: the university's grand main building with its old reading hall, the glasshouses of the botanical garden, and the big hospital where Herb once needed stitches. Don't ask."</i>`,
+        item: { icon: "📄", name: "Page 44: “Herbert, Captain of the Cart”" },
+        riddle: `<i>"The scholars' chapter. Back west toward town: the university's grand main building with its old reading hall, the glasshouses of the botanical garden, and the big hospital where Herbert once needed stitches. Don't ask."</i>`,
         hint: "The university district — main campus, botanical garden, the LKH hospital.",
       },
       3: {
@@ -405,21 +405,21 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
         hint: "A pilgrimage basilica at the end of tram line 1. The name contains 'comfort'.",
       },
       11: {
-        encounter: `The sacristan is sweeping the stairs. "She prayed for a reader worthy of her last copy. Then Herb knocked over three candles and they had to leave quite quickly. She said she's running out of paper."`,
+        encounter: `The sacristan is sweeping the stairs. "She prayed for a reader worthy of her last copy. Then Herbert knocked over three candles and they had to leave quite quickly. She said she's running out of paper."`,
         item: { icon: "📄", name: "Page 66: “The candle incident”" },
         riddle: `<i>"Every story has an origin, and north-west of here it's quite literal: a spring the locals call 'the origin'. The district shares its name with a factory that builds paper machines — and without paper, no books. The trams end there; so does my patience."</i>`,
         hint: "A machine factory famous worldwide, a spring called 'Ursprung', the northern end of the tram lines.",
       },
       12: {
-        encounter: `A woman walking her dog by the spring. "The book lady? Herb hissed at my dog. My dog cried. She apologised with a children's book and said she needs something darker for her stock."`,
-        item: { icon: "📄", name: "Page 70: “Herb sleeps for 19 hours”" },
+        encounter: `A woman walking her dog by the spring. "The book lady? Herbert hissed at my dog. My dog cried. She apologised with a children's book and said she needs something darker for her stock."`,
+        item: { icon: "📄", name: "Page 70: “Herbert sleeps for 19 hours”" },
         riddle: `<i>"Every good shop needs a tragedy section. Across the river to the west: a castle that has been a ruin for centuries on a wooded hill, and a cliff named after a maiden who leapt rather than surrender. Gothic novels sell themselves up there."</i>`,
         hint: "A castle ruin north-west of town, next to the 'Jungfernsprung' rock.",
       },
       13: {
-        encounter: `The keeper of the hut by the ruin is reading by candlelight. "She sold me a ghost story and a bag of cat treats. Herb ate the treats. Then she said she's off to a palace — one window for every day she's kept that book safe."`,
-        item: { icon: "📄", name: "Page 81: “Kafk refuses a bath”" },
-        riddle: `<i>"South, to a palace built like a calendar: three hundred and sixty-five windows. Peacocks strut through the park. Herb is NOT allowed to chase them. Herb will chase them."</i>`,
+        encounter: `The keeper of the hut by the ruin is reading by candlelight. "She sold me a ghost story and a bag of cat treats. Herbert ate the treats. Then she said she's off to a palace — one window for every day she's kept that book safe."`,
+        item: { icon: "📄", name: "Page 81: “Kafka refuses a bath”" },
+        riddle: `<i>"South, to a palace built like a calendar: three hundred and sixty-five windows. Peacocks strut through the park. Herbert is NOT allowed to chase them. Herbert will chase them."</i>`,
         hint: "A UNESCO-listed baroque palace in the west of Graz, with peacocks.",
       },
       14: {
@@ -436,18 +436,18 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
       },
       16: {
         encounter: `The bartender, polishing a glass. "She drank half a glass of wine and wrote in a notebook for an hour. Then she said every last chapter deserves a beer, and asked where the beer comes from."`,
-        item: { icon: "📄", name: "Page 117: “Herb, sommelier”" },
-        riddle: `<i>"East of here, where the city's beer is brewed — a family name that became a brewery, and now a whole new quarter of town. I'll be at the pool table. Herb cheats at billiards."</i>`,
+        item: { icon: "📄", name: "Page 117: “Herbert, sommelier”" },
+        riddle: `<i>"East of here, where the city's beer is brewed — a family name that became a brewery, and now a whole new quarter of town. I'll be at the pool table. Herbert cheats at billiards."</i>`,
         hint: "The brewery that gives Graz its beer — and its name to the 17th district.",
       },
       17: {
         encounter: `A guy chalking his cue. "The book lady won four games of pool. Her cat sat on the table and nudged my balls into the wrong pockets. Then she said she needs dictionaries for the last chapter — and a falafel."`,
-        item: { icon: "📄", name: "Page 128: “Herb cheats at billiards”" },
+        item: { icon: "📄", name: "Page 128: “Herbert cheats at billiards”" },
         riddle: `<i>"North, to the district named after the gravel and sand the river left behind. A big square, many languages, strong coffee and kebab until late — I sell dictionaries there. The long wall with barbed wire? That library has very long loan periods."</i>`,
         hint: "The district's name is old German for coarse sand. The square has the same name.",
       },
       5: {
-        encounter: `A kebab chef laughs. "She traded me a dictionary for a falafel. Herb got the meat. Then she wrote a note and said: 'She's always a little late. This time, I'll wait.'"`,
+        encounter: `A kebab chef laughs. "She traded me a dictionary for a falafel. Herbert got the meat. Then she wrote a note and said: 'She's always a little late. This time, I'll wait.'"`,
         item: { icon: "📄", name: "Page 139: “The last chapter (unfinished)”" },
         riddle: `<i>"The last chapter ends just north of here, where a strange blue creature with nozzles landed on the riverbank and turned into an art museum, next to a market square where poets drink at night. I'm waiting. For real this time."</i>`,
         hint: "A bubble-shaped art museum on the west bank of the Mur — the 'Friendly Alien'. The district next to Gries.",
@@ -455,12 +455,12 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
       4: {
         encounter: `Seventeen districts, seventeen drinks — and for once, you're not late.
 
-Ottilie is sitting on a beer crate. Herb is asleep on top of the cart. She hands you a heavy, slightly dusty book: <b>The Library of Herb and Kafk</b>.
+Ottilie is sitting on a beer crate. Herbert is asleep on top of the cart. She hands you a heavy, slightly dusty book: <b>The Library of Herbert and Kafka</b>.
 
-<i>"I was never going to sell it to just anyone. Only to someone who'd chase it across a whole city with her friends. Happy birthday, Sara. Look after it. Herb approves."</i>
+<i>"I was never going to sell it to just anyone. Only to someone who'd chase it across a whole city with her friends. Happy birthday, Sara. Look after it. Herbert approves."</i>
 
 Your crew has a drink for you. Prost! 🎂`,
-        item: { icon: "📕", name: "The Library of Herb and Kafk" },
+        item: { icon: "📕", name: "The Library of Herbert and Kafka" },
       },
     },
   },
@@ -483,7 +483,7 @@ const SARA_SHOP = {
     { t: "Wicked Little Vows", a: "S. Thornfield", d: "Till death do us part. He's not joking.", s: 4, p: "€10.99" },
     { t: "Kiss of the Vampire Accountant", a: "Count A. Bilanz", d: "He drains your tax return. And your will to resist.", s: 3, p: "€7.99" },
     { t: "Captive of the Highland Duke", a: "M. McDarkly", d: "Rain, whisky, brooding. Mostly brooding.", s: 4, p: "€9.49" },
-    { t: "Fifty Shades of Herb", a: "E. L. Pfote", d: "A cat. A cushion. A very controlling nap schedule.", s: 2, p: "€6.66" },
+    { t: "Fifty Shades of Herbert", a: "E. L. Pfote", d: "A cat. A cushion. A very controlling nap schedule.", s: 2, p: "€6.66" },
     { t: "Hunted by the Hockey Villain", a: "Brooke Blackice", d: "Enemies on the rink, something worse in the penalty box.", s: 5, p: "€12.00" },
     { t: "Sinful Heirs of Schloss Schwarz", a: "G. von Verderben", d: "Eight siblings, one will, zero boundaries.", s: 4, p: "€10.49" },
     { t: "His Dark Obsession, Vol. 7", a: "N. Crimson", d: "Volumes 1–6 sold out. He's still obsessed.", s: 5, p: "€13.99" },
@@ -511,21 +511,21 @@ const SARA_SHOP = {
   // The real listing per district: blurb quotes the encounter, price is a joke.
   real: {
     1:  { p: "€0.00 + 1 coffee", d: "Slightly used. Smells of croissant. One (1) cat hair included, free of charge. As seen at the bakery.", rv: "“Paid for her coffee in bookmarks. Honest woman.” ★★★★★" },
-    6:  { p: "€2.00", d: "Page 1 of the legendary cat book. Sold at the tram stop, right after one very good map of Graz.", rv: "“Herb wanted to see the Zamboni.” ★★★★★" },
-    7:  { p: "€3.50", d: "Kafk meets the Zamboni. Originally sold at the ice rink, next to a hockey player's two copies of 'How to Talk to Women'.", rv: "“Even the gatekeeper of heaven needs something to read.” ★★★★☆" },
-    8:  { p: "€1.99", d: "Herb on the radio. Meowed into the microphone for four full minutes. Recorded at the TV studio.", rv: "“Ratings were incredible.” ★★★★★" },
-    9:  { p: "€4.00", d: "Herb's horoscope, as read by an actual astronomer: Taurus. Explains a lot.", rv: "“Prediction: nap.” ★★★★☆" },
-    2:  { p: "€2.00 + 1 song", d: "Sold to a piano student for two euros and one (1) song. Kafk plays piano. Badly.", rv: "“Had to play her a song. Worth it.” ★★★★★" },
-    10: { p: "€5.00", d: "Herb, Captain of the Cart. Spotted riding on top of the books uphill like a figurehead. Faster than a cyclist.", rv: "“Pushed a cart uphill faster than me.” ★★★★★" },
+    6:  { p: "€2.00", d: "Page 1 of the legendary cat book. Sold at the tram stop, right after one very good map of Graz.", rv: "“Herbert wanted to see the Zamboni.” ★★★★★" },
+    7:  { p: "€3.50", d: "Kafka meets the Zamboni. Originally sold at the ice rink, next to a hockey player's two copies of 'How to Talk to Women'.", rv: "“Even the gatekeeper of heaven needs something to read.” ★★★★☆" },
+    8:  { p: "€1.99", d: "Herbert on the radio. Meowed into the microphone for four full minutes. Recorded at the TV studio.", rv: "“Ratings were incredible.” ★★★★★" },
+    9:  { p: "€4.00", d: "Herbert's horoscope, as read by an actual astronomer: Taurus. Explains a lot.", rv: "“Prediction: nap.” ★★★★☆" },
+    2:  { p: "€2.00 + 1 song", d: "Sold to a piano student for two euros and one (1) song. Kafka plays piano. Badly.", rv: "“Had to play her a song. Worth it.” ★★★★★" },
+    10: { p: "€5.00", d: "Herbert, Captain of the Cart. Spotted riding on top of the books uphill like a figurehead. Faster than a cyclist.", rv: "“Pushed a cart uphill faster than me.” ★★★★★" },
     3:  { p: "€0.99", d: "A footnote about tuna. Paid for with cat food vouchers after a book was 41 years overdue.", rv: "“Fine accepted. Cat food vouchers.” ★★★☆☆" },
-    11: { p: "€3.00", d: "The candle incident. Scorched slightly. Herb knocked over three candles in a church; we left quickly.", rv: "“Prayed for a worthy reader.” ★★★★☆" },
-    12: { p: "€2.50", d: "Herb sleeps for 19 hours. Includes a children's book as apology for hissing at a dog by the spring.", rv: "“My dog cried. 5 stars anyway.” ★★★★☆" },
-    13: { p: "€6.00", d: "Kafk refuses a bath. Bought by the hut keeper along with a ghost story and a bag of cat treats (eaten by Herb).", rv: "“Herb ate the treats.” ★★★★★" },
-    14: { p: "€2.00 + parking ticket", d: "The Peacock War. Herb vs. peacock, 0–1. Book cart parked illegally on the palace lawn.", rv: "“The peacock won.” ★★★★★" },
+    11: { p: "€3.00", d: "The candle incident. Scorched slightly. Herbert knocked over three candles in a church; we left quickly.", rv: "“Prayed for a worthy reader.” ★★★★☆" },
+    12: { p: "€2.50", d: "Herbert sleeps for 19 hours. Includes a children's book as apology for hissing at a dog by the spring.", rv: "“My dog cried. 5 stars anyway.” ★★★★☆" },
+    13: { p: "€6.00", d: "Kafka refuses a bath. Bought by the hut keeper along with a ghost story and a bag of cat treats (eaten by Herbert).", rv: "“Herbert ate the treats.” ★★★★★" },
+    14: { p: "€2.00 + parking ticket", d: "The Peacock War. Herbert vs. peacock, 0–1. Book cart parked illegally on the palace lawn.", rv: "“The peacock won.” ★★★★★" },
     15: { p: "€4.50", d: "The butler did it. Reveals the murderer. One police officer is still upset about that.", rv: "“Told him who did it. Spoilers!” ★★★☆☆" },
-    16: { p: "€3.50", d: "Herb, sommelier. Written during one hour and half a glass of wine, in a notebook.", rv: "“Every last chapter deserves a beer.” ★★★★★" },
-    17: { p: "€1.50", d: "Herb cheats at billiards. Cat sat on the table, balls nudged into the wrong pockets. Won four games.", rv: "“My balls ended up in the wrong pockets.” ★★★★☆" },
-    5:  { p: "€0.00 + 1 falafel", d: "The last chapter (unfinished). Traded for a falafel at a kebab shop. Herb got the meat.", rv: "“She's always a little late. This time I'll wait.” ★★★★★" },
+    16: { p: "€3.50", d: "Herbert, sommelier. Written during one hour and half a glass of wine, in a notebook.", rv: "“Every last chapter deserves a beer.” ★★★★★" },
+    17: { p: "€1.50", d: "Herbert cheats at billiards. Cat sat on the table, balls nudged into the wrong pockets. Won four games.", rv: "“My balls ended up in the wrong pockets.” ★★★★☆" },
+    5:  { p: "€0.00 + 1 falafel", d: "The last chapter (unfinished). Traded for a falafel at a kebab shop. Herbert got the meat.", rv: "“She's always a little late. This time I'll wait.” ★★★★★" },
   },
 };
 
@@ -537,8 +537,8 @@ const SARA_SHOP = {
 Object.assign(CHALLENGES, {
   s_catquiz: {
     type: "quiz", icon: "🐈", reward: 2,
-    title: "Herb's pop quiz",
-    story: "Herb only sits on the laps of well-read people. Three questions — get all three right and Ottilie's cart will open for you.",
+    title: "Herbert's pop quiz",
+    story: "Herbert only sits on the laps of well-read people. Three questions — get all three right and Ottilie's cart will open for you.",
     questions: [
       { q: "In Kafka's famous story “The Metamorphosis”, Gregor Samsa wakes up as a giant…", options: ["Cat", "Insect", "Teapot", "Librarian"], answer: 1 },
       { q: "The musical “Cats” is based on poems by…", options: ["Edgar Allan Poe", "Roald Dahl", "T. S. Eliot", "Dr. Seuss"], answer: 2 },
@@ -595,10 +595,10 @@ Object.assign(CHALLENGES, {
   },
   s_nap: {
     type: "timer", icon: "😴", reward: 1, seconds: 45,
-    title: "Herb's nap",
-    story: "Herb sleeps 19 hours a day. For 45 seconds the whole table freezes like a sleeping cat. Anyone who moves, laughs or speaks drinks one sip.",
-    clockSub: "Shhh. Herb is dreaming about tuna.",
-    doneLabel: "Herb woke up — collect your bookmarks",
+    title: "Herbert's nap",
+    story: "Herbert sleeps 19 hours a day. For 45 seconds the whole table freezes like a sleeping cat. Anyone who moves, laughs or speaks drinks one sip.",
+    clockSub: "Shhh. Herbert is dreaming about tuna.",
+    doneLabel: "Herbert woke up — collect your bookmarks",
   },
   s_silence: {
     type: "timer", icon: "🤫", reward: 1, seconds: 60,
@@ -624,23 +624,24 @@ Object.assign(CHALLENGES, {
     ],
   },
   s_poetry: {
-    type: "confirm", icon: "📜", reward: 1,
+    type: "confirm", icon: "📜", reward: 2,
     title: "Menu poetry",
     story: "No bookshelf to make spine poetry with — so use the drink menu. Everyone writes a two-line poem using only words from the menu or the beer mats. The best one gets read aloud to the table, in a dramatic voice.",
     confirmLabel: "✅ The poem has been read",
   },
   s_impression: {
     type: "confirm", icon: "🐱", reward: 1,
-    title: "Herb impression",
-    story: "Everyone does a ten-second impression of Herb: slow stretch, ignoring a human, staring at nothing. The group crowns the best Herb. Everyone else takes a sip.",
-    confirmLabel: "✅ A Herb has been crowned",
+    title: "Herbert impression",
+    story: "Everyone does a ten-second impression of Herbert: slow stretch, ignoring a human, staring at nothing. The group crowns the best Herbert. Everyone else takes a sip.",
+    confirmLabel: "✅ A winning Herbert has been crowned",
   },
 });
 // Where they appear on Sara's route (district id → challenge key).
 // Sarah and Sara play at the same time, so nothing of Sara's lands on a stop where Sarah has an
 // intermission, and Sara's intermissions avoid Sarah's events too (check the ROUTE order in README.md).
-const SARA_EVENTS = { 9: "s_catquiz", 2: "s_reading", 3: "s_firstlines", 11: "s_blurb", 13: "s_titles", 15: "s_reviews", 16: "s_toast" };
-const SARA_INTERMISSIONS = { 1: "s_poetry", 6: "s_impression", 8: "s_story", 3: "s_nap", 14: "s_silence", 5: "s_swap" };
+// Stop I (Innere Stadt) is only the introduction: no challenges for either girl there, they start from the 2nd district.
+const SARA_EVENTS = { 9: "s_catquiz", 2: "s_reading", 3: "s_firstlines", 8: "s_poetry", 11: "s_blurb", 13: "s_titles", 15: "s_reviews", 16: "s_toast" };
+const SARA_INTERMISSIONS = { 6: "s_impression", 8: "s_story", 3: "s_nap", 14: "s_silence", 5: "s_swap" };
 Object.entries(SARA_EVENTS).forEach(([d, k]) => { STORIES.sara.stops[d].event = k; });
 Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].intermission = k; });
 

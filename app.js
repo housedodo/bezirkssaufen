@@ -291,8 +291,8 @@
           <ol>${steps.map((t) => `<li>${t}</li>`).join("")}</ol>
         </div>
         ${pushSlot()}
-        <p class="start-note">You start where you are: <b>${label(first)}</b>${stopInfo(first) ? ` — ${stopInfo(first).venue}, ca. ${stopInfo(first).time}` : ""}.</p>
-        <button class="btn primary big" id="start">We're in the ${DISTRICTS[first].name} 🍻</button>
+        <p class="start-note">Sit down at ${stopInfo(first) ? `<b>${stopInfo(first).venue}</b> (<b>${label(first)}</b>, ca. ${stopInfo(first).time})` : `<b>${label(first)}</b>`}, get your first drink — then press the button. The quest starts as soon as you do.</p>
+        <button class="btn primary big" id="start">Start the quest 🍻</button>
       </section>`;
     fillPush(app.querySelector("[data-push-slot]"));
     $("#start").addEventListener("click", () => {
@@ -438,7 +438,7 @@
         </article>
         <div class="shop-head">
           <p class="shop-logo">📚 ${SARA_SHOP.name}</p>
-          <div class="shop-search"><span>🔍</span> “The Library of Herb and Kafk”</div>
+          <div class="shop-search"><span>🔍</span> “The Library of Herbert and Kafka”</div>
           <p class="shop-count">1 match · 3 “recommended for you”</p>
         </div>
         <p class="shop-tip">💡 ${SARA_SHOP.tip}</p>

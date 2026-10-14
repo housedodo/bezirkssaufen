@@ -4,7 +4,7 @@ A tiny web app for a birthday pub crawl through all 17 districts of Graz.
 Two players, two stories:
 
 - **Sarah — "The Hunt for #99":** chasing Jakob "Iceman" Eisner, Graz's most eligible ice hockey player, who is always one bar ahead.
-- **Sara — "The Last Copy":** chasing Ottilie Pfotenhauer, a travelling bookseller with the last copy of *The Library of Herb and Kafk*, always five minutes ahead.
+- **Sara — "The Last Copy":** chasing Ottilie Pfotenhauer, a travelling bookseller with the last copy of *The Library of Herbert and Kafka*, always five minutes ahead.
 
 In every district the player reads what just happened, collects a souvenir for her journal, and gets a riddle describing the area around the next district (never its name). She picks the district from a list. Wrong guesses unlock a free hint (or she can buy one with hearts/bookmarks). There is no way to skip a district: it has to be guessed. Once she's guessed it, the app shows the next bar, the planned time and the bus/tram connection. Then everyone goes there, gets a drink, and taps "we've arrived".
 
@@ -59,7 +59,7 @@ The riddle you read in a district points to the **next** row.
 
 At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's real page (the blurb repeats what the locals just said) and 3 dark-romance decoys. Only the right purchase delivers Ottilie's note (the riddle). A wrong order = a dark romance in her haul and penalty sips (1, 2, 3 … per stop). The finale shows her accidental library.
 
-**Sara's challenges** (earn 🔖 bookmarks, done before the shop): events — pop quiz @IX · dramatic reading @II · name that first line @III · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — menu poetry @I · Herb impression @VI · one word each @VIII · Herb's nap @III · silence in the library @XIV · book swap @V. Sara's stops never coincide with Sarah's intermissions.
+**Sara's challenges** (earn 🔖 bookmarks, done before the shop; none at stop I, the intro): events — pop quiz @IX · dramatic reading @II · name that first line @III · menu poetry @VIII · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — Herbert impression @VI · one word each @VIII · Herbert's nap @III · silence in the library @XIV · book swap @V. Sara's stops never coincide with Sarah's intermissions.
 
 ## Spending points, and moving on together
 

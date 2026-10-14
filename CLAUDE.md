@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Intro-only first stop ("Start the quest"), no challenges at stop 1, rename cats to Herbert & Kafka | `story.js`, `app.js` (intro), `README.md`, `CLAUDE.md` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -49,8 +49,8 @@ per district. Two birthday girls each play their own story on their own phone:
 
 - **Sarah — "The Hunt for #99"**, built as a fake dating app called **Icebreaker**. She chases
   Jakob "Iceman" Eisner (#99), a hockey player who is always one bar ahead. His teammates are dating profiles.
-- **Sara — "The Last Copy"**: chases travelling bookseller Ottilie Pfotenhauer (cat: Herb), who has the last copy
-  of *The Library of Herb and Kafk*. Old-bookshop paper look.
+- **Sara — "The Last Copy"**: chases travelling bookseller Ottilie Pfotenhauer (cats: Herbert and Kafka), who has the last copy
+  of *The Library of Herbert and Kafka*. Old-bookshop paper look.
 
 In each district: read what happened → get a riddle describing the area around the **next** district (never its
 name) → guess the district from a list → see the bar/time/connection → go there, drink, tap "We're in".
@@ -73,11 +73,13 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   "Order confirmed", parcel = souvenir page + riddle + guessing. Buying a decoy → penalty sips (1, 2, 3 … per stop,
   added to `sips`), the book goes into her haul (🌶️ counter in the top bar, listed in the finale).
   - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
-    7 "📖 Reading room" events (+2: pop quiz @IX, dramatic reading @II, name that first line @III, back-cover blurb
-    @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 6 "⚡ Sudden plot twist" intermissions (+1:
-    menu poetry @I, Herb impression @VI, one word each @VIII, Herb's nap @III, silence in the library @XIV, book swap
-    @V; `SARA_EVENTS` / `SARA_INTERMISSIONS` in `story.js` are authoritative). **Sarah and Sara play at the same time**, so Sara has nothing on a stop where
-    Sarah has an intermission, and her intermissions avoid Sarah's events too. Check this when moving any challenge.
+    8 "📖 Reading room" events (+2: pop quiz @IX, dramatic reading @II, name that first line @III, menu poetry @VIII,
+    back-cover blurb @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 5 "⚡ Sudden plot twist"
+    intermissions (+1: Herbert impression @VI, one word each @VIII, Herbert's nap @III, silence in the library @XIV, book
+    swap @V; `SARA_EVENTS` / `SARA_INTERMISSIONS` in `story.js` are authoritative). **Stop I (Innere Stadt) is only the
+    introduction: no challenges for either girl, they start from the 2nd district.** **Sarah and Sara play at the same
+    time**, so Sara has nothing on a stop where Sarah has an intermission, and her intermissions avoid Sarah's events too.
+    Check this when moving any challenge. (Total separation is impossible: 23 challenges, 15 stops.)
     Order at a stop: intermission → event → shop → riddle → guess.
     The blurb and reviews appear in the finale next to the haul.
 - **Sarah** (dating theme):
@@ -255,14 +257,15 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
+- 2026-10-14 · this commit · Dominik (Claude) · First stop is introduction only: intro button is now "Start the quest" (sit down at Auer, press it, then the shop / dating app starts); no challenges at stop I (Sara's menu poetry became a +2 event @VIII); cats renamed to Herbert and Kafka everywhere (book: "The Library of Herbert and Kafka", intro mentions both cats); cache v17.
+- 2026-10-14 · earlier commit · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
 - 2026-10-14 · `847b92a` · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
 - 2026-10-14 · earlier commit · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
 - 2026-10-14 · `d7ca3cc`+ · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
 - 2026-10-14 · `d98eaf6` · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.
-- 2026-10-14 · `9d1bfbb` · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herb impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
+- 2026-10-14 · `9d1bfbb` · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herbert impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
 - 2026-10-14 · `92f3b2a` · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
 - 2026-10-14 · `e86a442` · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
