@@ -679,7 +679,8 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .chat-online i { width: 8px; height: 8px; border-radius: 50%; background: #34c759; flex: none; }
 .chat-msgs { display: flex; flex-direction: column; gap: 6px; padding: 4px 2px 12px; }
 .chat-sys { text-align: center; color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
-.msg { max-width: 82%; display: flex; animation: msgin .22s ease-out; }
+.msg { max-width: 82%; display: flex; }
+.msg.last { animation: msgin .22s ease-out; } /* only the newest bubble fades in, otherwise the whole chat flickers on every new message */
 .msg span { padding: 10px 14px; font-size: 16px; line-height: 1.4; border-radius: 20px; overflow-wrap: anywhere; }
 .msg.him { align-self: flex-start; }
 .msg.him span { background: #eceef4; color: #1b1f3b; border-bottom-left-radius: 6px; }
