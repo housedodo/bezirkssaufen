@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Sara's shop: every listing shows a short spicy excerpt instead of a blurb | `story.js` (`SARA_SHOP`), `app.js` (shop), `tools/playthrough.mjs`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
