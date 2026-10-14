@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Sarah: 10 s pass timeout + Tinder-style chat before the riddle; Sara: wrong order = dark-romance passage or sold out, real book disguised | `story.js` (end: `SARAH_FLIRT`, `SARA_SHOP`), `app.js` (dating clue, shop), `styles.css`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
