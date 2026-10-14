@@ -1,6 +1,6 @@
 // Offline cache: the whole game works without signal once opened once.
 // Bump VERSION whenever you change story.js or any other file.
-const VERSION = "bezirk-v2";
+const VERSION = "bezirk-v3";
 const CORE = [
   "./",
   "index.html",
@@ -12,6 +12,11 @@ const CORE = [
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/apple-touch-icon.png",
+  "img/players/matze.jpg",
+  "img/players/elias.jpg",
+  "img/players/tomasz.jpg",
+  "img/players/luca.jpg",
+  "img/players/dragan.jpg",
 ];
 
 self.addEventListener("install", (e) => {
