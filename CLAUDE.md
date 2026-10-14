@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Sara must read every blurb (unlocks ordering); Sarah's chat gets 2 red flags per guy | `story.js` (end: red flags), `app.js` (shop, chat), `styles.css`, `tools/playthrough.mjs`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 

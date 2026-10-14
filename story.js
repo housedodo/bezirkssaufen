@@ -962,3 +962,49 @@ Object.entries(SARAH_FLIRT).forEach(([d, f]) => {
   p.passLines = f.pass;
   p.chat = { hi: f.hi, ask: f.ask, reveal: f.reveal };
 });
+
+// ─────────────────────── SARAH: red flags in the chat ───────────────────────
+// Two red flags per guy, sent after her first answer and before he asks about the ice hockey guy. Made to be read out loud.
+const SARAH_FLAGS = {
+  "1": [
+    "fun fact: I've never lost an argument. I just leave and order another Spritzer.",
+    "also my ex and I are “just friends”. she has a key to my flat. and to my dog."
+  ],
+  "6": [
+    "I take fourteen selfies before every first date and pick the one where I look like I didn't try.",
+    "my mum helps me write my texts. she says hi."
+  ],
+  "7": [
+    "I don't really do feelings. I do saves.",
+    "I once ghosted a girl for four months because the playoffs started. we weren't even dating."
+  ],
+  "8": [
+    "I narrate my own life out loud. you will hear it. in the shower too.",
+    "I recorded our first date for content. you're in the podcast now."
+  ],
+  "10": [
+    "I'm the captain of everything. also of this conversation.",
+    "my last relationship ended in a performance review. she scored 6 out of 10. she was upset."
+  ],
+  "3": [
+    "I'm not saying I'm accident-prone, but my ex calls me “a lot of paperwork”.",
+    "I'll tell you the stitches story on every date. in detail. with diagrams."
+  ],
+  "12": [
+    "I only eat things I can count. you'll be counted too.",
+    "I have a protein shake schedule and a cheat day. you are not invited to the cheat day."
+  ],
+  "14": [
+    "I photograph everything. food, sunsets, you crying. especially you crying.",
+    "I'm not like other guys. I own a ring light and I'm not afraid to use it."
+  ],
+  "17": [
+    "I never lose. I just let people win. that's what I tell myself.",
+    "I once bet my car on a pool game. my cousin drives it now."
+  ],
+  "5": [
+    "my love language is kebab. ten, maybe twenty kebabs. is that too much?",
+    "my mother does not like any girl. she sits in the front. always."
+  ]
+};
+Object.entries(SARAH_FLAGS).forEach(([d, f]) => { STORIES.sarah.stops[d].profile.chat.flags = f; });
