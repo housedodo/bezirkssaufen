@@ -52,18 +52,16 @@ const STOPS = {
   4:  { venue: "Wherever we wanna verend",           time: "01:00", how: "on foot" },
 };
 
-// After this many wrong guesses the hint button lights up,
-// after GIVE_UP_AFTER wrong guesses the "just tell us" button appears.
 // What the points (❤️ Sarah / 🔖 Sara) can buy. Earning is deliberately slow: events +2, intermissions +1,
 // quizzes lose 1 per wrong answer (min +1). Tune here.
 const COSTS = {
   hint: 1,    // buy a hint before a wrong guess unlocks it for free
   cancel: 2,  // cancel the penalty sips of the current stop (pass / wrong shop order)
-  skip: 3,    // skip an event or intermission challenge without reward
+  delegate: 3, // make someone else from the crew do an event/intermission challenge instead of you (no reward)
   reveal: 2,  // Sara: mark the real listing in the Bookbazaar
 };
+// After this many wrong guesses the hint is free. There is no "just tell us": a district always has to be guessed.
 const HINT_AFTER = 1;
-const GIVE_UP_AFTER = 3;
 
 // ── Sarah's challenges ────────────────────────────────────────
 // Two kinds, both earn likes (❤️) — events +2, intermissions +1:

@@ -280,7 +280,6 @@
     const options = Object.keys(DISTRICTS).map(Number).filter((id) => !visited.has(id));
     const wrongCount = state.wrong.length;
     const canHint = wrongCount >= HINT_AFTER || state.hint;
-    const canGiveUp = wrongCount >= GIVE_UP_AFTER;
     return `
       <div class="guess">
         <h2>Where to next?</h2>
@@ -299,7 +298,6 @@
           ${!state.hint ? (canHint
             ? `<button class="btn ghost" id="hint">💡 Show a hint</button>`
             : `<button class="btn ghost" id="buyhint" ${can(COSTS.hint) ? "" : "disabled"}>💡 Buy a hint · ${COSTS.hint} ${unit()}</button>`) : ""}
-          ${canGiveUp ? `<button class="btn ghost" id="giveup">🏳️ Just tell us</button>` : ""}
         </div>
       </div>`;
   }
@@ -309,7 +307,6 @@
     );
     $("#hint")?.addEventListener("click", () => set({ hint: true }));
     $("#buyhint")?.addEventListener("click", () => { set({ hint: true, hearts: state.hearts - COSTS.hint }); toast(`💡 Hint bought · −${COSTS.hint} ${unit()}`); });
-    $("#giveup")?.addEventListener("click", () => solve(true));
   }
   const riddleCard = (s, stop) => `
     <article class="card riddle">
@@ -623,6 +620,14 @@
         <button class="btn primary big" id="confirm" ${notes.every((n) => n.trim()) ? "" : "disabled"}>${c.confirmLabel}</button>`;
     }
 
+    if (ch.delegated) {
+      body = `
+        <div class="deleg">
+          <p class="deleg-title">🎭 Pick a victim</p>
+          <p>Choose someone from the crew. They do <b>${c.title}</b> instead of you. The group decides whether it counts.</p>
+          <button class="btn primary big" id="delegdone">✅ They did it — the group saw it</button>
+        </div>`;
+    }
     app.innerHTML = `
       <section class="screen clue ${dating ? "dating " : ""}challenge ${mode}">
         ${banner}
@@ -630,15 +635,20 @@
           <span class="ch-icon" aria-hidden="true">${c.icon}</span>
           <h2 class="ch-title">${c.title}</h2>
           ${paras(c.story)}
-          <p class="ch-reward">Reward: +${c.reward} ${unit()}${c.type === "quiz" && c.reward > 1 ? " (−1 per wrong answer, at least +1)" : ""}</p>
+          <p class="ch-reward">${ch.delegated ? "No reward — someone else is doing it" : `Reward: +${c.reward} ${unit()}${c.type === "quiz" && c.reward > 1 ? " (−1 per wrong answer, at least +1)" : ""}`}</p>
         </article>
         <div class="ch-body">${body}${mode === "surprise" ? `<button class="btn ghost" id="later">⏸ Not now — remind me later</button>`
-          : `<button class="btn ghost" id="skipch" ${can(COSTS.skip) ? "" : "disabled"}>⏭ Skip this challenge · ${COSTS.skip} ${unit()}</button>`}</div>
+          : ch.delegated ? "" : `<button class="btn ghost" id="delegate" ${can(COSTS.delegate) ? "" : "disabled"}>🎭 Make someone else do it · ${COSTS.delegate} ${unit()}</button>`}</div>
       </section>`;
     $("#later")?.addEventListener("click", () => set({ bonus: { ...state.bonus, paused: true } }));
-    $("#skipch")?.addEventListener("click", () => {
-      if (!confirm(`Skip "${c.title}" for ${COSTS.skip} ${unit()}? No reward.`)) return;
-      set({ hearts: state.hearts - COSTS.skip, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {} });
+    $("#delegate")?.addEventListener("click", () => {
+      if (!confirm(`Pay ${COSTS.delegate} ${unit()} to make someone else do "${c.title}"? You pick the victim, no reward for you.`)) return;
+      set({ hearts: state.hearts - COSTS.delegate, [chKey()]: { ...chNow(), delegated: true } });
+      window.scrollTo({ top: 0 });
+    });
+    $("#delegdone")?.addEventListener("click", () => {
+      set({ [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {} });
+      toast("🎭 Done — your hands stayed clean");
       window.scrollTo({ top: 0 });
     });
 

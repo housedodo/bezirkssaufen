@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Remove "Just tell us" (no skipping districts); replace skip-challenge with "make someone else do it" | `app.js`, `story.js` (`COSTS`), `styles.css`, `README.md` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -62,7 +62,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 ## Current state
 
 ### Done
-- Installable offline web app (PWA): story picker, intro, clue + district guessing with hints and "just tell us",
+- Installable offline web app (PWA): story picker, intro, clue + district guessing with hints (a district can never be skipped: there is no "just tell us"),
   next-stop screen (bar, planned time, bus/tram leg, Maps link), journal drawer, finale with confetti.
 - Progress saved per phone in `localStorage` (`bezirkssaufen.v1`); "Start over" in the ☰ journal.
 - Route follows the **JJ Odyssey** plan (Google Sheet "JJ Odyssey"), see [Route](#route).
@@ -106,9 +106,9 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 - **Wallet** (❤️ Sarah / 🔖 Sara, `state.hearts`; `state.earned` = total ever earned, shown in the finale). Earning is
   deliberately slow: events +2, intermissions +1, shared missions +2/+1, quizzes −1 per wrong answer (min +1). Spending
   (`COSTS` in `story.js`): 💡 buy a hint before a wrong guess unlocks it (1) · 🧾 cancel the penalty sips of the current
-  stop (2, Sarah's passes / Sara's wrong orders, tracked in `state.sipsStep`) · ⏭ skip an event/intermission, no reward
-  (3) · 🔍 Sara: mark the real Bookbazaar listing (2). Surprise missions can't be skipped, only paused.
-- **Step sync** ("only if both found the district, both continue"): after a correct guess or "just tell us",
+  stop (2, Sarah's passes / Sara's wrong orders, tracked in `state.sipsStep`) · 🎭 make someone else do an event/intermission challenge instead of you (3): they pick a victim from the crew, the group
+  confirms it, no reward for the payer · 🔍 Sara: mark the real Bookbazaar listing (2). Surprise missions can't be delegated, only paused.
+- **Step sync** ("only if both found the district, both continue"): after a correct guess,
   `solve()` sets `state.waiting`; `renderWaiting()` polls worker `POST /solved {who, step}` every 3 s until it answers
   `both` (or the host `released` the step) and only then shows the next-stop screen. Switch it off with
   `syncSteps: false` in `push-config.js`; without a `workerUrl` it is off automatically. If the worker can't be
@@ -126,7 +126,7 @@ See [Open items](#open-items).
 | File | What it is |
 |---|---|
 | `index.html` | Shell: top bar, progress bar, `<main id="app">`, journal drawer, toast. Loads fonts, `story.js`, `app.js`. |
-| `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `GIVE_UP_AFTER`, `CHALLENGES`, `STORIES`, `SARA_SHOP` (end of file). |
+| `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `CHALLENGES`, `STORIES`, `SARA_SHOP` (end of file). |
 | `app.js` | All logic and rendering (one IIFE, template strings into `#app`). |
 | `styles.css` | Base + three themes via `body[data-theme]`: `night` (picker), `dating` (Sarah), `paper` (Sara). `ice` theme CSS is legacy/unused. |
 | `admin.html` | Host panel (not linked from the app, `noindex`). Needs the worker + PIN. |
@@ -254,7 +254,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
+- 2026-10-14 · this commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
+- 2026-10-14 · `847b92a` · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
 - 2026-10-14 · earlier commit · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
 - 2026-10-14 · `d7ca3cc`+ · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.

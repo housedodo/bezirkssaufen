@@ -6,7 +6,7 @@ Two players, two stories:
 - **Sarah — "The Hunt for #99":** chasing Jakob "Iceman" Eisner, Graz's most eligible ice hockey player, who is always one bar ahead.
 - **Sara — "The Last Copy":** chasing Ottilie Pfotenhauer, a travelling bookseller with the last copy of *The Library of Herb and Kafk*, always five minutes ahead.
 
-In every district the player reads what just happened, collects a souvenir for her journal, and gets a riddle describing the area around the next district (never its name). She picks the district from a list. Wrong guesses unlock a hint, and after three wrong guesses there's a "just tell us" button. Once she's guessed it, the app shows the next bar, the planned time and the bus/tram connection. Then everyone goes there, gets a drink, and taps "we've arrived".
+In every district the player reads what just happened, collects a souvenir for her journal, and gets a riddle describing the area around the next district (never its name). She picks the district from a list. Wrong guesses unlock a free hint (or she can buy one with hearts/bookmarks). There is no way to skip a district: it has to be guessed. Once she's guessed it, the app shows the next bar, the planned time and the bus/tram connection. Then everyone goes there, gets a drink, and taps "we've arrived".
 
 ## The route ("JJ Odyssey" plan)
 
@@ -63,7 +63,7 @@ At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's r
 
 ## Spending points, and moving on together
 
-Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sips of the current stop (2), skip a challenge (3), Sara can have the real Bookbazaar listing marked (2). Only when **both** phones have solved the district (correct guess or "just tell us") does the next-stop screen appear; the host can release a stuck stop in `admin.html` → "Game sync".
+Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sips of the current stop (2), make someone else do a challenge for you (3), Sara can have the real Bookbazaar listing marked (2). Only when **both** phones have solved the district (correct guess) does the next-stop screen appear; the host can release a stuck stop in `admin.html` → "Game sync".
 
 ## Sarah's dating app ("Icebreaker")
 

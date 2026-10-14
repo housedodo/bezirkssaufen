@@ -627,3 +627,8 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .screen.waiting .btn { margin-top: 10px; }
 .offer.revealed { outline: 3px solid #ffb347; box-shadow: 0 0 0 6px rgba(255, 179, 71, .25); }
 #cancelsips, #reveal, #skipch { margin: 6px 0; width: 100%; }
+
+/* delegated challenge */
+.deleg { background: var(--surface); border: 1.5px dashed var(--accent); border-radius: 18px; padding: 16px; text-align: center; }
+.deleg-title { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+.deleg p { margin: 0 0 10px; }
