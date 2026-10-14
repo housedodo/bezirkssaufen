@@ -262,7 +262,7 @@
       <section class="screen pick">
         <div class="pick-head">
           <p class="kicker">Enemies to lovers · 17 districts · 17 drinks</p>
-          <h1 class="logo">Icebreakers<span class="logo-sub">&amp; Heated Rivalries</span></h1>
+          <h1 class="logo">Icebreakers<span class="logo-sub">&amp; Heated Rivalries</span><span class="logo-sub logo-sub2">&amp; Dog-Eared Hearts</span></h1>
           <p class="lede">Two birthdays. Two stories. One long day.<br>Only one bed (at the end). Choose your name — and no peeking at the other phone.</p>
         </div>
         <div class="pick-grid">${card("sarah")}${card("sara")}</div>

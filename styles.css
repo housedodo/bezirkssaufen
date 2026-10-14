@@ -655,3 +655,4 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 /* game title: two lines */
 .logo { display: flex; flex-direction: column; align-items: center; }
 .logo-sub { display: block; font-size: .42em; line-height: 1.1; letter-spacing: .02em; margin-top: .25em; color: #ff8a5c; text-shadow: 0 0 24px rgba(255,122,47,.35); }
+.logo-sub2 { font-size: .3em; margin-top: .45em; color: #f4e3c1; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; text-transform: none; letter-spacing: .01em; text-shadow: none; }

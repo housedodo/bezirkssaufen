@@ -24,6 +24,7 @@
     <g stroke="#efeaff" stroke-width="20"><path d="M96 96L404 414H454"/><path d="M416 96L108 414H58"/></g>
     <g stroke="#b9a8ff" stroke-width="20" stroke-dasharray="3 14"><path d="M96 96L150 152"/><path d="M416 96L362 152"/></g>
   </g>
+  <g transform="translate(0,-26)">
   <!-- split heart: ice | fire -->
   <g clip-path="url(#L)"><use href="#heart" fill="url(#ice)"/></g>
   <g clip-path="url(#R)"><use href="#heart" fill="url(#fire)"/></g>
@@ -32,8 +33,16 @@
   <path d="M370 170C354 148 382 140 378 116C398 132 406 154 392 174Z" fill="url(#fire)"/>
   <!-- the crack where ice meets heat -->
   <path d="M256 168L240 212L268 246L238 290L262 330L248 376" fill="none" stroke="#fff6c9" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- open book with a dog-eared page -->
+  <g stroke-linejoin="round">
+    <path d="M256 394C230 378 190 374 148 382L148 454C190 446 230 450 256 464Z" fill="#fff4e0" stroke="#e3cfa8" stroke-width="3"/>
+    <path d="M256 394C282 378 320 374 340 378L364 402L364 454C322 446 282 450 256 464Z" fill="#fff4e0" stroke="#e3cfa8" stroke-width="3"/>
+    <path d="M340 378L340 402L364 402Z" fill="#e0c391" stroke="#cfae78" stroke-width="3"/>
+    <path d="M168 402C190 398 222 400 240 410M168 420C190 416 222 418 240 428M168 438C190 434 222 436 240 446M272 410C290 400 318 398 336 410M272 428C290 418 318 416 344 426" fill="none" stroke="#d9c3a0" stroke-width="4" stroke-linecap="round"/>
+  </g>
   <!-- sparkles -->
-  <path d="M256 40L262 62L284 68L262 74L256 96L250 74L228 68L250 62Z" fill="#fff6e8"/>
+  <path d="M256 54L261 70L277 75L261 80L256 96L251 80L235 75L251 70Z" fill="#fff6e8"/>
   <path d="M82 292L86 306L100 310L86 314L82 328L78 314L64 310L78 306Z" fill="#cfeaff"/>
   <path d="M432 262L436 276L450 280L436 284L432 298L428 284L414 280L428 276Z" fill="#ffe3b0"/>
 </svg>
