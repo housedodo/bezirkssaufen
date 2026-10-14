@@ -10,6 +10,7 @@
 
   const $ = (sel) => document.querySelector(sel);
   const app = $("#app");
+  let tick = null; // interval for countdown timers
 
   // ── State ──────────────────────────────────────────────────
   const fresh = () => ({
@@ -18,9 +19,17 @@
     step: 0,         // index into ROUTE of the district they are in
     wrong: [],       // wrong district ids guessed at the current step
     hint: false,     // hint revealed at the current step
-    liked: false,    // dating story: profile at the current step was liked
-    passes: 0,       // dating story: how often she tried to pass on him
     log: [],         // [{ d, wrong, hint, gaveUp }] for finished steps
+    // dating story (Sarah)
+    liked: false,    // profile at the current step was liked
+    passes: 0,       // passes on the current profile
+    evDone: false,   // event challenge at the current step done
+    imDone: false,   // intermission at the current step done
+    ch: {},          // progress inside the current challenge
+    hearts: 0,       // likes earned through challenges
+    sips: 0,         // penalty sips for passing
+    myBio: "",       // profile written by the crew
+    superLikes: [],  // super likes written by the crew
   });
 
   let state = load();
@@ -40,6 +49,7 @@
     save();
     render();
   }
+  const setCh = (patch) => set({ ch: { ...state.ch, ...patch } });
 
   // ── Helpers ────────────────────────────────────────────────
   const story = () => STORIES[state.char];
@@ -59,6 +69,10 @@
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
   };
   const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (_) {} };
+  const mmss = (ms) => {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  };
 
   const ICON_PIN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>`;
   const ICON_X = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>`;
@@ -75,6 +89,22 @@
     toast._t = setTimeout(() => { t.classList.remove("show"); t.hidden = true; }, ms);
   }
 
+  // Full-screen flash (match, boost, countdown).
+  function flash(html, ms, cls = "") {
+    return new Promise((resolve) => {
+      const o = document.createElement("div");
+      o.className = `match-overlay ${cls}`;
+      o.setAttribute("role", "status");
+      o.innerHTML = `<div class="match-inner">${html}</div>`;
+      document.body.appendChild(o);
+      requestAnimationFrame(() => o.classList.add("show"));
+      setTimeout(() => {
+        o.classList.remove("show");
+        setTimeout(() => { o.remove(); resolve(); }, 280);
+      }, ms);
+    });
+  }
+
   // ── Chrome (top bar, progress) ─────────────────────────────
   function renderChrome() {
     const inGame = state.char && state.phase !== "pick";
@@ -89,7 +119,8 @@
     const arrived = state.phase === "intro" ? 0 : state.step + 1;
     $("#topbar-count").textContent =
       state.phase === "intro" ? "Ready?" : `District ${arrived} of ${TOTAL}`;
-    $("#drinks").textContent = arrived ? `🍻 ${arrived}` : "";
+    $("#drinks").textContent = !arrived ? ""
+      : isDating() ? `🍻 ${arrived} · ❤️ ${state.hearts}` : `🍻 ${arrived}`;
 
     $("#progress").innerHTML = ROUTE.map((d, i) => {
       const cls = i < state.step || state.phase === "done" ? "done"
@@ -148,13 +179,15 @@
         <button class="btn primary big" id="start">We're in the ${DISTRICTS[first].name} 🍻</button>
       </section>`;
     $("#start").addEventListener("click", () => {
-      set({ phase: "clue", step: 0, wrong: [], hint: false, liked: false, passes: 0 });
+      set({ phase: "clue", step: 0, ...stepReset() });
       announceItem();
     });
   }
 
+  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false });
+
   // Shared "Where to next?" block (district guessing).
-  function guessBlock(stop) {
+  function guessBlock() {
     const visited = new Set(ROUTE.slice(0, state.step + 1));
     const options = Object.keys(DISTRICTS).map(Number).filter((id) => !visited.has(id));
     const wrongCount = state.wrong.length;
@@ -216,19 +249,12 @@
         </article>
 
         ${riddleCard(s, stop)}
-        ${guessBlock(stop)}
+        ${guessBlock()}
       </section>`;
     bindGuess();
   }
 
   // ── Sarah: dating-app clue screen ──────────────────────────
-  const PASS_LINES = [
-    "",
-    "He's the only one who saw Jakob leave. Give him a chance?",
-    "Sarah. Swipe right. Trust the process.",
-    "We're not letting you skip this one. 😇",
-  ];
-
   function profileCard(p, d) {
     return `
       <article class="profile" id="profile">
@@ -249,18 +275,30 @@
       </article>`;
   }
 
+  const passLine = (n) => {
+    const sips = n === 1 ? "1 sip" : `${n} sips`;
+    const tail = n === 1 ? "He's the only one who saw Jakob leave. Give him a chance?"
+      : n === 2 ? "Sarah. Swipe right. Trust the process."
+      : "We're not letting you skip this one. 😇";
+    return `🍺 Penalty: <b>${sips}</b> for passing — and he's back. ${tail}`;
+  };
+
   function renderDatingClue() {
     const s = story();
     const d = here();
     const stop = s.stops[d];
     const p = stop.profile;
 
+    // 0) Sudden intermission, or "no matches nearby" challenge.
+    if (stop.intermission && !state.imDone) return renderChallenge(stop.intermission, "intermission");
+    if (stop.event && !state.evDone) return renderChallenge(stop.event, "event");
+
     // 1) A teammate's profile that hasn't been liked yet: swipe screen.
     if (p && !state.liked) {
       app.innerHTML = `
         <section class="screen clue dating">
           <p class="match-kicker"><span class="dot"></span> New match nearby · ${DISTRICTS[d].name} · like him to see where Jakob went</p>
-          ${state.passes ? `<p class="pass-line">${PASS_LINES[Math.min(state.passes, PASS_LINES.length - 1)]}</p>` : ""}
+          ${state.passes ? `<p class="pass-line">${passLine(state.passes)}</p>` : ""}
           ${profileCard(p, d)}
           <div class="swipe-btns">
             <button class="round pass" id="pass" aria-label="Pass">${ICON_X}</button>
@@ -270,12 +308,20 @@
       $("#pass").addEventListener("click", () => {
         buzz(80);
         $("#profile").classList.add("swipe-left");
-        setTimeout(() => set({ passes: state.passes + 1 }), 320);
+        const n = state.passes + 1;
+        setTimeout(() => { set({ passes: n, sips: state.sips + n }); window.scrollTo({ top: 0 }); }, 320);
       });
       $("#like").addEventListener("click", () => {
         buzz([30, 40, 30]);
         $("#profile").classList.add("swipe-right");
-        setTimeout(() => showMatch(p), 280);
+        setTimeout(async () => {
+          await flash(`
+            <p class="match-title">It's a match!</p>
+            <img src="${p.face || p.photo}" alt="" class="match-photo">
+            <p class="match-sub">${esc(p.name)} liked you back. He has something to tell you…</p>`, 1500);
+          set({ liked: true });
+          window.scrollTo({ top: 0 });
+        }, 280);
       });
       return;
     }
@@ -307,29 +353,144 @@
           <p class="item"><span class="item-icon">${stop.item.icon}</span> ${stop.item.name}</p>
         </article>
         ${riddleCard(s, stop)}
-        ${guessBlock(stop)}
+        ${guessBlock()}
       </section>`;
     bindGuess();
   }
 
-  function showMatch(p) {
-    const o = document.createElement("div");
-    o.className = "match-overlay";
-    o.setAttribute("role", "status");
-    o.innerHTML = `
-      <div class="match-inner">
-        <p class="match-title">It's a match!</p>
-        <img src="${p.face || p.photo}" alt="" class="match-photo">
-        <p class="match-sub">${esc(p.name)} liked you back. He has something to tell you…</p>
-      </div>`;
-    document.body.appendChild(o);
-    requestAnimationFrame(() => o.classList.add("show"));
-    setTimeout(() => {
-      o.classList.remove("show");
-      setTimeout(() => o.remove(), 300);
-      set({ liked: true });
-      window.scrollTo({ top: 0 });
-    }, 1500);
+  // ── Sarah: challenges ──────────────────────────────────────
+  function renderChallenge(key, mode) {
+    const c = CHALLENGES[key];
+    const d = here();
+    const ch = state.ch || {};
+    const banner = mode === "intermission"
+      ? `<p class="ch-banner im">⚡ Sudden intermission!</p>`
+      : `<p class="ch-banner ev">💔 No matches nearby · ${DISTRICTS[d].name}</p>`;
+    let body = "";
+
+    if (c.type === "quiz") {
+      const qi = ch.qi || 0;
+      const q = c.questions[qi];
+      const wrongOpts = ch.wrongOpts || [];
+      body = `
+        <div class="quiz">
+          <p class="q-count">Question ${qi + 1} of ${c.questions.length}</p>
+          <p class="q-text">${q.q}</p>
+          <div class="q-opts">
+            ${q.options.map((o, i) => `<button class="q-opt ${wrongOpts.includes(i) ? "wrong" : ""}" data-opt="${i}" ${wrongOpts.includes(i) ? "disabled" : ""}>${o}</button>`).join("")}
+          </div>
+          ${wrongOpts.length ? `<p class="q-miss">Nope — try again.</p>` : ""}
+        </div>`;
+    } else if (c.type === "confirm") {
+      const line = c.lines ? c.lines[(ch.line ?? state.step) % c.lines.length] : "";
+      const needsCountdown = c.countdown && !ch.counted;
+      body = `
+        ${c.lines ? `<blockquote class="ch-line">“${line}”</blockquote>
+          <button class="btn ghost" id="another">🔄 Another line</button>` : ""}
+        ${needsCountdown
+          ? `<button class="btn primary big" id="countdown">3 · 2 · 1 · Prost!</button>`
+          : `<button class="btn primary big" id="confirm">${c.confirmLabel || "✅ The group says it counts"}</button>`}`;
+    } else if (c.type === "timer") {
+      if (!ch.endsAt) {
+        body = `<button class="btn primary big" id="startclock">Start the clock · ${mmss(c.seconds * 1000)}</button>`;
+      } else {
+        const left = ch.endsAt - Date.now();
+        body = left > 0
+          ? `<p class="clock" id="clock">${mmss(left)}</p><p class="clock-sub">No talking. No phone. Just vibes.</p>`
+          : `<p class="clock done">0:00</p><button class="btn primary big" id="confirm">Time's up — collect your likes</button>`;
+      }
+    } else if (c.type === "write") {
+      const started = !!ch.endsAt;
+      const left = started ? ch.endsAt - Date.now() : c.seconds * 1000;
+      body = `
+        ${started ? `<p class="clock small" id="clock">${left > 0 ? mmss(left) : "Time! Hit save."}</p>`
+                  : `<button class="btn ghost" id="startclock">⏱️ Start ${c.seconds} seconds</button>`}
+        <label class="field-label" for="bio">Sarah's profile</label>
+        <textarea id="bio" class="field" rows="5" placeholder="${esc(c.placeholder || "")}">${esc(ch.text ?? state.myBio ?? "")}</textarea>
+        <button class="btn primary big" id="confirm" ${(ch.text ?? "").trim() ? "" : "disabled"}>${c.confirmLabel}</button>`;
+    } else if (c.type === "notes") {
+      const notes = ch.notes || Array(c.count).fill("");
+      body = `
+        ${notes.map((n, i) => `
+          <label class="field-label" for="note${i}">Super like #${i + 1}</label>
+          <textarea id="note${i}" class="field note" data-note="${i}" rows="2" placeholder="${esc(c.placeholder || "")}">${esc(n)}</textarea>`).join("")}
+        <button class="btn primary big" id="confirm" ${notes.every((n) => n.trim()) ? "" : "disabled"}>${c.confirmLabel}</button>`;
+    }
+
+    app.innerHTML = `
+      <section class="screen clue dating challenge ${mode}">
+        ${banner}
+        <article class="ch-card">
+          <span class="ch-icon" aria-hidden="true">${c.icon}</span>
+          <h2 class="ch-title">${c.title}</h2>
+          ${paras(c.story)}
+          <p class="ch-reward">Reward: +${c.reward} ❤️</p>
+        </article>
+        <div class="ch-body">${body}</div>
+      </section>`;
+
+    // bindings
+    app.querySelectorAll("[data-opt]").forEach((b) => b.addEventListener("click", () => {
+      const i = Number(b.dataset.opt);
+      const qi = ch.qi || 0;
+      if (i === c.questions[qi].answer) {
+        buzz([30, 40, 30]);
+        if (qi + 1 >= c.questions.length) complete(c, mode);
+        else setCh({ qi: qi + 1, wrongOpts: [] });
+      } else {
+        buzz(120);
+        b.classList.add("shake");
+        setTimeout(() => setCh({ wrongOpts: [...(ch.wrongOpts || []), i] }), 350);
+      }
+    }));
+    $("#another")?.addEventListener("click", () => setCh({ line: ((ch.line ?? state.step) + 1) % c.lines.length }));
+    $("#countdown")?.addEventListener("click", async () => {
+      for (const n of ["3", "2", "1"]) await flash(`<p class="count-num">${n}</p>`, 650, "count");
+      await flash(`<p class="match-title">Prost! 🥃</p>`, 900);
+      setCh({ counted: true });
+    });
+    $("#startclock")?.addEventListener("click", () => setCh({ endsAt: Date.now() + c.seconds * 1000 }));
+    const bio = $("#bio");
+    if (bio) bio.addEventListener("input", () => {
+      state.ch = { ...state.ch, text: bio.value };
+      save();
+      $("#confirm").disabled = !bio.value.trim();
+    });
+    app.querySelectorAll("[data-note]").forEach((t) => t.addEventListener("input", () => {
+      const notes = [...(state.ch.notes || Array(c.count).fill(""))];
+      notes[Number(t.dataset.note)] = t.value;
+      state.ch = { ...state.ch, notes };
+      save();
+      $("#confirm").disabled = !notes.every((n) => n.trim());
+    }));
+    $("#confirm")?.addEventListener("click", () => {
+      if (c.type === "write") state.myBio = (state.ch.text || "").trim();
+      if (c.type === "notes") state.superLikes = [...state.superLikes, ...(state.ch.notes || []).map((n) => n.trim())];
+      complete(c, mode);
+    });
+
+    // live clock (only while time is left — once it's up, the page shows the "done" state)
+    if ((c.type === "timer" || c.type === "write") && ch.endsAt && ch.endsAt > Date.now()) {
+      tick = setInterval(() => {
+        const left = ch.endsAt - Date.now();
+        const el = $("#clock");
+        if (el) el.textContent = left > 0 ? mmss(left) : (c.type === "write" ? "Time! Hit save." : "0:00");
+        if (left <= 0) {
+          clearInterval(tick); tick = null;
+          buzz([200, 100, 200]);
+          if (c.type === "timer") render();
+        }
+      }, 250);
+    }
+  }
+
+  async function complete(c, mode) {
+    buzz([30, 40, 30, 40, 30]);
+    await flash(`
+      <p class="match-title">+${c.reward} ❤️</p>
+      <p class="match-sub">${mode === "intermission" ? "Intermission survived." : "Profile boosted."} Your likes are back.</p>`, 1400, "boost");
+    set({ hearts: state.hearts + c.reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
+    window.scrollTo({ top: 0 });
   }
 
   function guess(id, el) {
@@ -372,7 +533,7 @@
       </section>`;
     $("#arrive").addEventListener("click", () => {
       const step = state.step + 1;
-      set({ step, phase: step === TOTAL - 1 ? "done" : "clue", wrong: [], hint: false, liked: false, passes: 0, solvedGaveUp: false });
+      set({ step, phase: step === TOTAL - 1 ? "done" : "clue", ...stepReset() });
       window.scrollTo({ top: 0 });
       announceItem();
     });
@@ -383,6 +544,18 @@
     const d = here();
     const stop = s.stops[d];
     const firstTries = state.log.filter((l) => l.wrong === 0 && !l.gaveUp).length;
+    const matches = ROUTE.filter((id) => s.stops[id].profile).length;
+    const stats = isDating()
+      ? `<div><b>${matches}</b><span>matches</span></div>
+         <div><b>${state.hearts}</b><span>likes earned</span></div>
+         <div><b>${state.sips}</b><span>penalty sips</span></div>`
+      : `<div><b>${TOTAL}</b><span>districts</span></div>
+         <div><b>${TOTAL}</b><span>drinks</span></div>
+         <div><b>${firstTries}</b><span>first-try guesses</span></div>`;
+    const extras = isDating() ? `
+      ${state.myBio ? `<article class="card memento"><p class="card-label">Your profile, written by your crew</p><p class="memento-text">${esc(state.myBio)}</p></article>` : ""}
+      ${state.superLikes.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Your super likes ⭐</p>
+        <ul class="memento-list">${state.superLikes.filter(Boolean).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></article>` : ""}` : "";
     app.innerHTML = `
       <section class="screen done">
         <div class="here">
@@ -393,16 +566,14 @@
         <article class="card encounter finale">${paras(stop.encounter)}
           <p class="item big-item"><span class="item-icon">${stop.item.icon}</span> ${stop.item.name}</p>
         </article>
-        <div class="stats">
-          <div><b>${TOTAL}</b><span>districts</span></div>
-          <div><b>${TOTAL}</b><span>drinks</span></div>
-          <div><b>${firstTries}</b><span>first-try guesses</span></div>
-        </div>
+        <div class="stats">${stats}</div>
+        ${extras}
       </section>`;
     celebrate(s.theme === "paper" ? ["📚", "🐈", "🍻", "🎂"] : ["🏒", "❤️", "🍻", "🎂"]);
   }
 
   function announceItem() {
+    if (isDating()) return; // dating app: souvenirs show in the chat card and the journal instead
     const stop = story().stops[here()];
     if (stop) toast(`<span class="toast-icon">${stop.item.icon}</span> Added to journal: ${stop.item.name}`);
   }
@@ -438,8 +609,9 @@
           const note = log ? (log.gaveUp ? "gave up" : log.wrong === 0 ? "first try" : `${log.wrong} wrong`) : "here now";
           const icon = st.profile
             ? `<img class="j-photo" src="${st.profile.face || st.profile.photo}" alt="">`
-            : `<span class="j-icon">${st.item.icon}</span>`;
-          const sub = st.profile ? `${esc(st.profile.name)} #${st.profile.number} · ${st.item.name}` : st.item.name;
+            : `<span class="j-icon">${st.event && typeof CHALLENGES !== "undefined" ? CHALLENGES[st.event].icon : st.item.icon}</span>`;
+          const sub = st.profile ? `${esc(st.profile.name)} #${st.profile.number} · ${st.item.name}`
+            : st.event && typeof CHALLENGES !== "undefined" ? `${CHALLENGES[st.event].title} · ${st.item.name}` : st.item.name;
           return `<li>
             ${icon}
             <span class="j-main"><b>${label(d)}</b><span>${sub}</span></span>
@@ -469,6 +641,7 @@
 
   // ── Render ─────────────────────────────────────────────────
   function render() {
+    if (tick) { clearInterval(tick); tick = null; }
     if (!state.char) state.phase = "pick";
     renderChrome();
     ({ pick: renderPick, intro: renderIntro, clue: renderClue, travel: renderTravel, done: renderDone }[state.phase] || renderPick)();

@@ -57,6 +57,92 @@ const STOPS = {
 const HINT_AFTER = 1;
 const GIVE_UP_AFTER = 3;
 
+// ── Sarah's challenges ────────────────────────────────────────
+// Two kinds, both earn likes (❤️):
+//   event        – at a stop with no players ("No matches nearby"); done before the message + riddle
+//   intermission – pops up suddenly when arriving at a player stop, before his profile
+// Types: quiz (app checks answers) · confirm (group confirms) · timer (countdown)
+//        write (crew writes Sarah's bio) · notes (crew writes super likes)
+const CHALLENGES = {
+  quiz: {
+    type: "quiz", icon: "🧬", reward: 3,
+    title: "Brains are sexy",
+    story: "Jakob's teammates only swipe right on smart women. Three easy biochemistry questions — get all three right to boost your profile.",
+    questions: [
+      { q: "What does DNA stand for?", options: ["Double nitrogen acid", "Deoxyribonucleic acid", "Dinucleotide amine", "Deoxyribose nitrate"], answer: 1 },
+      { q: "Which part of the cell is called its powerhouse?", options: ["Ribosome", "Nucleus", "Mitochondria", "Golgi apparatus"], answer: 2 },
+      { q: "Proteins are built from…", options: ["Amino acids", "Fatty acids", "Sugars", "Nucleotides"], answer: 0 },
+    ],
+  },
+  pickup: {
+    type: "confirm", icon: "😏", reward: 3,
+    title: "Flirt practice",
+    story: "Your flirting is rusty. Deliver this line to the person behind the counter — straight face, full eye contact. Don't like the line? Get another one.",
+    lines: [
+      "Are you a Zamboni? Because you just smoothed out all my rough edges.",
+      "Is your name Puck? Because I'd chase you for sixty minutes straight.",
+      "Are you a goalie? Because you just saved my whole day.",
+      "I'd drop the gloves for you.",
+      "Are you the Stanley Cup? Because everybody wants to hold you.",
+      "Call me a hat-trick: three times the fun.",
+    ],
+    confirmLabel: "✅ Delivered — the group says it counts",
+  },
+  profile: {
+    type: "write", icon: "✍️", reward: 3, seconds: 90,
+    title: "Profile makeover",
+    story: "Your profile is empty — that's why nobody's matching. Hand the phone to your crew: they have 90 seconds to write your dating bio. It stays on your profile for the rest of the day.",
+    placeholder: "Sarah, 2?. Loves … Hates … Looking for a man who …",
+    confirmLabel: "💾 Save my profile",
+  },
+  shot: {
+    type: "confirm", icon: "🥃", reward: 3, countdown: true,
+    title: "Liquid courage",
+    story: "Matches don't come to the shy. One shot. The whole bar can count down with you.",
+    confirmLabel: "✅ Shot's gone — the group saw it",
+  },
+  penalty: {
+    type: "timer", icon: "⏱️", reward: 3, seconds: 120,
+    title: "Two minutes for interference",
+    story: "You've been flirting too aggressively. Two minutes in the penalty box: no talking, no phone. Your crew is only allowed to say nice things about you the whole time.",
+  },
+  celebration: {
+    type: "confirm", icon: "📣", reward: 3,
+    title: "Show us your squad",
+    story: "Jakob's team needs to know you've got a squad. The whole group does one big goal celebration together — chant, knee slide, team huddle. Somebody films it. If anyone sits it out, it doesn't count.",
+    confirmLabel: "🎉 Everyone joined in — it counts",
+  },
+  emoji: {
+    type: "quiz", icon: "🔣", reward: 2,
+    title: "They only text in emojis",
+    story: "Jakob's teammates can't spell. Decode their three messages to keep them talking to you.",
+    questions: [
+      { q: "🏒🎩🎩🎩", options: ["Top hat", "Hat-trick", "Three-piece suit", "Magic trick"], answer: 1 },
+      { q: "🧊🔨", options: ["Ice pick", "Hammer time", "Icebreaker", "Cold call"], answer: 2 },
+      { q: "🥊🧤⬇️", options: ["Drop the gloves", "Boxing day", "Knockout", "Glove compartment"], answer: 0 },
+    ],
+  },
+  superlikes: {
+    type: "notes", icon: "⭐", reward: 2, count: 3,
+    title: "Super likes",
+    story: "Your likes are running low. Three people from your crew each send you a super like: one thing they love about you. Pass the phone around.",
+    placeholder: "From …: I love that Sarah …",
+    confirmLabel: "⭐ Send the super likes",
+  },
+  nohands: {
+    type: "confirm", icon: "🙌", reward: 2,
+    title: "Goalie style",
+    story: "Goalies use their whole body. Finish your drink without using your hands.",
+    confirmLabel: "✅ No hands — the group saw it",
+  },
+  goal: {
+    type: "confirm", icon: "🥅", reward: 2,
+    title: "Score a goal",
+    story: "Flick a bottle cap or a beer mat into a glass. Three tries. Miss all three and your crew picks a new target.",
+    confirmLabel: "🚨 GOAL! The group saw it",
+  },
+};
+
 // Each story: `stops` is keyed by district id.
 //   encounter – what happens when they arrive (they just missed him / her)
 //   item      – a souvenir added to the journal
@@ -74,9 +160,10 @@ const STORIES = {
     narrator: "Overheard",
     clueLabel: "Where Jakob went next",
     howTo: [
-      "In every district, someone has seen Jakob. His teammates show up as matches — like them to hear where he went.",
-      "Everyone else just slides into your messages. Read the tip, then guess the district it points to. Hints are allowed.",
-      "Go there. Have a drink. Tap “We're in”.",
+      "In every district, someone has seen Jakob. His ten teammates show up as matches: <b>like</b> him and he tells you where Jakob went.",
+      "<b>Pass</b> on a teammate and it costs you a sip — and he comes right back. He's your only lead.",
+      "No players in a district? You're out of matches: complete a challenge to boost your profile and earn likes ❤️. Some challenges strike without warning.",
+      "Read the tip, guess the district. Go there, have a drink, tap “We're in”.",
     ],
     intro: `Word on the street: <b>Jakob "Iceman" Eisner</b> — defenceman, number 99, the most eligible man in Graz who owns a mouthguard — is out on the town today, from breakfast until whenever.
 
@@ -103,6 +190,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "Graz's ice hockey arena, next to the Merkur Arena and the Murpark mall.",
       },
       7: {
+        intermission: "emoji",
         profile: { name: "Tomasz", age: 29, number: 31, position: "Goalie", photo: "img/players/tomasz.jpg", face: "img/players/tomasz-face.jpg",
           tags: ["\"The Wall\"", "Saves > feelings"],
           bio: "Jakob scored on me in warm-up. First time all year. He showered in forty seconds, said “today's the day” — and then lost his locker key." },
@@ -121,6 +209,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "The hills are Ruckerlberg and Lustbühel. The castle in the coat of arms is the Hallerschloss.",
       },
       9: {
+        event: "quiz",
         from: { name: "Astronomer", avatar: "🔭" },
         encounter: `An astronomer packing up a telescope. "Your hockey player wanted to know which star is lucky number 99. I made one up. Then he tried to skate on the pond in the nature reserve. In October. Somebody wrote him a ticket. He said he'd go and serve his penalty like a man."`,
         item: { icon: "🔭", name: "Star no. 99 (made up)" },
@@ -128,6 +217,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "The patron saint of prisoners (and cattle). Church, street and the arts university all carry his name.",
       },
       2: {
+        event: "pickup",
         from: { name: "Cello student", avatar: "🎻" },
         encounter: `A cello student outside the music university. "He asked me to play the goal horn on my cello. I tried. It was awful. He loved it. Then he said he'd had too many Krapfen today and needed cardio. Uphill. He pointed east."`,
         item: { icon: "🎻", name: "Sheet music with a smudged phone number" },
@@ -135,6 +225,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "A district named after a ridge, with two valleys (Stiftingtal and Ragnitz) and a famous uphill road.",
       },
       10: {
+        intermission: "superlikes",
         profile: { name: "Marcus", age: 31, number: 77, position: "Defence · Captain", photo: "img/players/marcus.jpg", face: "img/players/marcus-face.jpg",
           tags: ["The C on his chest", "Beard of the year"],
           bio: "I was on my bike up here and Jakob ran past me. Uphill. Then his phone rang: Luca took a high stick to the face. Jakob turned around and sprinted straight back down toward town." },
@@ -153,6 +244,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "A pilgrimage basilica on a hill at the end of tram line 1. The district's name literally contains 'comfort'.",
       },
       11: {
+        event: "profile",
         from: { name: "Sacristan", avatar: "⛪" },
         encounter: `The sacristan sighs. "He lit a candle. Then a second one. Then he asked if there's a patron saint of hat-tricks. There isn't. Then he said he needs <i>recovery water</i> — the real stuff, straight from the ground."`,
         item: { icon: "🕯️", name: "Candle no. 99" },
@@ -160,6 +252,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "A machine factory famous worldwide, a spring called 'Ursprung', the northern end of the tram network.",
       },
       12: {
+        intermission: "nohands",
         profile: { name: "Jonas", age: 23, number: 17, position: "Center", photo: "img/players/jonas.jpg", face: "img/players/jonas-face.jpg",
           tags: ["Gym rat", "Hydration coach"],
           bio: "I met Jakob at the spring for recovery water. He drank two litres in one go. Then he said he needs to practise his diving — goalie-style, somewhere high." },
@@ -169,6 +262,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "A castle ruin north-west of town, next to the 'Jungfernsprung' rock.",
       },
       13: {
+        event: "shot",
         from: { name: "Hut keeper", avatar: "🏰" },
         encounter: `The keeper of the hut by the ruin is out of breath. "Your hockey player ran up here, did forty push-ups, looked at the view and said 'Graz, you beautiful thing.' Then he spotted peacocks down south and said he needs to learn how to show off properly."`,
         item: { icon: "🏰", name: "A pebble from the castle wall" },
@@ -185,6 +279,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "The hill is the Ölberg; the tunnel is the Plabutschtunnel. Look for the tram's western terminus.",
       },
       15: {
+        event: "penalty",
         from: { name: "Police officer", avatar: "🚓" },
         encounter: `A police officer at the door, very tired. "Mr Eisner reported a puck stolen by a peacock. I filed it under 'wildlife'. He also asked if there's a law against being this nervous. There isn't. He said he needs a glass of wine, and soon."`,
         item: { icon: "🚓", name: "Police report no. 99" },
@@ -192,6 +287,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "Schloss St. Martin, the Naturbad, the Kehlberg vineyards.",
       },
       16: {
+        event: "celebration",
         from: { name: "Bartender", avatar: "🍷" },
         encounter: `The bartender clears a glass. "He drank one glass of wine, very slowly, watching the clock. Then he said wine is for nerves, but beer is for courage — and he wanted it straight from the source."`,
         item: { icon: "🍷", name: "An empty wine glass" },
@@ -199,6 +295,7 @@ It's your birthday, Sarah. Today you find him.`,
         hint: "The brewery that gives Graz its beer — and its name to the 17th district.",
       },
       17: {
+        intermission: "goal",
         profile: { name: "Samuel", age: 24, number: 10, position: "Forward", photo: "img/players/samuel.jpg", face: "img/players/samuel-face.jpg",
           tags: ["Pool shark", "Hat-trick hero"],
           bio: "Jakob lost three games of pool to me and didn't even care. Kept saying “tonight's the night.” Then his stomach growled louder than the jukebox and he went to find Dragan for a kebab." },

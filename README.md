@@ -55,7 +55,34 @@ The riddle you read in a district points to the **next** row.
 | V Gries | "Gries" = gravel, Griesplatz, Karlau prison wall |
 | IV Lend | Kunsthaus "Friendly Alien", Lendplatz — finale |
 
-Sarah's hockey teammates appear in Innere Stadt (Matze #14), Jakomini (Elias #22), Liebenau (Tomasz #31), Geidorf (Luca #4) and Gries (Dragan #55).
+## Sarah's dating app ("Icebreaker")
+
+- **Player stops** show a teammate's profile. **Like** → "It's a match!" → his message and the riddle. **Pass** → he swipes back in and Sarah owes penalty sips (1st pass 1 sip, 2nd pass 2 sips, …). She can't skip him — he's her only lead.
+- **Event stops** ("💔 No matches nearby") have a challenge before the message and riddle: +3 ❤️.
+- **Sudden intermissions** interrupt some player stops before the profile shows: +2 ❤️.
+- The top bar counts drinks and ❤️. The finale shows matches, likes earned, penalty sips, the bio her crew wrote and the super likes.
+
+| District | What happens |
+|---|---|
+| I Innere Stadt | Matze #14 |
+| VI Jakomini | Elias #22 |
+| VII Liebenau | ⚡ Emoji decode (app checks) → Tomasz #31 |
+| VIII St. Peter | Felix #9 |
+| IX Waltendorf | 💔 Biochemistry quiz — 3 questions (app checks) |
+| II St. Leonhard | 💔 Hockey pick-up line to the person behind the counter (group confirms) |
+| X Ries | ⚡ Three super likes from the crew (typed in) → Marcus #77 |
+| III Geidorf | Luca #4 |
+| XI Mariatrost | 💔 Crew writes Sarah's dating bio in 90 s (typed in, shown at the finale) |
+| XII Andritz | ⚡ Finish a drink without hands (group confirms) → Jonas #17 |
+| XIII Gösting | 💔 A shot, with a 3-2-1 countdown (group confirms) |
+| XIV Eggenberg | Nico #8 |
+| XV Wetzelsdorf | 💔 Penalty box: 2 minutes silent, crew only says nice things (timer) |
+| XVI Straßgang | 💔 Group goal celebration, filmed (group confirms) |
+| XVII Puntigam | ⚡ Flick a cap/beer mat into a glass (group confirms) → Samuel #10 |
+| V Gries | Dragan #55 |
+| IV Lend | Finale |
+
+Challenges live in `CHALLENGES` in `story.js`; a stop uses one via `event: "key"` or `intermission: "key"`.
 
 ## Editing the story
 
