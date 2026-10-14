@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Spend hearts/bookmarks (hint, cancel sips, skip, reveal), lower rewards, both-must-solve step sync | `story.js` (rewards, `COSTS`), `app.js`, `styles.css`, `worker/worker.js`, `admin.html`, `push-config.js`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
