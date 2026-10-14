@@ -1,4 +1,4 @@
-# Icebreakers, Heated Rivalries & Dog-Eared Hearts (repo: bezirkssaufen) — project handbook
+# Heated Pages (repo: bezirkssaufen) — project handbook
 
 > **Read this first, every session.** Two people work on this repo, each with their own Claude Code.
 > This file is the shared source of truth: what exists, how it works, who is doing what.
@@ -44,7 +44,7 @@
 
 ## What this is
 
-A birthday game for a pub crawl ("Icebreakers, Heated Rivalries & Dog-Eared Hearts", formerly "Bezirkssaufen", the **JJ Odyssey**) through all 17 districts of Graz, one drink
+A birthday game for a pub crawl ("Heated Pages", formerly "Bezirkssaufen", the **JJ Odyssey**) through all 17 districts of Graz, one drink
 per district. Two birthday girls each play their own story on their own phone:
 
 - **Sarah — "The Hunt for #99"**, built as a fake dating app called **Icebreaker**. She chases
@@ -146,7 +146,7 @@ See [Open items](#open-items).
 | `push-config.js` | `self.PUSH = {workerUrl, vapidPublicKey}`; read by page and service worker. Empty = alerts off. |
 | `worker/` | Cloudflare Worker (`worker.js`), VAPID key generator, `wrangler.toml`, setup guide. Not loaded by the game. |
 | `sw.js` | Service worker, cache name `VERSION`, list of files cached for offline use (incl. all player images). |
-| `manifest.webmanifest`, `icons/` | PWA install metadata and icons. Name "Icebreakers, Heated Rivalries & Dog-Eared Hearts", short name "Icebreakers". Icon = ice/fire split heart with a crack, crossed hockey sticks, open book with a dog-eared page, sparkles (`icons/icon.svg`; the PNGs are rendered from the same drawing as a full-bleed square so they work as maskable icons). |
+| `manifest.webmanifest`, `icons/` | PWA install metadata and icons. Name "Heated Pages" (short name the same). Icon = ice/fire split heart with a crack, crossed hockey sticks, open book with a dog-eared page, sparkles (`icons/icon.svg`; the PNGs are rendered from the same drawing as a full-bleed square so they work as maskable icons). |
 | `img/players/<name>.jpg` | Full profile photos, 716 px wide (cut from the user's 2×5 image grid, no logos). |
 | `img/players/<name>-face.jpg` | 240×240 face crops for avatars. |
 | `README.md` | Player/host-facing overview, route table, riddle cheat sheet, Sarah's schedule. **Contains spoilers.** |
@@ -268,7 +268,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Name extended with the book-nerd side: "Icebreakers, Heated Rivalries & Dog-Eared Hearts" (third title line in the picker, page title, manifest, README, handbook); icon now has an open book with a dog-eared page under the heart; cache v21.
+- 2026-10-14 · this commit · Dominik (Claude) · Name shortened to two words: "Heated Pages" (heated = rivalry/spice, pages = book nerd) in picker logo, page title, manifest, home-screen name, notification-settings hint, README, handbook; icon unchanged; cache v22.
+- 2026-10-14 · earlier commit · Dominik (Claude) · Name extended with the book-nerd side: "Icebreakers, Heated Rivalries & Dog-Eared Hearts" (third title line in the picker, page title, manifest, README, handbook); icon now has an open book with a dog-eared page under the heart; cache v21.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Game renamed "Icebreakers & Heated Rivalries" (short name "Icebreakers"; enemies-to-lovers kicker, "only one bed (at the end)" joke) in picker, page title, manifest, home-screen name, notification-settings hint, README, handbook; new icon (ice/fire split heart, crossed hockey sticks, sparkles on a romance-cover gradient) as SVG + 180/192/512 PNGs. Internal names (repo, localStorage key, cache, Worker) unchanged; cache v20.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Cats are now "Herbert the Gracious" and "Kafka the Schlimm" (intro + finale); removed "fat" everywhere; cache v19.
 - 2026-10-14 · `8d9bb20` · Dominik (Claude) · Lobby: after choosing a name the app shows "Under construction" until the host presses Start game in admin.html (notification to both, lobbies unlock by themselves); intro now has a first clue to Auer (hint + Maps); worker `/game`, `/start`, `/reset` clears game; **redeploy `worker/worker.js`**; cache v18.

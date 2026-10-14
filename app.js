@@ -200,7 +200,7 @@
         tap <b>Share</b> → <b>Add to Home Screen</b>, open the app from the new icon, then come back to this screen.</p>`;
     } else if (Notification.permission === "denied") {
       html = `<p><b>🔔 Mission alerts are blocked</b></p>
-        <p class="push-note">Turn them back on in iPhone Settings → Notifications → Icebreakers.</p>`;
+        <p class="push-note">Turn them back on in iPhone Settings → Notifications → Heated Pages.</p>`;
     } else if (Notification.permission === "granted") {
       html = `<p><b>🔔 Mission alerts are on</b> ✅</p>
         <p class="push-note">You'll get a notification when your host sends a mission.</p>`;
@@ -262,7 +262,7 @@
       <section class="screen pick">
         <div class="pick-head">
           <p class="kicker">Enemies to lovers · 17 districts · 17 drinks</p>
-          <h1 class="logo">Icebreakers<span class="logo-sub">&amp; Heated Rivalries</span><span class="logo-sub logo-sub2">&amp; Dog-Eared Hearts</span></h1>
+          <h1 class="logo">Heated<span class="logo-sub">Pages</span></h1>
           <p class="lede">Two birthdays. Two stories. One long day.<br>Only one bed (at the end). Choose your name — and no peeking at the other phone.</p>
         </div>
         <div class="pick-grid">${card("sarah")}${card("sara")}</div>

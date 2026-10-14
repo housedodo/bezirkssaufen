@@ -1,4 +1,4 @@
-# Icebreakers, Heated Rivalries & Dog-Eared Hearts 🧊🔥📖
+# Heated Pages 🧊🔥📖
 
 *(working title: Bezirkssaufen. The repo, the cache and the Worker keep the old name.)*
 
