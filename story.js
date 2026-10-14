@@ -173,7 +173,7 @@ const STORIES = {
     ],
     intro: `<b>Jakob "Iceman" Eisner</b>, number 99, is out on the town today and nobody can pin him down. His teammates saw him leave every bar, and they all love to talk.
 
-It's your birthday, Sarah. Today you find him.`,
+It's your adventure day, Sarah. Today you find him.`,
     stops: {
       1: {
         profile: { name: "Matze", age: 26, number: 14, position: "Center", photo: "img/players/matze.jpg", face: "img/players/matze-face.jpg",
@@ -323,9 +323,9 @@ It's your birthday, Sarah. Today you find him.`,
 
 There's no #99 at the bar. But there's a hockey jersey on your chair, and a note in very messy handwriting:
 
-<i>"Sorry, Sarah. I'm always one bar ahead — that's my problem. But look around: everyone at this table followed you across the whole city today. That's the real team. Happy birthday. Shoot your shot. — J."</i>
+<i>"Sorry, Sarah. I'm always one bar ahead — that's my problem. But look around: everyone at this table followed you across the whole city today. That's the real team. Happy adventure day. Shoot your shot. — J."</i>
 
-Your crew has a drink for you. Prost! 🎂`,
+Your crew has a drink for you. Prost! 🎉`,
         item: { icon: "👕", name: "Jersey #99 — for you" },
       },
     },
@@ -341,7 +341,7 @@ Your crew has a drink for you. Prost! 🎂`,
     clueLabel: "A note from O.P.",
     intro: `There is exactly one copy left of <b>"The Library of Herbert and Kafka"</b>. It belongs to the travelling bookseller <b>Ottilie Pfotenhauer</b> and her cats, <b>Herbert the Gracious</b> and <b>Kafka the Schlimm</b>. She never waits, she only leaves notes.
 
-It's your birthday, Sara. Today you get that book.`,
+It's your adventure day, Sara. Today you get that book.`,
     howTo: [
       "In every district, the locals tell you what Ottilie sold them.",
       "Open <b>Bookbazaar</b> and buy the one listing that matches. Wrong order = a dark romance in your haul and penalty sips (1, 2, 3 …).",
@@ -451,9 +451,9 @@ It's your birthday, Sara. Today you get that book.`,
 
 Ottilie is sitting on a beer crate. Herbert is asleep on top of the cart. She hands you a heavy, slightly dusty book: <b>The Library of Herbert and Kafka</b>.
 
-<i>"I was never going to sell it to just anyone. Only to someone who'd chase it across a whole city with her friends. Happy birthday, Sara. Look after it. Herbert the Gracious approves. Kafka the Schlimm does not, but that is normal."</i>
+<i>"I was never going to sell it to just anyone. Only to someone who'd chase it across a whole city with her friends. Happy adventure day, Sara. Look after it. Herbert the Gracious approves. Kafka the Schlimm does not, but that is normal."</i>
 
-Your crew has a drink for you. Prost! 🎂`,
+Your crew has a drink for you. Prost! 🎉`,
         item: { icon: "📕", name: "The Library of Herbert and Kafka" },
       },
     },
@@ -775,7 +775,7 @@ Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].i
 Object.assign(CHALLENGES, {
   d_toast: {
     type: "confirm", icon: "🥂", reward: 2, shared: true,
-    title: "Birthday clink",
+    title: "Adventure clink",
     story: "Find each other, wherever you are in the bar. Clink glasses, look each other in the eye and say one genuinely nice thing about the other. No jokes. The crew judges.",
     confirmLabel: "✅ Clinked — the crew heard it",
   },
@@ -800,7 +800,7 @@ Object.assign(CHALLENGES, {
   },
   d_dance: {
     type: "timer", icon: "💃", reward: 2, seconds: 30, shared: true,
-    title: "Birthday dance-off",
+    title: "Dance-off",
     story: "Thirty seconds, the two of you, full commitment, in the middle of the bar. The crew films it. Standing still counts as losing.",
     clockSub: "Dance. Now.",
     doneLabel: "Last move — collect your reward",
@@ -819,7 +819,7 @@ Object.assign(CHALLENGES, {
   },
   d_wish: {
     type: "confirm", icon: "🌠", reward: 2, shared: true,
-    title: "Birthday wishes",
+    title: "Adventure wishes",
     story: "Each of you makes one wish for the other's next year, out loud, in front of the whole crew. Then a drink to both wishes.",
     confirmLabel: "✅ Wishes made, drinks raised",
   },

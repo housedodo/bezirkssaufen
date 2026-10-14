@@ -2,7 +2,7 @@
 
 *(working title: Bezirkssaufen. The repo, the cache and the Worker keep the old name.)*
 
-A tiny web app for a birthday pub crawl through all 17 districts of Graz.
+A tiny web app for an adventure-day pub crawl through all 17 districts of Graz: two birthdays that already happened, celebrated together today.
 Two players, two stories:
 
 - **Sarah — "The Hunt for #99":** chasing Jakob "Iceman" Eisner, Graz's most eligible ice hockey player, who is always one bar ahead.

@@ -267,7 +267,7 @@
         <div class="pick-head">
           <p class="kicker">Enemies to lovers · 17 districts · 17 drinks</p>
           <h1 class="logo">Heated<span class="logo-sub">Pages</span></h1>
-          <p class="lede">Two birthdays. Two stories. One long day.<br>Only one bed (at the end). Choose your name — and no peeking at the other phone.</p>
+          <p class="lede">Two belated birthdays. Two stories. One adventure day.<br>Only one bed (at the end). Choose your name — and no peeking at the other phone.</p>
         </div>
         <div class="pick-grid">${card("sarah")}${card("sara")}</div>
         <p class="fineprint">Progress is saved on this phone. Add it to your home screen so it works like an app.</p>
@@ -275,7 +275,10 @@
       </section>`;
     fillInstall(app.querySelector("[data-install-slot]"));
     app.querySelectorAll("[data-pick]").forEach((b) =>
-      b.addEventListener("click", () => set({ ...fresh(), char: b.dataset.pick, phase: lobbyOn() ? "lobby" : "intro", bonus: state.bonus, missions: state.missions }))
+      b.addEventListener("click", () => {
+        set({ ...fresh(), char: b.dataset.pick, phase: lobbyOn() ? "lobby" : "intro", bonus: state.bonus, missions: state.missions });
+        pushSync(); // tell the worker which player this phone is (if notifications are already allowed)
+      })
     );
   }
 
@@ -292,7 +295,7 @@
         if (j.started) {
           clearInterval(lobbyT); lobbyT = null;
           buzz([80, 60, 80, 60, 200]);
-          await flash(`<p class="match-title">It's on! 🎂</p><p class="match-sub">The host has started the game.</p>`, 1600, "boost");
+          await flash(`<p class="match-title">It's on! 🎉</p><p class="match-sub">The host has started the game.</p>`, 1600, "boost");
           set({ phase: "intro" });
           window.scrollTo({ top: 0 });
         }
@@ -348,7 +351,7 @@
     app.innerHTML = `
       <section class="screen intro">
         ${s.app ? `<p class="app-logo">${s.app}</p>` : ""}
-        <p class="kicker">Happy birthday, ${s.name}</p>
+        <p class="kicker">Adventure day, ${s.name}!</p>
         <h1 class="title">${s.title}</h1>
         <p class="read-aloud">📣 Read this out loud to the table</p>
         <div class="card story">${paras(s.intro)}</div>
@@ -1078,7 +1081,7 @@
         <div class="stats">${stats}</div>
         ${extras}
       </section>`;
-    celebrate(s.theme === "paper" ? ["📚", "🐈", "🍻", "🎂"] : ["🏒", "❤️", "🍻", "🎂"]);
+    celebrate(s.theme === "paper" ? ["📚", "🐈", "🍻", "🎉"] : ["🏒", "❤️", "🍻", "🎉"]);
   }
 
   function announceItem() {

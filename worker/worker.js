@@ -163,7 +163,7 @@ export default {
         const g = JSON.parse((await env.KV.get("game")) || "null") || { startedAt: Date.now() };
         await env.KV.put("game", JSON.stringify(g), { expirationTtl: 172800 });
         const result = {};
-        for (const who of WHO) result[who] = await pushTo(env, who, "🎂 The game has started!", "Open the app: your story and your first clue are waiting.");
+        for (const who of WHO) result[who] = await pushTo(env, who, "🎉 Adventure day has started!", "Open the app: your story and your first clue are waiting.");
         return json({ ok: true, startedAt: g.startedAt, result });
       }
 

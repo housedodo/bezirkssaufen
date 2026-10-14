@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v25) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v27) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | "Adventure day" framing (birthdays already happened), full two-player playthrough + fixes | `story.js`, `app.js`, `worker/worker.js` (start notification text), `admin.html`, `README.md`, `manifest`, `index.html` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -46,8 +46,8 @@
 
 ## What this is
 
-A birthday game for a pub crawl ("Heated Pages", formerly "Bezirkssaufen", the **JJ Odyssey**) through all 17 districts of Graz, one drink
-per district. Two birthday girls each play their own story on their own phone:
+An adventure-day game for a pub crawl (both birthdays already happened, today they celebrate together; "Heated Pages", formerly "Bezirkssaufen", the **JJ Odyssey**) through all 17 districts of Graz, one drink
+per district. Two friends (the birthday girls) each play their own story on their own phone:
 
 - **Sarah — "The Hunt for #99"**, built as a fake dating app called **Icebreaker**. She chases
   Jakob "Iceman" Eisner (#99), a hockey player who is always one bar ahead. His teammates are dating profiles.
@@ -137,7 +137,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 - **Lobby + Start game**: after installing and choosing a name (`pick`) a phone goes to phase `lobby`: a funny "🚧 Under
   construction" screen (rotating `LOBBY_LINES`, nothing clickable except "Not Sara? Pick again"; no top bar). It polls
   worker `GET /game` every 5 s (and on app focus) and unlocks into `intro` by itself. The host presses **🚀 Start the
-  game** in `admin.html` (`POST /start`): the worker stores `game`, sends a "🎂 The game has started!" push to both
+  game** in `admin.html` (`POST /start`): the worker stores `game`, sends a "🎉 Adventure day has started!" push to both
   phones, and the lobbies unlock. In `intro` (kept deliberately short, it fits one phone screen: title, a ~40-word story the girl **reads out loud to the table**, the first clue, the Start button; "How does it work?" is folded away and there is no notification card here) each girl reads her story and **the first clue to the meeting point** (`firstClue`
   in `story.js`: blacksmith lane near the main square → Auer Schmidtgasse; free hint + Maps link) and, once sitting at
   Auer, presses **Start the quest** (→ stop I: Bookbazaar / dating profile). Off with `lobby: false` in `push-config.js`
@@ -172,7 +172,7 @@ See [Open items](#open-items).
 | `POST /solved {who, step}` | phone | step sync: marks "solved" and answers `{both, released, other}` |
 | `GET /progress`, `POST /release {step}` | admin | who solved what; let both continue anyway |
 | `GET /game` | phone | `{started}` for the lobby |
-| `POST /start` | admin | starts the game, pushes "The game has started!" to both |
+| `POST /start` | admin | starts the game, pushes "Adventure day has started!" to both |
 | `POST /reset` | admin | clears all progress and the started flag (KV data also expires after 48 h) |
 
 ---
@@ -187,6 +187,7 @@ See [Open items](#open-items).
 | `styles.css` | Base + three themes via `body[data-theme]`: `night` (picker), `dating` (Sarah), `paper` (Sara). `ice` theme CSS is legacy/unused. |
 | `admin.html` | Host panel (not linked from the app, `noindex`). Needs the worker + PIN. Installable as its own app ("Heated Host"): `admin.webmanifest` (scope `admin.html`), `admin-sw.js` (own small service worker, scope `admin.html`, network-first, `ADMIN_VERSION`), teal icon with a gold star badge `icons/admin-*` (same artwork as the game icon). Install button/hint at the top of the page. |
 | `push-config.js` | `self.PUSH = {workerUrl, syncSteps, lobby, vapidPublicKey}`; read by page, admin page and service worker. Empty `workerUrl` = alerts, lobby and step sync all off (the game then runs standalone). `syncSteps: false` / `lobby: false` switch those two off individually. |
+| `tools/playthrough.mjs` | Full two-player playthrough against the real worker code (see Testing). Not loaded by the game. |
 | `worker/` | Cloudflare Worker (`worker.js`), VAPID key generator, `wrangler.toml`, setup guide. Not loaded by the game. |
 | `sw.js` | Game service worker: cache name `VERSION`, list of files cached for offline use (incl. all player images, `push-config.js`), `importScripts("push-config.js")`, and the Web Push handlers (`push` → asks the worker `/inbox` for the text → notification; `notificationclick` → opens/focuses the app with `?mission=<key>&mid=<id>` or `postMessage`). |
 | `manifest.webmanifest`, `icons/` | PWA install metadata and icons. Name "Heated Pages" (short name the same). Icon = ice/fire split heart with a crack, crossed hockey sticks, open book with a dog-eared page, sparkles (`icons/icon.svg`; the PNGs are rendered from the same drawing as a full-bleed square so they work as maskable icons). |
@@ -322,7 +323,8 @@ There is no automated test suite in the repo. Before pushing:
    the test with `CHALLENGES[k].seconds = 1`. This catches most regressions.
 6. Worker: import `worker/worker.js` in Node and call `worker.fetch(new Request(...), env)` with a Map-backed fake KV
    (`get/put/delete/list`) and a stubbed global `fetch` for the push endpoints.
-7. Installability: Chromium `Page.getInstallabilityErrors` via CDP should only report `in-incognito` in a test context.
+7. **Full playthrough** (run it before a release): `python3 -m http.server 8000`, then `NODE_PATH=$(npm root -g) node tools/playthrough.mjs /tmp/out`. Sarah and Sara play all 17 stops at once against `worker/worker.js` running in-process (lobby, Start, step sync, chats, shop, spending, a host mission, finales, journal) and `story.js` is linted for spoilers/leftovers. ~4 min; ends with `ISSUES: none`. Writes `play.log`, `ending-*.txt`, finale screenshots.
+8. Installability: Chromium `Page.getInstallabilityErrors` via CDP should only report `in-incognito` in a test context.
 
 ---
 
@@ -353,7 +355,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Much less text at the start: each intro is now a ~40-word story to read out loud ("📣 Read this out loud to the table"), a shorter first clue and the Start button on one screen; "How does it work?" folded away, notification card removed from the intro, shorter lobby card. Nico's chat opener now jokes about the ex-#99 crying on Insta ("so cringe"). Cache v25.
+- 2026-10-14 · this commit · Dominik (Claude) · "Adventure day" framing: both birthdays already happened, today they celebrate together (intros, finales "Happy adventure day", picker "Two belated birthdays… One adventure day", "Adventure day, <name>!", shared missions renamed Adventure clink / Dance-off / Adventure wishes, 🎉 instead of 🎂, store/manifest text; worker start notification "🎉 Adventure day has started!" → **redeploy `worker/worker.js`**). Fix found by a full playthrough: a phone that had already allowed notifications was never registered with the worker after choosing a name (Start would have notified 0 phones) → `pushSync()` after the name pick. New `tools/playthrough.mjs` (full two-player run, passes); cache v27.
+- 2026-10-14 · `ad22f38` · Dominik (Claude) · Much less text at the start: each intro is now a ~40-word story to read out loud ("📣 Read this out loud to the table"), a shorter first clue and the Start button on one screen; "How does it work?" folded away, notification card removed from the intro, shorter lobby card. Nico's chat opener now jokes about the ex-#99 crying on Insta ("so cringe"). Cache v25.
 - 2026-10-14 · `f4e2a9b` · Dominik (Claude) · Sarah: 10 s timeout after a pass with a different joke per guy and pass; after a like a Tinder-style chat (hi → her reply → "looking for the ice hockey guy?" → her reply → "doesn't matter, here's what I heard" + tip) before the riddle. Sara: a wrong order now shows a weird dark-romance passage or an "unfortunately sold out" notice; the real book is disguised (same look as all listings, blurb only echoes the encounter) and one real listing of another stop is mixed in as an always-sold-out decoy; the real slot varies irregularly; cache v24.
 - 2026-10-14 · `c39ea52` · Dominik (Claude) · Fix: tapping a mission notification did nothing. The service worker could hand the mission to the open admin window (same origin) instead of the game, and missions were hidden in the lobby/intro. Now: admin window is skipped, missions show in every phase except the name picker, new inbox safety net (`checkInbox`), lobby keeps polling for the game start under a mission screen; cache v23. No Worker change.
 - 2026-10-14 · `f87806e` · Dominik (Claude) · Handbook audit: state keys and phases (lobby, waiting), flow, files, new Infrastructure section (Pages, Worker, endpoints, secrets), route table now lists Sara's challenges, testing recipes (mocking the Worker, Playwright selectors), open items (real-device test, Worker redeploy, secrets), real commit hashes in the changelog.
