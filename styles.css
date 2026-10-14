@@ -611,3 +611,11 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .push-card p { margin: 0 0 6px; }
 .push-card .push-note { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
 .push-card .btn { margin-top: 6px; }
+
+/* ── Surprise missions ─────────────────────────────────────── */
+.ch-banner.sur { background: linear-gradient(90deg, #ff9f1c, #ff5d8f); color: #ffffff; animation: pulse 1.2s ease-in-out infinite; }
+.mission-pill {
+  position: fixed; right: 12px; top: calc(78px + var(--safe-top)); z-index: 40;
+  border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 700;
+  background: #ff9f1c; color: #2a1d00; box-shadow: 0 10px 22px -10px rgba(0,0,0,.5); cursor: pointer;
+}

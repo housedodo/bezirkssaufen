@@ -30,6 +30,10 @@
     sips: 0,         // penalty sips for passing
     myBio: "",       // profile written by the crew
     superLikes: [],  // super likes written by the crew
+    // surprise missions sent by the host (notification → challenge)
+    bonus: null,     // { key, id, paused } mission waiting / in progress
+    bch: {},         // progress inside the surprise mission (separate from `ch`)
+    missions: [],    // ids of surprise missions already done
     // book story (Sara)
     bought: false,   // the right listing was bought at the current step
     shopWrong: [],   // titles of dark romances bought by mistake at the current step
@@ -53,7 +57,10 @@
     save();
     render();
   }
-  const setCh = (patch) => set({ ch: { ...state.ch, ...patch } });
+  let chMode = "event"; // set by renderChallenge: "surprise" keeps its progress in `bch`, everything else in `ch`
+  const chKey = () => (chMode === "surprise" ? "bch" : "ch");
+  const chNow = () => state[chKey()] || {};
+  const setCh = (patch) => set({ [chKey()]: { ...chNow(), ...patch } });
 
   // ── Helpers ────────────────────────────────────────────────
   const story = () => STORIES[state.char];
@@ -118,6 +125,7 @@
     const inGame = state.char && state.phase !== "pick";
     document.body.dataset.theme = state.char ? story().theme : "night";
     $("#topbar").hidden = !inGame;
+    $("#mission-pill").hidden = !(inGame && state.phase !== "intro" && state.bonus && state.bonus.paused);
     $("#progress").hidden = !inGame || state.phase === "intro";
     if (!inGame) return;
 
@@ -223,7 +231,7 @@
         <p class="fineprint">Progress is saved on this phone. Add it to your home screen so it works like an app.</p>
       </section>`;
     app.querySelectorAll("[data-pick]").forEach((b) =>
-      b.addEventListener("click", () => set({ ...fresh(), char: b.dataset.pick, phase: "intro" }))
+      b.addEventListener("click", () => set({ ...fresh(), char: b.dataset.pick, phase: "intro", bonus: state.bonus, missions: state.missions }))
     );
   }
 
@@ -534,9 +542,12 @@
   function renderChallenge(key, mode) {
     const c = CHALLENGES[key];
     const d = here();
-    const ch = state.ch || {};
+    chMode = mode;
+    const ch = chNow();
     const dating = isDating();
-    const banner = mode === "intermission"
+    const banner = mode === "surprise"
+      ? `<p class="ch-banner sur">🎯 Surprise mission from your host</p>`
+      : mode === "intermission"
       ? `<p class="ch-banner im">${dating ? "⚡ Sudden intermission!" : "⚡ Sudden plot twist!"}</p>`
       : `<p class="ch-banner ev">${dating ? "💔 No matches nearby" : "📖 Reading room"} · ${DISTRICTS[d].name}</p>`;
     let body = "";
@@ -599,8 +610,9 @@
           ${paras(c.story)}
           <p class="ch-reward">Reward: +${c.reward} ${unit()}</p>
         </article>
-        <div class="ch-body">${body}</div>
+        <div class="ch-body">${body}${mode === "surprise" ? `<button class="btn ghost" id="later">⏸ Not now — remind me later</button>` : ""}</div>
       </section>`;
+    $("#later")?.addEventListener("click", () => set({ bonus: { ...state.bonus, paused: true } }));
 
     // bindings
     app.querySelectorAll("[data-opt]").forEach((b) => b.addEventListener("click", () => {
@@ -625,20 +637,20 @@
     $("#startclock")?.addEventListener("click", () => setCh({ endsAt: Date.now() + c.seconds * 1000 }));
     const bio = $("#bio");
     if (bio) bio.addEventListener("input", () => {
-      state.ch = { ...state.ch, text: bio.value };
+      state[chKey()] = { ...chNow(), text: bio.value };
       save();
       $("#confirm").disabled = !bio.value.trim();
     });
     app.querySelectorAll("[data-note]").forEach((t) => t.addEventListener("input", () => {
-      const notes = [...(state.ch.notes || Array(c.count).fill(""))];
+      const notes = [...(chNow().notes || Array(c.count).fill(""))];
       notes[Number(t.dataset.note)] = t.value;
-      state.ch = { ...state.ch, notes };
+      state[chKey()] = { ...chNow(), notes };
       save();
       $("#confirm").disabled = !notes.every((n) => n.trim());
     }));
     $("#confirm")?.addEventListener("click", () => {
-      if (c.type === "write") state.myBio = (state.ch.text || "").trim();
-      if (c.type === "notes") state.superLikes = [...state.superLikes, ...(state.ch.notes || []).map((n) => n.trim())];
+      if (c.type === "write") state.myBio = (chNow().text || "").trim();
+      if (c.type === "notes") state.superLikes = [...state.superLikes, ...(chNow().notes || []).map((n) => n.trim())];
       complete(c, mode);
     });
 
@@ -661,10 +673,14 @@
     buzz([30, 40, 30, 40, 30]);
     await flash(`
       <p class="match-title">+${c.reward} ${unit()}</p>
-      <p class="match-sub">${isDating()
+      <p class="match-sub">${mode === "surprise" ? "Surprise mission accomplished. Your host is impressed." : isDating()
         ? `${mode === "intermission" ? "Intermission survived." : "Profile boosted."} Your likes are back.`
         : `${mode === "intermission" ? "Plot twist survived." : "Chapter complete."} Ottilie's cart is open.`}</p>`, 1400, "boost");
-    set({ hearts: state.hearts + c.reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
+    if (mode === "surprise") {
+      set({ hearts: state.hearts + c.reward, bonus: null, bch: {}, missions: [...state.missions, state.bonus && state.bonus.id], myBio: state.myBio, superLikes: state.superLikes });
+    } else {
+      set({ hearts: state.hearts + c.reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
+    }
     window.scrollTo({ top: 0 });
   }
 
@@ -831,11 +847,37 @@
     if (tick) { clearInterval(tick); tick = null; }
     if (!state.char) state.phase = "pick";
     renderChrome();
+    const b = state.bonus;
+    if (b && !b.paused && state.char && ["clue", "travel", "done"].includes(state.phase) && typeof CHALLENGES !== "undefined" && CHALLENGES[b.key]) {
+      renderChallenge(b.key, "surprise");
+      return;
+    }
     ({ pick: renderPick, intro: renderIntro, clue: renderClue, travel: renderTravel, done: renderDone }[state.phase] || renderPick)();
   }
 
   render();
   pushSync();
+
+  // ── Surprise missions: the notification tap hands us a challenge key + id ──
+  function receiveMission(key, id) {
+    if (!key || !id || typeof CHALLENGES === "undefined" || !CHALLENGES[key]) return;
+    if (state.missions.includes(id) || (state.bonus && state.bonus.id === id)) return;
+    set({ bonus: { key, id, paused: false }, bch: {} });
+    window.scrollTo({ top: 0 });
+  }
+  $("#mission-pill").addEventListener("click", () => set({ bonus: { ...state.bonus, paused: false } }));
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get("mission")) {
+      receiveMission(q.get("mission"), q.get("mid"));
+      history.replaceState(null, "", location.pathname);
+    }
+  } catch (_) {}
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", (e) => {
+      if (e.data && e.data.type === "mission") receiveMission(e.data.ch, e.data.id);
+    });
+  }
 
   // ── Offline support ────────────────────────────────────────
   if ("serviceWorker" in navigator && location.protocol !== "file:") {

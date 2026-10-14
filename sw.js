@@ -1,6 +1,6 @@
 // Offline cache: the whole game works without signal once opened once.
 // Bump VERSION whenever you change story.js or any other file.
-const VERSION = "bezirk-v11";
+const VERSION = "bezirk-v12";
 importScripts("push-config.js"); // self.PUSH = { workerUrl, vapidPublicKey }
 const CORE = [
   "./",
@@ -89,12 +89,20 @@ self.addEventListener("push", (e) => {
       badge: "icons/icon-192.png",
       tag: "mission",
       renotify: true,
+      data: { ch: msg.ch || null, id: msg.id || null },
     });
   })());
 });
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) =>
-    list.length ? list[0].focus() : self.clients.openWindow("./")));
+  const { ch, id } = e.notification.data || {};
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+    if (list.length) {
+      if (ch && id) list[0].postMessage({ type: "mission", ch, id });
+      return list[0].focus();
+    }
+    // app is closed: open it with the mission in the URL, app.js picks it up
+    return self.clients.openWindow(ch && id ? `./?mission=${encodeURIComponent(ch)}&mid=${encodeURIComponent(id)}` : "./");
+  }));
 });

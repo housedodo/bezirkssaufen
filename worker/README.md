@@ -32,6 +32,10 @@ pick Sarah / Sara / Both, tap a quick mission or write your own and press Send. 
 - Admin → `POST /send` with `Authorization: Bearer <PIN>` → the worker stores the text under that player and sends an **empty**, VAPID-signed push to each registered phone (no payload encryption needed).
 - The phone's service worker (`sw.js`) wakes up, asks `POST /inbox {endpoint}` for the text and shows the notification.
 
+## Updating the worker
+
+After changing `worker.js` in the repo: Cloudflare dashboard → your Worker → **Edit code** → replace everything with the new file → **Deploy**.
+
 ## Troubleshooting
 
 - Admin says `Sarah 0`: the phone hasn't tapped "Turn on mission alerts" yet, or the app was opened from Safari instead of the home-screen icon.

@@ -25,6 +25,7 @@
     .mission { text-align:left; background:var(--card); color:var(--text); border:1px solid var(--line); font-weight:400; display:block; width:100%; }
     .mission b { display:block; } .mission span { color:var(--muted); font-size:13.5px; }
     .mission small { color:var(--accent); font-size:12px; }
+    #presets h2 { margin-top:18px; }
     #log { font-size:14px; display:grid; gap:4px; } .good { color:var(--ok); } .err { color:var(--bad); }
   </style>
 </head>
@@ -37,7 +38,7 @@
     <p class="status" id="status" style="margin:8px 0 0">Enter the PIN to see which phones are registered.</p>
   </div>
 
-  <h2>Send to</h2>
+  <h2>Send to (for your own messages)</h2>
   <div class="who" id="who">
     <button data-to="sarah">Sarah</button>
     <button data-to="sara">Sara</button>
@@ -51,9 +52,9 @@
     <button id="send">Send</button>
   </div>
 
-  <h2>Quick missions</h2>
-  <p class="sub">Physical dares from the game. Tap one to send it to the selected player(s).</p>
-  <div class="list" id="presets"></div>
+  <h2>Surprise missions</h2>
+  <p class="sub">Tap one to send it to its owner. The notification opens that challenge in her app and she earns the reward for completing it (a mission already in progress is not disturbed).</p>
+  <div id="presets"></div>
 
   <h2>Sent</h2>
   <div id="log"><span class="status">Nothing sent yet.</span></div>
@@ -97,14 +98,14 @@
     }));
 
     const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
-    async function send(title, body) {
-      if (!to) return alert("Pick Sarah, Sara or Both first.");
+    async function send(title, body, target = to, ch = null) {
+      if (!target) return alert("Pick Sarah, Sara or Both first.");
       if (!title.trim()) return;
-      if (!confirm(`Send to ${name[to]}?\n\n${title}${body ? "\n" + body : ""}`)) return;
+      if (!confirm(`Send to ${name[target]}?\n\n${title}${body ? "\n" + body : ""}`)) return;
       const row = document.createElement("div");
       const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       try {
-        const { result } = await call("/send", "POST", { to, title, body });
+        const { result } = await call("/send", "POST", { to: target, title, body, ch });
         const parts = Object.entries(result).map(([w, r]) => `${name[w]}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`);
         row.innerHTML = `<span class="good">✓ ${time}</span> ${title} → ${parts.join(", ")}`;
       } catch (e) { row.innerHTML = `<span class="err">✗ ${time}</span> ${title} — ${e.message}`; }
@@ -119,19 +120,26 @@
       e.target.disabled = false;
     });
 
-    // Quick missions: the "do something" challenges from both stories (quizzes/writing need the app screens).
-    const list = $("#presets");
-    if (typeof CHALLENGES !== "undefined") {
-      Object.entries(CHALLENGES)
-        .filter(([, c]) => c.type === "confirm" || c.type === "timer")
-        .forEach(([key, c]) => {
-          const sara = key.startsWith("s_");
+    // Surprise missions: every challenge of both stories, intermissions first (in route order).
+    const box = $("#presets");
+    if (typeof STORIES !== "undefined" && typeof CHALLENGES !== "undefined") {
+      const groups = [["sarah", "intermission", "Sarah · ⚡ intermissions"], ["sarah", "event", "Sarah · 💔 events"],
+                      ["sara", "intermission", "Sara · ⚡ plot twists"], ["sara", "event", "Sara · 📖 reading room"]];
+      groups.forEach(([who, kind, heading]) => {
+        const keys = ROUTE.map((d) => STORIES[who].stops[d][kind]).filter(Boolean);
+        if (!keys.length) return;
+        const h = document.createElement("h2"); h.textContent = heading; box.appendChild(h);
+        const list = document.createElement("div"); list.className = "list";
+        keys.forEach((key) => {
+          const c = CHALLENGES[key];
           const b = document.createElement("button");
           b.className = "mission";
-          b.innerHTML = `<small>${sara ? "Sara's book theme" : "Sarah's hockey theme"}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
-          b.addEventListener("click", () => send(`${c.icon} Mission: ${c.title}`, c.story));
+          b.innerHTML = `<small>${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
+          b.addEventListener("click", () => send(`${c.icon} Surprise mission: ${c.title}`, "Tap to open it in the app.", who, key));
           list.appendChild(b);
         });
+        box.appendChild(list);
+      });
     }
   })();
   </script>

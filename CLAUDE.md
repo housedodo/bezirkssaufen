@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Surprise missions: admin sends a challenge, notification tap opens it in the app | `worker/worker.js`, `admin.html`, `sw.js`, `app.js` (challenge engine: `surprise` mode), `styles.css`, `index.html` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -92,7 +92,12 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 - **Mission alerts** (host → phone notifications): `admin.html` (host panel, PIN-protected via the worker) →
   Cloudflare Worker in `worker/` → Web Push to each girl's iPhone (installed PWA, iOS 16.4+). Push is sent empty
   and the service worker fetches the text from the worker (`/inbox`), so no payload encryption. Quick missions on the
-  admin page = every `confirm`/`timer` challenge from both stories, plus free text. Inactive until
+  admin page = **every intermission and event challenge** of both stories (grouped by player, sent to its owner),
+  plus free text. A challenge notification is a **surprise mission**: the worker stores `{title, body, ch, id}`, the
+  service worker shows it, and tapping it opens the app with `?mission=<challengeKey>&mid=<id>` (or `postMessage` if
+  the app is open). `app.js` `receiveMission()` sets `state.bonus`; `render()` shows it via `renderChallenge(key,
+  "surprise")` before the normal screen, progress in its own `state.bch`, reward goes to `hearts`, `state.missions`
+  remembers finished ids (a tapped mission can't be redone). "Not now" pauses it and shows a 🎯 pill (`#mission-pill`). Inactive until
   `push-config.js` is filled in (the app hides the alerts card). Setup: `worker/README.md`.
 
 ### Not done / ideas
@@ -152,7 +157,7 @@ See [Open items](#open-items).
 
 ### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`)
 `char, phase (pick|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
-hearts (❤️ for Sarah, 🔖 for Sara), sips, myBio, superLikes[], solvedGaveUp, bought, shopWrong[], haul[]`. Per-step fields (incl. `bought`, `shopWrong`) are reset by `stepReset()` on arrival; `haul` and `sips` are cumulative.
+hearts (❤️ for Sarah, 🔖 for Sara), bonus, bch, missions[], sips, myBio, superLikes[], solvedGaveUp, bought, shopWrong[], haul[]`. Per-step fields (incl. `bought`, `shopWrong`) are reset by `stepReset()` on arrival; `haul` and `sips` are cumulative.
 Adding a new key: add it to `fresh()` so old saved games still load.
 
 ### Flow
@@ -232,7 +237,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
+- 2026-10-14 · this commit · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
+- 2026-10-14 · `d7ca3cc`+ · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
 - 2026-10-14 · `d98eaf6` · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.
 - 2026-10-14 · `9d1bfbb` · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herb impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
 - 2026-10-14 · `92f3b2a` · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.

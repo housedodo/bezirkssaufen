@@ -1,7 +1,7 @@
 // Bezirkssaufen mission pusher — Cloudflare Worker.
 //   POST /subscribe  {who, sub}            phone registers its push subscription (who = "sarah" | "sara")
 //   POST /inbox      {endpoint}            service worker asks "what is my mission?" after an (empty) push
-//   POST /send       {to, title, body}     admin only (Authorization: Bearer <ADMIN_PIN>); to = sarah | sara | both
+//   POST /send       {to, title, body, ch?} admin only (Authorization: Bearer <ADMIN_PIN>); to = sarah | sara | both
 //   GET  /status                           admin only: how many phones are registered
 // Pushes are sent WITHOUT payload (no encryption needed, only a VAPID signature). The phone then fetches
 // the text from /inbox. Needs: KV binding `KV`, secrets ADMIN_PIN + VAPID_PRIVATE_JWK, vars VAPID_PUBLIC + VAPID_SUBJECT.
@@ -47,8 +47,9 @@ async function vapidAuth(env, endpoint) {
   return `vapid t=${head}.${body}.${b64u(sig)}, k=${env.VAPID_PUBLIC}`;
 }
 
-async function pushTo(env, who, title, body) {
-  await env.KV.put(`msg:${who}`, JSON.stringify({ title, body, t: Date.now() }));
+// ch = optional challenge key: tapping the notification opens that challenge in the app ("surprise mission")
+async function pushTo(env, who, title, body, ch) {
+  await env.KV.put(`msg:${who}`, JSON.stringify({ title, body, ch: ch || null, id: crypto.randomUUID(), t: Date.now() }));
   const subs = await getSubs(env, who);
   const alive = [];
   let sent = 0, failed = 0;
@@ -99,11 +100,12 @@ export default {
 
       if (path === "/send" && req.method === "POST") {
         if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
-        const { to, title, body } = await req.json();
+        const { to, title, body, ch } = await req.json();
+        if (ch && !/^[a-z_]{1,40}$/i.test(ch)) return json({ error: "bad request" }, 400);
         const targets = to === "both" ? WHO : WHO.filter((w) => w === to);
         if (!targets.length || !String(title || "").trim()) return json({ error: "bad request" }, 400);
         const result = {};
-        for (const who of targets) result[who] = await pushTo(env, who, String(title).slice(0, 120), String(body || "").slice(0, 400));
+        for (const who of targets) result[who] = await pushTo(env, who, String(title).slice(0, 120), String(body || "").slice(0, 400), ch);
         return json({ ok: true, result });
       }
 
