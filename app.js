@@ -751,10 +751,10 @@
     const s = story();
     const stop = s.stops[d];
     const c = p.chat || { hi: "hey", ask: "so… looking for the ice hockey guy?", reveal: "doesn't matter. here's what I heard:" };
-    // hi → a warm-but-weird question (she answers) → red flags → ask (she answers) → "doesn't matter, here's what I heard" → his tip
+    // hi → a warm-but-weird question (she answers) → two more texts (she answers each) → ask (she answers) → "doesn't matter, here's what I heard" → his tip
     const script = [
       ...(c.q ? [{ t: c.hi }, { t: c.q, reply: true }] : [{ t: c.hi, reply: true }]),
-      ...(c.flags || []).map((t) => ({ t, flag: true })),
+      ...(c.flags || []).map((t) => ({ t, reply: true })),
       { t: c.ask, reply: true },
       { t: c.reveal },
       { t: p.bio },
@@ -779,7 +779,7 @@
         </header>
         <div class="chat-msgs" id="chat-msgs">
           <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other<br>📣 Read the messages out loud to the table</p>
-          ${msgs.map((m, i) => `<div class="msg ${m.from}${m.flag ? " flag" : ""}${i === msgs.length - 1 ? " last" : ""}"><span>${m.flag ? `<b class="flagtag">🚩 RED FLAG</b>` : ""}${m.from === "her" ? esc(m.text) : m.text}</span></div>`).join("")}
+          ${msgs.map((m, i) => `<div class="msg ${m.from}${i === msgs.length - 1 ? " last" : ""}"><span>${m.from === "her" ? esc(m.text) : m.text}</span></div>`).join("")}
           ${her && !complete && typing ? `<p class="chat-seen">Seen ✓✓</p>` : ""}
           ${typing ? `<div class="msg him typing last" aria-label="${esc(p.name)} is typing"><span><i></i><i></i><i></i></span></div>` : ""}
         </div>
@@ -803,8 +803,8 @@
         chatT = null;
         buzz(30);
         const e = script[him];
-        set({ chat: [...state.chat, { from: "him", text: e.t, ...(e.flag ? { flag: true } : {}) }] });
-      }, him === 0 ? 1300 : him === script.length - 1 ? 2300 : script[him].flag ? 1900 : 1600);
+        set({ chat: [...state.chat, { from: "him", text: e.t }] });
+      }, him === 0 ? 1300 : him === script.length - 1 ? 2300 : 1700);
     }
     if (myTurn) {
       $("#composer").addEventListener("submit", (e) => {
