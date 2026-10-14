@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#14171f">
+  <meta name="theme-color" content="#121520">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Heated Host">
@@ -13,78 +13,166 @@
   <link rel="apple-touch-icon" href="icons/admin-apple-touch-icon.png">
   <title>Heated Pages · Host</title>
   <style>
-    :root { --bg:#14171f; --card:#1e232e; --line:#2f3646; --text:#eef1f7; --muted:#97a0b5; --accent:#ffb347; --ok:#5fd38d; --bad:#ff6b6b; }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.45 system-ui,-apple-system,sans-serif; padding:16px 16px 60px; max-width:640px; margin-inline:auto; }
-    h1 { font-size:22px; margin:6px 0 2px; } h2 { font-size:15px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:26px 0 8px; }
-    .sub { color:var(--muted); margin:0 0 14px; font-size:14px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+    :root {
+      --bg:#121520; --card:#1c2130; --card2:#232a3b; --line:#2e3548; --text:#eef1f7; --muted:#949db3;
+      --accent:#ffb347; --ok:#5fd38d; --bad:#ff6b6b; --warn:#ffd166;
+      --sarah:#e0457b; --sara:#c48a3a; --both:#7c6cf0;
+    }
+    * { box-sizing:border-box; }
+    html { -webkit-text-size-adjust:100%; }
+    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .wrap { max-width:680px; margin:0 auto; padding:0 14px calc(40px + env(safe-area-inset-bottom)); }
+    button { font:inherit; border:0; border-radius:12px; padding:12px 14px; background:var(--accent); color:#2a1d00; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.45; cursor:default; }
     input, textarea { width:100%; background:var(--bg); color:var(--text); border:1.5px solid var(--line); border-radius:10px; padding:11px 12px; font:inherit; }
-    textarea { min-height:70px; resize:vertical; } input + textarea, textarea + button, input + input { margin-top:8px; }
-    button { font:inherit; border:0; border-radius:10px; padding:12px 14px; background:var(--accent); color:#2a1d00; font-weight:700; cursor:pointer; }
-    button:disabled { opacity:.5; }
-    .who { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; position:sticky; top:0; background:var(--bg); padding:8px 0; z-index:2; }
-    .who button { background:var(--card); color:var(--text); border:2px solid var(--line); }
-    .who button.on { color:#fff; border-color:transparent; }
-    .who button[data-to=sarah].on { background:#d6336c; } .who button[data-to=sara].on { background:#b8792f; } .who button[data-to=both].on { background:#6f5ce6; }
-    .target { margin:10px 0 0; padding:10px 14px; border-radius:12px; font-weight:700; text-align:center; background:var(--card); color:var(--muted); border:1.5px dashed var(--line); }
-    .target.sarah { background:#d6336c; color:#fff; border:0; } .target.sara { background:#b8792f; color:#fff; border:0; } .target.both { background:#6f5ce6; color:#fff; border:0; }
-    .mission.sarah { border-left:5px solid #d6336c; } .mission.sara { border-left:5px solid #b8792f; } .mission.both { border-left:5px solid #6f5ce6; }
-    .status { font-size:14px; color:var(--muted); }
-    .status b { color:var(--text); }
+    textarea { min-height:64px; resize:vertical; }
+    .good { color:var(--ok); } .err { color:var(--bad); } .muted { color:var(--muted); }
+
+    /* top bar */
+    .top { position:sticky; top:0; z-index:5; background:rgba(18,21,32,.94); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+      padding:calc(10px + env(safe-area-inset-top)) 14px 10px; border-bottom:1px solid var(--line); }
+    .top-in { max-width:680px; margin:0 auto; display:flex; align-items:center; gap:10px; }
+    .top h1 { font-size:18px; margin:0; flex:1; }
+    .conn { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+    .dot { width:9px; height:9px; border-radius:50%; background:var(--muted); display:inline-block; }
+    .dot.on { background:var(--ok); box-shadow:0 0 0 3px rgba(95,211,141,.18); } .dot.off { background:var(--bad); }
+
+    h2 { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:22px 2px 8px; display:flex; justify-content:space-between; align-items:baseline; }
+    h2 small { text-transform:none; letter-spacing:0; font-size:13px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; }
+
+    /* game state + start */
+    .game { margin-top:14px; display:flex; align-items:center; gap:12px; }
+    .game .state { flex:1; font-size:15px; }
+    .game .state b { display:block; font-size:17px; }
+    #startgame { background:var(--ok); color:#06260f; font-size:17px; padding:14px 18px; }
+    .game.started #startgame { display:none; }
+
+    /* player tiles */
+    .players { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+    .pl { border-radius:16px; padding:12px; background:var(--card); border:1px solid var(--line); border-top:4px solid var(--c); min-width:0; }
+    .pl.sarah { --c:var(--sarah); } .pl.sara { --c:var(--sara); }
+    .pl-name { font-weight:800; font-size:17px; display:flex; justify-content:space-between; align-items:center; gap:6px; }
+    .pl-phone { font-size:12px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--card2); color:var(--muted); white-space:nowrap; }
+    .pl-phone.ok { color:var(--ok); } .pl-phone.no { color:var(--bad); }
+    .pl-stop { margin-top:8px; font-size:13px; color:var(--muted); }
+    .pl-stop b { display:block; color:var(--text); font-size:16px; }
+    .pl-state { margin-top:6px; font-size:13.5px; }
+    .pl-ms { margin-top:8px; font-size:13px; color:var(--muted); }
+    .bar { height:6px; border-radius:6px; background:var(--card2); overflow:hidden; margin-top:4px; }
+    .bar i { display:block; height:100%; background:var(--c); }
+    .release { margin-top:10px; width:100%; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px;
+      border-radius:12px; background:rgba(255,209,102,.1); border:1px solid rgba(255,209,102,.35); font-size:14px; }
+    .release button { padding:8px 12px; background:var(--warn); color:#2a2000; white-space:nowrap; }
+
+    /* recipient switch */
+    .who { position:sticky; top:calc(52px + env(safe-area-inset-top)); z-index:4; background:var(--bg); padding:8px 0;
+      display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+    .who button { background:var(--card); color:var(--text); border:2px solid var(--line); padding:10px 6px; line-height:1.15; }
+    .who button small { display:block; font-weight:500; font-size:12px; color:var(--muted); }
+    .who button.on { color:#fff; border-color:transparent; } .who button.on small { color:rgba(255,255,255,.85); }
+    .who button[data-to=sarah].on { background:var(--sarah); } .who button[data-to=sara].on { background:var(--sara); } .who button[data-to=both].on { background:var(--both); }
+    .target { display:none; }
+    .hintline { color:var(--muted); font-size:14px; margin:4px 2px 10px; }
+
+    /* mission cards */
     .list { display:grid; gap:8px; }
-    .mission { text-align:left; background:var(--card); color:var(--text); border:1px solid var(--line); font-weight:400; display:block; width:100%; }
-    .mission b { display:block; } .mission span { color:var(--muted); font-size:13.5px; }
-    .mission small { color:var(--accent); font-size:12px; }
-    .mission.sent { opacity:.5; } .mission.sent .sent-tag { color:#1f9d55; font-weight:700; display:block; }
-    #presets h2 { margin-top:18px; }
-    #log { font-size:14px; display:grid; gap:4px; } .good { color:var(--ok); } .err { color:var(--bad); }
+    .mission { text-align:left; width:100%; display:grid; grid-template-columns:40px 1fr auto; gap:10px; align-items:start;
+      background:var(--card); color:var(--text); border:1px solid var(--line); border-left:5px solid var(--c); font-weight:400; padding:12px; }
+    .mission.sarah { --c:var(--sarah); } .mission.sara { --c:var(--sara); } .mission.both { --c:var(--both); }
+    .mission .ic { font-size:26px; line-height:1; text-align:center; padding-top:2px; }
+    .mission b { display:block; font-size:16px; }
+    .mission .desc { color:var(--muted); font-size:13.5px; display:block; margin-top:2px; }
+    .mission .meta { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+    .tag { font-size:11.5px; font-weight:700; padding:2px 7px; border-radius:20px; background:var(--card2); color:var(--muted); }
+    .tag.due { background:rgba(255,179,71,.18); color:var(--accent); }
+    .tag.done { background:rgba(95,211,141,.15); color:var(--ok); }
+    .mission .go { align-self:center; font-size:13px; font-weight:800; color:var(--c); white-space:nowrap; }
+    .mission.due { box-shadow:0 0 0 1.5px rgba(255,179,71,.5); }
+    .mission.sent { opacity:.55; }
+    details.done-box { margin-top:12px; }
+    details > summary { cursor:pointer; color:var(--muted); font-size:14px; padding:8px 2px; list-style:none; }
+    details > summary::-webkit-details-marker { display:none; }
+    details > summary::before { content:"▸ "; } details[open] > summary::before { content:"▾ "; }
+    .empty { color:var(--muted); font-size:14px; padding:6px 2px; }
+
+    /* sections below */
+    .fold { margin-top:12px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:4px 14px; }
+    .fold > summary { font-size:15px; font-weight:700; color:var(--text); padding:12px 0; }
+    .fold .inner { padding:0 0 14px; display:grid; gap:8px; }
+    #log { font-size:14px; display:grid; gap:6px; }
+    #log div { padding:6px 0; border-top:1px solid var(--line); }
+    #log div:first-child { border-top:0; }
+    .danger { background:transparent; color:var(--bad); border:1.5px solid rgba(255,107,107,.5); }
+    .row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--line); font-size:14px; }
+    .row:first-child { border-top:0; }
+    .row button { padding:7px 10px; font-size:13px; }
+    #installbox { margin-top:12px; }
+    .pinbox { margin-top:14px; }
+    .pinbox.ok { display:none; }
+    @media (max-width:370px) { .players { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
-  <h1>🎯 Host panel</h1>
-  <p class="sub">Send a mission notification to a phone. Only works with your PIN.</p>
+  <div class="top"><div class="top-in">
+    <h1>🎯 Heated Host</h1>
+    <span class="conn"><span class="dot" id="conndot"></span><span id="conntext">offline</span></span>
+  </div></div>
 
-  <div class="card" id="installbox" hidden></div>
+  <div class="wrap">
+    <div class="card" id="installbox" hidden></div>
 
-  <div class="card" style="margin-top:12px">
-    <input id="pin" type="password" inputmode="numeric" placeholder="Admin PIN" autocomplete="off">
-    <p class="status" id="status" style="margin:8px 0 0">Enter the PIN to see which phones are registered.</p>
+    <div class="card pinbox" id="pinbox">
+      <b>🔑 Admin PIN</b>
+      <p class="muted" style="margin:4px 0 8px;font-size:14px">Only needed once on this phone.</p>
+      <input id="pin" type="password" inputmode="numeric" placeholder="Admin PIN" autocomplete="off">
+    </div>
+
+    <!-- ── live overview ── -->
+    <div class="card game" id="gamebox">
+      <div class="state" id="gamestatus"><b>Game not started</b><span class="muted">The girls see “Under construction”.</span></div>
+      <button id="startgame">🚀 Start</button>
+    </div>
+    <p class="muted" id="status" style="font-size:13px;margin:8px 2px 0">Registered phones: …</p>
+    <div class="players" id="players"></div>
+
+    <!-- ── missions ── -->
+    <h2>Missions <small id="mcount"></small></h2>
+    <div class="who" id="who">
+      <button data-to="sarah">Sarah<small id="cnt-sarah"></small></button>
+      <button data-to="sara">Sara<small id="cnt-sara"></small></button>
+      <button data-to="both">Both<small id="cnt-both"></small></button>
+    </div>
+    <p class="target" id="target"></p>
+    <p class="hintline" id="presets-sub">Pick who gets it. ⭐ = suggested for the stop she is at now. Tap a mission to send it.</p>
+    <div id="presets"></div>
+
+    <!-- ── more ── -->
+    <details class="fold">
+      <summary>✏️ Write your own message</summary>
+      <div class="inner">
+        <p class="muted" style="margin:0;font-size:14px">Goes to whoever is selected above (Sarah / Sara / Both).</p>
+        <input id="title" placeholder="Title, e.g. ⚡ Dance on the table" maxlength="120">
+        <textarea id="body" placeholder="Details (optional)" maxlength="400"></textarea>
+        <button id="send">Send message</button>
+      </div>
+    </details>
+
+    <details class="fold" open>
+      <summary>🧾 Sent today</summary>
+      <div class="inner"><div id="log"><span class="muted">Nothing sent yet.</span></div></div>
+    </details>
+
+    <details class="fold">
+      <summary>⚙️ Sync details & setup</summary>
+      <div class="inner">
+        <div id="sync"><span class="muted">Enter the PIN to see progress.</span></div>
+        <button id="changepin" style="background:var(--card2);color:var(--text)">🔑 Change PIN</button>
+        <button id="reset" class="danger">Reset all progress + back to the lobby (before the game)</button>
+        <p class="muted" style="margin:0;font-size:13px">Reset clears both girls' sync progress, the stored missions and the ✓ marks on this phone, and puts the game back to “not started”. Phones already in the game keep their own progress.</p>
+      </div>
+    </details>
   </div>
-
-  <h2>0 · Start the game</h2>
-  <div class="card" id="gamebox">
-    <p class="status" id="gamestatus" style="margin:0 0 10px">Enter the PIN to see the game status.</p>
-    <button id="startgame" style="width:100%;font-size:18px;padding:16px;background:#5fd38d;color:#06260f">🚀 Start the game</button>
-    <p class="status" style="margin:8px 0 0">Both phones get a notification and unlock: each reads her own story and gets the first clue (Auer, Innere Stadt).</p>
-  </div>
-
-  <h2>1 · Who gets it?</h2>
-  <div class="who" id="who">
-    <button data-to="sarah">Sarah</button>
-    <button data-to="sara">Sara</button>
-    <button data-to="both">Both</button>
-  </div>
-  <p class="target" id="target">Nobody selected yet</p>
-
-  <h2>2 · Your own message</h2>
-  <div class="card">
-    <input id="title" placeholder="Title, e.g. ⚡ Mission: dance on the table" maxlength="120">
-    <textarea id="body" placeholder="Details (optional)" maxlength="400"></textarea>
-    <button id="send">Send</button>
-  </div>
-
-  <h2>2 · Or a ready-made mission</h2>
-  <p class="sub" id="presets-sub">Pick who gets it first. The list then only shows missions that fit: Sarah's own, Sara's own, or the shared ones for both. The notification opens the challenge in the app and the reward counts.</p>
-  <div id="presets"></div>
-
-  <h2>3 · Game sync</h2>
-  <p class="sub">Neither girl continues until both solved the stop. Here you see who is waiting, and can let them through anyway.</p>
-  <div class="card" id="sync"><span class="status">Enter the PIN to see progress.</span></div>
-  <button id="reset" style="margin-top:8px;background:var(--card);color:var(--bad);border:1.5px solid var(--line)">Reset all progress + back to the lobby (before the game)</button>
-
-  <h2>Sent</h2>
-  <div id="log"><span class="status">Nothing sent yet.</span></div>
 
   <script src="story.js"></script>
   <script src="push-config.js"></script>
@@ -92,7 +180,11 @@
   (() => {
     const $ = (s) => document.querySelector(s);
     const cfg = self.PUSH || {};
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const hhmm = (t = Date.now()) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
     let to = null;
+    let live = { devices: { sarah: 0, sara: 0 }, started: false, startedAt: null, steps: {}, ok: false };
 
     // ── install as an app (own icon, opens without the browser bar) ──
     let installEvt = null;
@@ -104,8 +196,8 @@
       if (!installEvt && !android && !ios) { box.hidden = true; return; }
       box.hidden = false;
       box.innerHTML = installEvt
-        ? `<b>📲 Install the host app</b><p class="status" style="margin:4px 0 8px">Opens full screen from your home screen, no browser needed.</p><button id="doinstall">Install</button>`
-        : `<b>📲 Install the host app</b><p class="status" style="margin:4px 0 0">${ios ? "Tap <b>Share</b> → <b>Add to Home Screen</b>." : "Browser menu <b>⋮</b> → <b>Install app</b> (or <b>Add to Home screen</b>)."}</p>`;
+        ? `<b>📲 Install the host app</b><p class="muted" style="margin:4px 0 8px;font-size:14px">Opens full screen from your home screen.</p><button id="doinstall">Install</button>`
+        : `<b>📲 Install the host app</b><p class="muted" style="margin:4px 0 0;font-size:14px">${ios ? "Tap <b>Share</b> → <b>Add to Home Screen</b>." : "Browser menu <b>⋮</b> → <b>Install app</b> (or <b>Add to Home screen</b>)."}</p>`;
       $("#doinstall")?.addEventListener("click", async () => {
         const ev = installEvt; if (!ev) return;
         ev.prompt(); try { await ev.userChoice; } catch (_) {}
@@ -119,6 +211,7 @@
       navigator.serviceWorker.register("admin-sw.js", { scope: "./admin.html" }).catch(() => {});
     }
 
+    // ── worker calls ──
     const pinEl = $("#pin");
     try { pinEl.value = localStorage.getItem("bezirk.adminpin") || ""; } catch (_) {}
     const call = async (path, method, body) => {
@@ -132,131 +225,207 @@
       return j;
     };
 
-    async function refreshStatus() {
-      const el = $("#status");
-      if (!pinEl.value) return;
+    // ── activity log (kept on this phone) ──
+    const LOGKEY = "heated.log";
+    const logRows = () => { try { return JSON.parse(localStorage.getItem(LOGKEY) || "[]"); } catch (_) { return []; } };
+    function addLog(html) {
+      const rows = [html, ...logRows()].slice(0, 40);
+      try { localStorage.setItem(LOGKEY, JSON.stringify(rows)); } catch (_) {}
+      drawLog();
+    }
+    function drawLog() {
+      const rows = logRows();
+      $("#log").innerHTML = rows.length ? rows.map((r) => `<div>${r}</div>`).join("") : `<span class="muted">Nothing sent yet.</span>`;
+    }
+    drawLog();
+
+    // ── live overview: game state, phones, where each girl is ──
+    const stopLabel = (i) => {
+      const d = DISTRICTS[ROUTE[i]];
+      return d ? `${d.roman} ${d.name}` : "?";
+    };
+    function whereIs(who) {
+      // highest stop she solved; she is then waiting for the other or already at the next stop
+      const solved = Object.keys(live.steps).map(Number).filter((n) => live.steps[n][who]).sort((a, b) => b - a)[0];
+      if (solved == null) return { at: 0, state: live.started ? "🔎 solving the first riddle" : "🚧 in the lobby" };
+      const p = live.steps[solved];
+      const other = who === "sarah" ? "sara" : "sarah";
+      if (!(p.sarah && p.sara) && !p.released) return { at: solved, state: `✅ solved · waiting for ${name[other]}`, waiting: solved };
+      if (solved + 1 >= ROUTE.length - 1) return { at: ROUTE.length - 1, state: "🏁 at the finale" };
+      return { at: solved + 1, state: "🔎 solving · or on the way" };
+    }
+    const sentMarks = () => { try { return JSON.parse(localStorage.getItem("heated.sent") || "{}"); } catch (e) { return {}; } };
+    const markSent = (t, key) => { try { const m = sentMarks(); m[t + ":" + key] = hhmm(); localStorage.setItem("heated.sent", JSON.stringify(m)); } catch (e) {} };
+    const missionKeys = (t) => t === "both"
+      ? Object.keys(CHALLENGES).filter((k) => CHALLENGES[k].shared)
+      : [...STORIES[t].missions.intermissions, ...STORIES[t].missions.events];
+    const sentCount = (t) => missionKeys(t).filter((k) => sentMarks()[t + ":" + k]).length;
+
+    function drawLive() {
+      const g = $("#gamebox");
+      g.classList.toggle("started", live.started);
+      $("#gamestatus").innerHTML = live.started
+        ? `<b class="good">✓ Game started at ${hhmm(live.startedAt)}</b><span class="muted">Stop sync and missions are live.</span>`
+        : `<b>Game not started</b><span class="muted">The girls see “Under construction”. Press Start when everyone is at Auer.</span>`;
+      $("#status").innerHTML = `Registered phones: Sarah <b>${live.devices.sarah}</b> · Sara <b>${live.devices.sara}</b>`;
+      $("#players").innerHTML = ["sarah", "sara"].map((w) => {
+        const n = live.devices[w] || 0;
+        const where = whereIs(w);
+        const total = missionKeys(w).length + missionKeys("both").length;
+        const sent = sentCount(w) + sentCount("both");
+        return `<div class="pl ${w}">
+          <div class="pl-name">${name[w]} <span class="pl-phone ${n ? "ok" : "no"}">${n ? "📱 connected" : "📵 no phone"}</span></div>
+          <div class="pl-stop">Stop ${where.at + 1} of ${ROUTE.length}<b>${stopLabel(where.at)}</b></div>
+          <div class="pl-state">${where.state}</div>
+          <div class="pl-ms">Missions sent ${sent}/${total}<div class="bar"><i style="width:${total ? Math.round(sent / total * 100) : 0}%"></i></div></div>
+        </div>`;
+      }).join("") + releaseRow();
+      $("#players").querySelectorAll("[data-release]").forEach((b) => b.addEventListener("click", () => release(Number(b.dataset.release))));
+      drawSync();
+      for (const t of ["sarah", "sara", "both"]) $("#cnt-" + t).textContent = `${sentCount(t)}/${missionKeys(t).length} sent`;
+    }
+    function releaseRow() {
+      const stuck = Object.keys(live.steps).map(Number).filter((n) => { const p = live.steps[n]; return (p.sarah || p.sara) && !(p.sarah && p.sara) && !p.released; }).sort((a, b) => b - a)[0];
+      if (stuck == null) return "";
+      const p = live.steps[stuck];
+      return `<div class="release" style="grid-column:1/-1"><span>⏳ <b>${p.sarah ? "Sarah" : "Sara"}</b> solved ${stopLabel(stuck)}, ${p.sarah ? "Sara" : "Sarah"} not yet.</span><button data-release="${stuck}">Let them through</button></div>`;
+    }
+    function drawSync() {
+      const nums = Object.keys(live.steps).map(Number).sort((a, b) => b - a);
+      $("#sync").innerHTML = nums.length ? nums.map((n) => {
+        const p = live.steps[n], done = (p.sarah && p.sara) || p.released;
+        return `<div class="row"><span><b>${stopLabel(n)}</b> → ${DISTRICTS[ROUTE[n + 1]] ? DISTRICTS[ROUTE[n + 1]].name : "?"}<br><span class="muted">Sarah ${p.sarah ? "✅" : "⏳"} · Sara ${p.sara ? "✅" : "⏳"}${p.released ? " · released" : ""}</span></span>
+          ${done ? `<span class="good">go ✓</span>` : `<button data-release="${n}">Let through</button>`}</div>`;
+      }).join("") : `<span class="muted">Nobody has solved a stop yet.</span>`;
+      $("#sync").querySelectorAll("[data-release]").forEach((b) => b.addEventListener("click", () => release(Number(b.dataset.release))));
+    }
+    async function release(n) {
+      if (!confirm(`Let both continue at "${stopLabel(n)}" although not both have solved it?`)) return;
+      try { await call("/release", "POST", { step: n }); addLog(`<span class="good">✓ ${hhmm()}</span> Let both through at ${esc(stopLabel(n))}`); } catch (e) { alert(e.message); }
+      refresh();
+    }
+    function setConn(ok, text) {
+      $("#conndot").className = "dot " + (ok ? "on" : "off");
+      $("#conntext").textContent = text;
+    }
+
+    let refreshing = false, lastSig = "";
+    async function refresh() {
+      if (!pinEl.value || refreshing) { if (!pinEl.value) setConn(false, "PIN needed"); return; }
+      refreshing = true;
       try { localStorage.setItem("bezirk.adminpin", pinEl.value); } catch (_) {}
       try {
-        const { devices, started, startedAt } = await call("/status", "GET");
-        el.innerHTML = `Registered phones: Sarah <b>${devices.sarah}</b> · Sara <b>${devices.sara}</b>`;
-        const g = $("#gamestatus");
-        g.innerHTML = started ? `<span class="good">✓ Game started at ${new Date(startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>` : `Game not started: players are in the “Under construction” lobby.`;
-      } catch (e) { el.innerHTML = `<span class="err">${e.message}</span>`; }
+        const [st, pr] = await Promise.all([call("/status", "GET"), call("/progress", "GET")]);
+        live = { devices: st.devices, started: st.started, startedAt: st.startedAt, steps: pr.steps || {}, ok: true };
+        $("#pinbox").classList.add("ok");
+        setConn(true, "live · " + hhmm());
+        // only redraw when something changed (so the list doesn't jump under your finger)
+        const sig = JSON.stringify([st, pr.steps]);
+        if (sig !== lastSig) { lastSig = sig; drawLive(); if (to) renderPresets(); }
+      } catch (e) {
+        live.ok = false;
+        if (/pin/i.test(e.message)) { $("#pinbox").classList.remove("ok"); setConn(false, "wrong PIN"); }
+        else setConn(false, "no connection");
+        $("#status").innerHTML = `<span class="err">${esc(e.message)}</span>`;
+      }
+      refreshing = false;
     }
+    pinEl.addEventListener("change", refresh);
+    $("#changepin").addEventListener("click", () => { $("#pinbox").classList.remove("ok"); pinEl.focus(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    drawLive();
+    refresh();
+    setInterval(refresh, 5000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+
     $("#startgame").addEventListener("click", async (e) => {
       if (!confirm("Start the game now?\n\nSarah and Sara both get a notification and their story begins.")) return;
       e.target.disabled = true;
-      const row = document.createElement("div");
-      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       try {
         const { result } = await call("/start", "POST");
-        row.innerHTML = `<span class="good">✓ ${time}</span> Game started → ` + Object.entries(result).map(([w, r]) => `${w === "sarah" ? "Sarah" : "Sara"}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`).join(", ");
-      } catch (err) { row.innerHTML = `<span class="err">✗ ${time}</span> Start failed — ${err.message}`; }
-      const log = $("#log"); if (log.querySelector(".status")) log.innerHTML = ""; log.prepend(row);
+        addLog(`<span class="good">✓ ${hhmm()}</span> Game started → ` + Object.entries(result).map(([w, r]) => `${name[w]}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`).join(", "));
+      } catch (err) { addLog(`<span class="err">✗ ${hhmm()}</span> Start failed — ${esc(err.message)}`); }
       e.target.disabled = false;
-      refreshStatus();
+      refresh();
     });
-    pinEl.addEventListener("change", () => { refreshStatus(); refreshSync(); });
-    refreshStatus();
 
-    // ── step sync view ──
-    const stopName = (step) => (typeof ROUTE !== "undefined" && typeof DISTRICTS !== "undefined" && DISTRICTS[ROUTE[step]])
-      ? `${DISTRICTS[ROUTE[step]].roman} ${DISTRICTS[ROUTE[step]].name} → ${DISTRICTS[ROUTE[step + 1]] ? DISTRICTS[ROUTE[step + 1]].name : "?"}` : `step ${step}`;
-    async function refreshSync() {
-      const box = $("#sync");
-      if (!pinEl.value || !cfg.workerUrl) return;
-      try {
-        const { steps } = await call("/progress", "GET");
-        const nums = Object.keys(steps).map(Number).sort((a, b) => b - a).slice(0, 4);
-        if (!nums.length) { box.innerHTML = `<span class="status">Nobody has solved a stop yet.</span>`; return; }
-        box.innerHTML = nums.map((n) => {
-          const p = steps[n], done = (p.sarah && p.sara) || p.released;
-          return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)">
-            <span><b>${stopName(n)}</b><br><span class="status">Sarah ${p.sarah ? "✅" : "⏳"} · Sara ${p.sara ? "✅" : "⏳"}${p.released ? " · released" : ""}</span></span>
-            ${done ? `<span class="good">go ✓</span>` : `<button data-release="${n}">Let them through</button>`}</div>`;
-        }).join("");
-        box.querySelectorAll("[data-release]").forEach((b) => b.addEventListener("click", async () => {
-          if (!confirm(`Let both continue at "${stopName(Number(b.dataset.release))}" although not both have solved it?`)) return;
-          try { await call("/release", "POST", { step: Number(b.dataset.release) }); } catch (e) { alert(e.message); }
-          refreshSync();
-        }));
-      } catch (e) { box.innerHTML = `<span class="err">${e.message}</span>`; }
-    }
-    refreshSync();
-    setInterval(() => { refreshSync(); refreshStatus(); }, 5000);
     $("#reset").addEventListener("click", async () => {
       if (!confirm("Forget ALL step progress and put the game back to 'not started'? Phones already inside the game keep their own progress. Only do this before the game starts.")) return;
-      try { const r = await call("/reset", "POST"); try { localStorage.removeItem("heated.sent"); } catch (e) {} renderPresets(); alert(`Cleared (${r.cleared} steps).`); } catch (e) { alert(e.message); }
-      refreshSync();
+      try {
+        const r = await call("/reset", "POST");
+        try { localStorage.removeItem("heated.sent"); localStorage.removeItem(LOGKEY); } catch (e) {}
+        drawLog(); renderPresets();
+        alert(`Cleared (${r.cleared} steps).`);
+      } catch (e) { alert(e.message); }
+      refresh();
     });
 
-    const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
+    // ── recipient ──
     document.querySelectorAll("#who button").forEach((b) => b.addEventListener("click", () => {
       to = b.dataset.to;
       document.querySelectorAll("#who button").forEach((x) => x.classList.toggle("on", x === b));
-      const t = $("#target");
-      t.className = "target " + to;
-      t.textContent = to === "both" ? "Sending to: SARAH + SARA (both)" : `Sending to: ${to.toUpperCase()} only`;
+      $("#target").textContent = to === "both" ? "Sending to: SARAH + SARA (both)" : `Sending to: ${to.toUpperCase()} only`;
       renderPresets();
     }));
 
-    // missions already sent from this phone are marked as done (per recipient), so nothing is sent twice by accident
-    const sentMarks = () => { try { return JSON.parse(localStorage.getItem("heated.sent") || "{}"); } catch (e) { return {}; } };
-    const markSent = (to2, key) => { try { const m = sentMarks(); m[to2 + ":" + key] = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); localStorage.setItem("heated.sent", JSON.stringify(m)); } catch (e) {} };
     async function send(title, body, target = to, ch = null) {
       if (!target) return alert("Pick Sarah, Sara or Both first.");
       if (!title.trim()) return;
-      if (!confirm(`${ch && sentMarks()[target + ':' + ch] ? 'ALREADY SENT at ' + sentMarks()[target + ':' + ch] + '. Send again?\n\n' : ''}Send to ${target === "both" ? "BOTH Sarah and Sara" : name[target].toUpperCase() + " only"}?\n\n${title}${body ? "\n" + body : ""}`)) return;
-      const row = document.createElement("div");
-      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const before = ch && sentMarks()[target + ":" + ch];
+      if (!confirm(`${before ? "ALREADY SENT at " + before + ". Send again?\n\n" : ""}Send to ${target === "both" ? "BOTH Sarah and Sara" : name[target].toUpperCase() + " only"}?\n\n${title}${body ? "\n" + body : ""}`)) return;
       let ok = true;
       try {
         const { result } = await call("/send", "POST", { to: target, title, body, ch });
         const parts = Object.entries(result).map(([w, r]) => `${name[w]}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`);
-        row.innerHTML = `<span class="good">✓ ${time}</span> ${title} → ${parts.join(", ")}`;
-      } catch (e) { row.innerHTML = `<span class="err">✗ ${time}</span> ${title} — ${e.message}`; ok = false; }
-      const log = $("#log");
-      if (log.querySelector(".status")) log.innerHTML = "";
-      log.prepend(row);
-      refreshStatus();
+        addLog(`<span class="good">✓ ${hhmm()}</span> ${esc(title)} → ${parts.join(", ")}`);
+      } catch (e) { addLog(`<span class="err">✗ ${hhmm()}</span> ${esc(title)} — ${esc(e.message)}`); ok = false; }
+      refresh();
       return ok;
     }
     $("#send").addEventListener("click", async (e) => {
       e.target.disabled = true;
-      await send($("#title").value, $("#body").value);
+      if (await send($("#title").value, $("#body").value)) { $("#title").value = ""; $("#body").value = ""; }
       e.target.disabled = false;
     });
 
-    // Ready-made missions, filtered by the selected recipient so a wrong match is impossible:
-    //   Sarah → her intermissions + events · Sara → hers · Both → the shared missions (key starts with d_ / shared: true)
+    // ── mission list: not sent first (⭐ suggested for her current stop on top), done ones folded away ──
     const box = $("#presets");
+    let doneOpen = false;
     function renderPresets() {
-      box.innerHTML = "";
-      if (!to || typeof STORIES === "undefined" || typeof CHALLENGES === "undefined") return;
-      const groups = to === "both"
-        ? [["Shared missions · both do it together", Object.keys(CHALLENGES).filter((k) => CHALLENGES[k].shared)]]
-        : [[`${name[to]} · ⚡ ${to === "sarah" ? "intermissions" : "plot twists"}`, STORIES[to].missions.intermissions],
-           [`${name[to]} · ${to === "sarah" ? "💔 events" : "📖 reading room"}`, STORIES[to].missions.events]];
-      groups.forEach(([heading, keys]) => {
-        if (!keys.length) return;
-        const h = document.createElement("h2"); h.textContent = heading; box.appendChild(h);
-        const list = document.createElement("div"); list.className = "list";
-        keys.forEach((key) => {
-          const c = CHALLENGES[key];
-          const b = document.createElement("button");
-          const sentAt = sentMarks()[to + ":" + key];
-          b.className = "mission " + to + (sentAt ? " sent" : "");
-          b.dataset.key = key;
-          b.innerHTML = `${sentAt ? `<small class="sent-tag">✓ Done · sent ${sentAt}</small>` : ""}<small>→ ${to === "both" ? "SARAH + SARA" : name[to].toUpperCase()} · ${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
-          b.addEventListener("click", async () => {
-            const ok = await send(`${c.icon} Surprise mission: ${c.title}`,
-              to === "both" ? "For both of you — do it together. Tap to open." : "Tap to open it in the app.", to, key);
-            if (ok) { markSent(to, key); renderPresets(); }
-          });
-          list.appendChild(b);
-        });
-        box.appendChild(list);
+      if (!to || typeof STORIES === "undefined" || typeof CHALLENGES === "undefined") { box.innerHTML = ""; return; }
+      const marks = sentMarks();
+      const keys = missionKeys(to);
+      const at = to === "both" ? null : (STORIES[to].missions.at || {});
+      const here = to === "both" ? null : whereIs(to).at;
+      const items = keys.map((key, i) => {
+        const idx = at && at[key] != null ? ROUTE.indexOf(Number(at[key])) : -1;
+        return { key, i, idx, sentAt: marks[to + ":" + key], due: here != null && idx >= 0 && idx <= here };
       });
+      const open = items.filter((x) => !x.sentAt).sort((a, b) => (b.due - a.due) || (a.idx - b.idx) || (a.i - b.i));
+      const done = items.filter((x) => x.sentAt);
+      const card = (x) => {
+        const c = CHALLENGES[x.key];
+        const kind = to === "both" ? "🤝 together" : STORIES[to].missions.events.includes(x.key) ? (to === "sarah" ? "💔 event" : "📖 event") : "⚡ intermission";
+        return `<button class="mission ${to}${x.sentAt ? " sent" : ""}${x.due && !x.sentAt ? " due" : ""}" data-key="${x.key}">
+          <span class="ic">${c.icon}</span>
+          <span><b>${esc(c.title)}</b><span class="desc">${esc(c.story.length > 120 ? c.story.slice(0, 117) + "…" : c.story)}</span>
+            <span class="meta">${x.sentAt ? `<span class="tag done sent-tag">✓ Done · sent ${x.sentAt}</span>` : ""}${x.due && !x.sentAt ? `<span class="tag due">⭐ fits now</span>` : ""}
+              <span class="tag">${kind}</span><span class="tag">+${c.reward} ${to === "sara" ? "🔖" : to === "sarah" ? "❤️" : "❤️/🔖"}</span>
+              ${x.idx >= 0 ? `<span class="tag">📍 ${esc(stopLabel(x.idx))}</span>` : ""}</span></span>
+          <span class="go">${x.sentAt ? "again" : "Send ›"}</span>
+        </button>`;
+      };
+      const wasOpen = box.querySelector("details.done-box")?.open;
+      if (wasOpen != null) doneOpen = wasOpen;
+      box.innerHTML = `
+        <div class="list">${open.length ? open.map(card).join("") : `<p class="empty">🎉 Everything for ${to === "both" ? "both" : name[to]} has been sent.</p>`}</div>
+        ${done.length ? `<details class="done-box"${doneOpen ? " open" : ""}><summary>✓ Done (${done.length})</summary><div class="list">${done.map(card).join("")}</div></details>` : ""}`;
+      $("#mcount").textContent = `${done.length}/${items.length} sent to ${to === "both" ? "both" : name[to]}`;
+      box.querySelectorAll(".mission").forEach((b) => b.addEventListener("click", async () => {
+        const key = b.dataset.key, c = CHALLENGES[key];
+        const ok = await send(`${c.icon} Surprise mission: ${c.title}`,
+          to === "both" ? "For both of you — do it together. Tap to open." : "Tap to open it in the app.", to, key);
+        if (ok) { markSent(to, key); renderPresets(); drawLive(); }
+      }));
     }
   })();
   </script>

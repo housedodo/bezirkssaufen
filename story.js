@@ -1125,11 +1125,11 @@ const SARA_ALT = {
 // missions. We move the old stop attachments (above) into `STORIES.<who>.missions` (admin.html lists them in route order).
 // To put a challenge back on a stop, set `stop.event` / `stop.intermission` after this block.
 ["sarah", "sara"].forEach((who) => {
-  const m = { intermissions: [], events: [] };
+  const m = { intermissions: [], events: [], at: {} }; // at: challenge key → district id where it used to be (suggested timing)
   ROUTE.forEach((d) => {
     const st = STORIES[who].stops[d];
-    if (st.intermission) { m.intermissions.push(st.intermission); delete st.intermission; }
-    if (st.event) { m.events.push(st.event); delete st.event; }
+    if (st.intermission) { m.intermissions.push(st.intermission); m.at[st.intermission] = d; delete st.intermission; }
+    if (st.event) { m.events.push(st.event); m.at[st.event] = d; delete st.event; }
   });
   STORIES[who].missions = m;
 });

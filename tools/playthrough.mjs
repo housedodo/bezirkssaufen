@@ -122,7 +122,8 @@ H.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|f
 H.on('dialog', (d) => d.accept());
 async function hostOpen() {
   await H.goto('http://localhost:8000/admin.html');
-  await H.fill('#pin', '9999'); await H.dispatchEvent('#pin', 'change'); await H.waitForTimeout(600);
+  if (await H.isVisible('#pin')) { await H.fill('#pin', '9999'); await H.dispatchEvent('#pin', 'change'); }
+  await H.waitForTimeout(800);
 }
 let hostChain = Promise.resolve();
 const hostDo = (fn) => (hostChain = hostChain.then(fn, fn));
@@ -397,7 +398,7 @@ for (const to of ['sarah', 'sara', 'both']) {
 const prog = await adminCall('/progress', 'GET');
 note('host', `sync: ${Object.keys(prog.steps).length} stops solved by both: ${Object.values(prog.steps).every((s) => s.sarah && s.sara)}`);
 await H.screenshot({ path: `${OUT}/admin.png`, fullPage: true });
-await H.click('#reset'); await H.waitForTimeout(800);
+await H.evaluate(() => { document.querySelector('#reset').closest('details').open = true; }); await H.click('#reset'); await H.waitForTimeout(800);
 const after = await adminCall('/status', 'GET');
 await H.click('[data-to=sara]'); await H.waitForTimeout(200);
 const inboxAfter = (await workerCall('/inbox', 'POST', { endpoint: 'https://push.test/sara' })).json;
