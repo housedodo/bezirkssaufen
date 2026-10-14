@@ -36,6 +36,7 @@
     .mission { text-align:left; background:var(--card); color:var(--text); border:1px solid var(--line); font-weight:400; display:block; width:100%; }
     .mission b { display:block; } .mission span { color:var(--muted); font-size:13.5px; }
     .mission small { color:var(--accent); font-size:12px; }
+    .mission.sent { opacity:.5; } .mission.sent .sent-tag { color:#1f9d55; font-weight:700; display:block; }
     #presets h2 { margin-top:18px; }
     #log { font-size:14px; display:grid; gap:4px; } .good { color:var(--ok); } .err { color:var(--bad); }
   </style>
@@ -185,7 +186,7 @@
     setInterval(refreshSync, 5000);
     $("#reset").addEventListener("click", async () => {
       if (!confirm("Forget ALL step progress and put the game back to 'not started'? Phones already inside the game keep their own progress. Only do this before the game starts.")) return;
-      try { const r = await call("/reset", "POST"); alert(`Cleared (${r.cleared} steps).`); } catch (e) { alert(e.message); }
+      try { const r = await call("/reset", "POST"); try { localStorage.removeItem("heated.sent"); } catch (e) {} renderPresets(); alert(`Cleared (${r.cleared} steps).`); } catch (e) { alert(e.message); }
       refreshSync();
     });
 
@@ -199,21 +200,26 @@
       renderPresets();
     }));
 
+    // missions already sent from this phone are marked as done (per recipient), so nothing is sent twice by accident
+    const sentMarks = () => { try { return JSON.parse(localStorage.getItem("heated.sent") || "{}"); } catch (e) { return {}; } };
+    const markSent = (to2, key) => { try { const m = sentMarks(); m[to2 + ":" + key] = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); localStorage.setItem("heated.sent", JSON.stringify(m)); } catch (e) {} };
     async function send(title, body, target = to, ch = null) {
       if (!target) return alert("Pick Sarah, Sara or Both first.");
       if (!title.trim()) return;
-      if (!confirm(`Send to ${target === "both" ? "BOTH Sarah and Sara" : name[target].toUpperCase() + " only"}?\n\n${title}${body ? "\n" + body : ""}`)) return;
+      if (!confirm(`${ch && sentMarks()[target + ':' + ch] ? 'ALREADY SENT at ' + sentMarks()[target + ':' + ch] + '. Send again?\n\n' : ''}Send to ${target === "both" ? "BOTH Sarah and Sara" : name[target].toUpperCase() + " only"}?\n\n${title}${body ? "\n" + body : ""}`)) return;
       const row = document.createElement("div");
       const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      let ok = true;
       try {
         const { result } = await call("/send", "POST", { to: target, title, body, ch });
         const parts = Object.entries(result).map(([w, r]) => `${name[w]}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`);
         row.innerHTML = `<span class="good">✓ ${time}</span> ${title} → ${parts.join(", ")}`;
-      } catch (e) { row.innerHTML = `<span class="err">✗ ${time}</span> ${title} — ${e.message}`; }
+      } catch (e) { row.innerHTML = `<span class="err">✗ ${time}</span> ${title} — ${e.message}`; ok = false; }
       const log = $("#log");
       if (log.querySelector(".status")) log.innerHTML = "";
       log.prepend(row);
       refreshStatus();
+      return ok;
     }
     $("#send").addEventListener("click", async (e) => {
       e.target.disabled = true;
@@ -229,8 +235,8 @@
       if (!to || typeof STORIES === "undefined" || typeof CHALLENGES === "undefined") return;
       const groups = to === "both"
         ? [["Shared missions · both do it together", Object.keys(CHALLENGES).filter((k) => CHALLENGES[k].shared)]]
-        : [[`${name[to]} · ⚡ ${to === "sarah" ? "intermissions" : "plot twists"}`, ROUTE.map((d) => STORIES[to].stops[d].intermission).filter(Boolean)],
-           [`${name[to]} · ${to === "sarah" ? "💔 events" : "📖 reading room"}`, ROUTE.map((d) => STORIES[to].stops[d].event).filter(Boolean)]];
+        : [[`${name[to]} · ⚡ ${to === "sarah" ? "intermissions" : "plot twists"}`, STORIES[to].missions.intermissions],
+           [`${name[to]} · ${to === "sarah" ? "💔 events" : "📖 reading room"}`, STORIES[to].missions.events]];
       groups.forEach(([heading, keys]) => {
         if (!keys.length) return;
         const h = document.createElement("h2"); h.textContent = heading; box.appendChild(h);
@@ -238,10 +244,14 @@
         keys.forEach((key) => {
           const c = CHALLENGES[key];
           const b = document.createElement("button");
-          b.className = "mission " + to;
-          b.innerHTML = `<small>→ ${to === "both" ? "SARAH + SARA" : name[to].toUpperCase()} · ${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
-          b.addEventListener("click", () => send(`${c.icon} Surprise mission: ${c.title}`,
-            to === "both" ? "For both of you — do it together. Tap to open." : "Tap to open it in the app.", to, key));
+          const sentAt = sentMarks()[to + ":" + key];
+          b.className = "mission " + to + (sentAt ? " sent" : "");
+          b.innerHTML = `${sentAt ? `<small class="sent-tag">✓ Done · sent ${sentAt}</small>` : ""}<small>→ ${to === "both" ? "SARAH + SARA" : name[to].toUpperCase()} · ${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
+          b.addEventListener("click", async () => {
+            const ok = await send(`${c.icon} Surprise mission: ${c.title}`,
+              to === "both" ? "For both of you — do it together. Tap to open." : "Tap to open it in the app.", to, key);
+            if (ok) { markSent(to, key); renderPresets(); }
+          });
           list.appendChild(b);
         });
         box.appendChild(list);

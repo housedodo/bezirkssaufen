@@ -1105,3 +1105,17 @@ const SARA_ALT = {
     done: "Bookmark approved.",
     confirmLabel: "✅ The table approved the bookmark" }
 };
+
+// ─────────────────────── Intermissions and events are host-triggered now ───────────────────────
+// The challenges are no longer attached to stops. The host sends them from admin.html whenever it fits, as surprise
+// missions. We move the old stop attachments (above) into `STORIES.<who>.missions` (admin.html lists them in route order).
+// To put a challenge back on a stop, set `stop.event` / `stop.intermission` after this block.
+["sarah", "sara"].forEach((who) => {
+  const m = { intermissions: [], events: [] };
+  ROUTE.forEach((d) => {
+    const st = STORIES[who].stops[d];
+    if (st.intermission) { m.intermissions.push(st.intermission); delete st.intermission; }
+    if (st.event) { m.events.push(st.event); delete st.event; }
+  });
+  STORIES[who].missions = m;
+});

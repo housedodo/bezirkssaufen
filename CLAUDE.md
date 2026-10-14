@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v39) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v40) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -87,6 +87,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
     Check this when moving any challenge. (Total separation is impossible: 25 challenges, 15 stops; the locker room speech and fanfic deliberately sit on stops where Sarah has a ⚡, and stops 3 and 10 are still open for Sara.)
     Order at a stop: intermission → event → shop → riddle → guess.
     The blurb and reviews appear in the finale next to the haul.
+- **Intermissions and events are host-triggered only (since v40).** `story.js` ends with a block that moves every `event` / `intermission` off the stops into `STORIES.<who>.missions = {intermissions[], events[]}`; the stops no longer show any challenge by themselves, the host sends them from `admin.html` whenever it fits (surprise missions). The admin page lists them from `missions` and marks a sent mission **"✓ Done · sent HH:MM"** (greyed; tap again asks "Already sent, send again?"); the marks live in the admin phone's `localStorage` (`heated.sent`) and are cleared by "Reset all progress". Wallet effect: earning now comes only from host missions; hearts/bookmarks spent on "make someone else do it" only apply to a mission screen. To put a challenge back on a stop, set `stop.event` / `stop.intermission` after that block. The per-stop tables below (Sarah/Sara columns with ⚡/💔/📖) describe the *old* placement and are now the suggested timing for the host.
 - **Sara: 6 stops without the Bookbazaar** (`SARA_ALT` in `story.js`, `renderAlt()` in `app.js`, shown instead of the shop; solving it sets `state.bought` and unlocks the riddle; wrong tries cost 1, 2, 3 … sips): VII Liebenau **Torn pages** (put 4 strips in order), X Ries **Herbert and Kafka judge**, XII Andritz **Ottilie's postcards** (which was written here), XIV Eggenberg **Cover designer**, XVII Puntigam **Ask a stranger** (3 words, shown in the finale: `state.words`), V Gries **Bookmark hunt**. All other Sara stops keep the shop, which now shows **3 listings** (real, one generic decoy, one sold-out real book of another stop).
 - **Sarah** (dating theme):
   - 10 teammate profiles with full photos (name/tags/bio *below* the photo, nothing over the face) and round
@@ -371,7 +372,8 @@ Newest first (the commits that only claim work in the table above are not listed
 
 - 2026-10-14 · this commit · Dominik (Claude) · Handbook: new "Coverage check" section (every district has a person/encounter, and a real book for Sara in all 16 riddle districts).
 - 2026-10-14 · `previous` · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
-- 2026-10-14 · this commit · Dominik (Claude) · Sara: shop now 3 listings instead of 4; six stops (VII, X, XII, XIV, XVII, V) swap the shop for a different game (torn pages, cat judge, postcards, cover designer, ask a stranger, bookmark hunt); playthrough tool plays them; cache v39.
+- 2026-10-14 · this commit · Dominik (Claude) · Intermissions and events no longer appear on the stops: the host triggers all of them from the admin page (list per player from `STORIES.<who>.missions`); a mission that was sent is marked "✓ Done · sent HH:MM" in the admin list (greyed, resend needs a confirmation, marks cleared by Reset); cache v40.
+- 2026-10-14 · `previous` · Dominik (Claude) · Sara: shop now 3 listings instead of 4; six stops (VII, X, XII, XIV, XVII, V) swap the shop for a different game (torn pages, cat judge, postcards, cover designer, ask a stranger, bookmark hunt); playthrough tool plays them; cache v39.
 - 2026-10-14 · `c9514e2` · Dominik (Claude) · Sara: two new ⚡ intermissions where she had nothing: "Locker room speech" @X Ries and "One-line fanfic" @XVII Puntigam (+1 🔖 each); stops VII and XII are still empty (host will add). Cache v37.
 - 2026-10-14 · `0583eea` · Dominik (Claude) · Sarah's chat shortened: no question, no fun fact, only one red flag; the opener is a random hi/hello (some cool, some cringe, 3 per guy); cache v36.
 - 2026-10-14 · `f3881ee` · Dominik (Claude) · Sarah's chat: every guy first asks a variation of "do you want to hear a fun fact?" (she answers, then the fact), and his texts no longer contain any emoji; cache v35.
