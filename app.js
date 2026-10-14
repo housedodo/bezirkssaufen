@@ -200,7 +200,7 @@
         tap <b>Share</b> → <b>Add to Home Screen</b>, open the app from the new icon, then come back to this screen.</p>`;
     } else if (Notification.permission === "denied") {
       html = `<p><b>🔔 Mission alerts are blocked</b></p>
-        <p class="push-note">Turn them back on in iPhone Settings → Notifications → Bezirkssaufen.</p>`;
+        <p class="push-note">Turn them back on in iPhone Settings → Notifications → Icebreakers.</p>`;
     } else if (Notification.permission === "granted") {
       html = `<p><b>🔔 Mission alerts are on</b> ✅</p>
         <p class="push-note">You'll get a notification when your host sends a mission.</p>`;
@@ -261,9 +261,9 @@
     app.innerHTML = `
       <section class="screen pick">
         <div class="pick-head">
-          <p class="kicker">Graz · 17 Bezirke · 17 Drinks</p>
-          <h1 class="logo">Bezirks&shy;saufen</h1>
-          <p class="lede">Two birthdays. Two stories. One very long day out.<br>Choose your name — and no peeking at the other phone.</p>
+          <p class="kicker">Enemies to lovers · 17 districts · 17 drinks</p>
+          <h1 class="logo">Icebreakers<span class="logo-sub">&amp; Heated Rivalries</span></h1>
+          <p class="lede">Two birthdays. Two stories. One long day.<br>Only one bed (at the end). Choose your name — and no peeking at the other phone.</p>
         </div>
         <div class="pick-grid">${card("sarah")}${card("sara")}</div>
         <p class="fineprint">Progress is saved on this phone. Add it to your home screen so it works like an app.</p>

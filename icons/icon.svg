@@ -1,7 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#16121f"/>
-  <circle cx="256" cy="256" r="180" fill="none" stroke="#f2b33d" stroke-width="14" stroke-dasharray="4 26" stroke-linecap="round"/>
-  <path d="M196 170h120v26c0 0 4 46-14 80c-12 22-14 40-14 60v26h-64v-26c0-20-2-38-14-60c-18-34-14-80-14-80z" fill="#f2b33d"/>
-  <path d="M184 150c10-22 34-26 46-16c10-16 40-18 52-2c16-10 40-2 44 18c4 18-14 26-20 26h-110c-14 0-22-12-12-26z" fill="#f4eee4"/>
-  <text x="256" y="420" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="58" fill="#f4eee4" letter-spacing="6">XVII</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1238"/><stop offset=".55" stop-color="#4a1a55"/><stop offset="1" stop-color="#8a1f4d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="54%" r="46%">
+      <stop offset="0" stop-color="#ff7a45" stop-opacity=".5"/><stop offset="1" stop-color="#ff7a45" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0fdff"/><stop offset=".5" stop-color="#82d6ff"/><stop offset="1" stop-color="#3a86ff"/>
+    </linearGradient>
+    <linearGradient id="fire" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd54a"/><stop offset=".45" stop-color="#ff7a2f"/><stop offset="1" stop-color="#e0245e"/>
+    </linearGradient>
+    <clipPath id="L"><rect x="0" y="0" width="256" height="512"/></clipPath>
+    <clipPath id="R"><rect x="256" y="0" width="256" height="512"/></clipPath>
+    <path id="heart" d="M256 408C112 318 84 214 138 160C186 112 242 134 256 182C270 134 326 112 374 160C428 214 400 318 256 408Z"/>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- crossed hockey sticks -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#0d0820" stroke-opacity=".35" stroke-width="32"><path d="M96 96L404 414H454"/><path d="M416 96L108 414H58"/></g>
+    <g stroke="#efeaff" stroke-width="20"><path d="M96 96L404 414H454"/><path d="M416 96L108 414H58"/></g>
+    <g stroke="#b9a8ff" stroke-width="20" stroke-dasharray="3 14"><path d="M96 96L150 152"/><path d="M416 96L362 152"/></g>
+  </g>
+  <!-- split heart: ice | fire -->
+  <g clip-path="url(#L)"><use href="#heart" fill="url(#ice)"/></g>
+  <g clip-path="url(#R)"><use href="#heart" fill="url(#fire)"/></g>
+  <path d="M150 196L212 250L182 332M212 250L246 214" fill="none" stroke="#ffffff" stroke-opacity=".65" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#L)"/>
+  <path d="M322 152C300 120 336 112 326 78C352 98 372 128 352 158Z" fill="url(#fire)"/>
+  <path d="M370 170C354 148 382 140 378 116C398 132 406 154 392 174Z" fill="url(#fire)"/>
+  <!-- the crack where ice meets heat -->
+  <path d="M256 168L240 212L268 246L238 290L262 330L248 376" fill="none" stroke="#fff6c9" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- sparkles -->
+  <path d="M256 40L262 62L284 68L262 74L256 96L250 74L228 68L250 62Z" fill="#fff6e8"/>
+  <path d="M82 292L86 306L100 310L86 314L82 328L78 314L64 310L78 306Z" fill="#cfeaff"/>
+  <path d="M432 262L436 276L450 280L436 284L432 298L428 284L414 280L428 276Z" fill="#ffe3b0"/>
 </svg>

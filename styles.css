@@ -651,3 +651,7 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .first-clue .btn { margin-top: 8px; }
 .first-clue .btn.ghost { color: inherit; border-color: currentColor; background: transparent; }
 .lobby-icon { margin-bottom: 10px; }
+
+/* game title: two lines */
+.logo { display: flex; flex-direction: column; align-items: center; }
+.logo-sub { display: block; font-size: .42em; line-height: 1.1; letter-spacing: .02em; margin-top: .25em; color: #ff8a5c; text-shadow: 0 0 24px rgba(255,122,47,.35); }

@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Bezirkssaufen",
-  "short_name": "Bezirk",
-  "description": "17 districts of Graz, 17 drinks, two birthday adventures.",
+  "name": "Icebreakers & Heated Rivalries",
+  "short_name": "Icebreakers",
+  "description": "A spicy enemies-to-lovers pub crawl: 17 districts of Graz, 17 drinks, two birthday adventures.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#16121f",
-  "theme_color": "#16121f",
+  "background_color": "#1a1238",
+  "theme_color": "#1a1238",
   "icons": [
     {
       "src": "icons/icon-192.png",

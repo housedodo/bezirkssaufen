@@ -1,4 +1,6 @@
-# Bezirkssaufen 🍻
+# Icebreakers & Heated Rivalries 🧊🔥
+
+*(working title: Bezirkssaufen. The repo, the cache and the Worker keep the old name.)*
 
 A tiny web app for a birthday pub crawl through all 17 districts of Graz.
 Two players, two stories:
