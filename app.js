@@ -32,6 +32,7 @@
     revealed: false, // Sara: real listing revealed at the current stop
     waiting: false,  // solved this stop, waiting for the other phone (step sync)
     timeoutUntil: 0, // Sarah: 10-second timeout after a pass (epoch ms)
+    read: [],        // Sara: ids of the shop listings whose blurb was read out loud at this stop
     chat: [],        // Sarah: chat with the matched teammate [{from:"him"|"her", text}]
     sips: 0,         // penalty sips for passing
     myBio: "",       // profile written by the crew
@@ -378,7 +379,7 @@
     });
   }
 
-  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [], sipsStep: 0, revealed: false, waiting: false, timeoutUntil: 0, chat: [] });
+  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [], sipsStep: 0, revealed: false, waiting: false, timeoutUntil: 0, chat: [], read: [] });
 
   // Shared "Where to next?" block (district guessing).
   function guessBlock() {
@@ -476,12 +477,13 @@
   // each failed order at a stop gets the next notice, so two in a row never repeat
   const soldOutText = (o) => SARA_SHOP.soldOut[(state.step * 2 + state.shopWrong.length * 3 + o.key) % SARA_SHOP.soldOut.length];
 
-  function offerCard(o) {
+  function offerCard(o, allRead) {
     const owned = state.shopWrong.includes(o.id);
+    const isRead = state.read.includes(o.id);
     const hue = (o.key * 47) % 360;
     const badges = `${o.key % 3 === 0 ? `<span class="obadge spons">Sponsored</span>` : ""}${o.key % 4 === 1 ? `<span class="obadge best">Bestseller</span>` : ""}
       <span class="obadge spice">${"🌶️".repeat(o.s)}</span>${o.kind === "real" && state.revealed ? `<span class="obadge best">⭐ The one</span>` : ""}`;
-    const label = owned ? (o.passage ? "📦 Owned" : "🚫 Sold out") : "🛒 Buy now";
+    const label = owned ? (o.passage ? "📦 Owned" : "🚫 Sold out") : allRead ? "🛒 Buy now" : "🔒 Read all blurbs";
     return `
       <article class="offer ${o.kind === "real" && state.revealed ? "revealed" : ""} ${owned ? "owned" : ""}">
         <div class="cover" style="background:linear-gradient(160deg,hsl(${hue} 55% 24%),hsl(${(hue + 40) % 360} 60% 10%))" aria-hidden="true"><span>${COVER_ICONS[o.key % COVER_ICONS.length]}</span></div>
@@ -489,11 +491,13 @@
           <div class="offer-badges">${badges}</div>
           <h3 class="offer-title">${esc(o.t)}</h3>
           <p class="offer-by">by ${esc(o.a)} · ${PUBLISHERS[o.key % PUBLISHERS.length]}</p>
-          <p class="offer-desc"><i>${esc(o.d)}</i></p>
+          ${isRead
+            ? `<p class="offer-desc"><i>${esc(o.d)}</i></p>`
+            : `<button class="btn ghost readbtn" data-read="${o.id}">📖 Read the blurb out loud</button>`}
           <div class="offer-meta"><span class="stars">${starsOf(4)}</span> <span class="rv">4.${(o.key * 3) % 6 + 3} (${(1000 + o.key * 371).toLocaleString("en")})</span></div>
           <div class="offer-buy">
             <span class="price">${o.p}</span>
-            <button class="btn buy" data-buy="${o.id}" ${owned ? "disabled" : ""}>${label}</button>
+            <button class="btn buy" data-buy="${o.id}" ${owned || !allRead ? "disabled" : ""}>${label}</button>
           </div>
         </div>
       </article>`;
@@ -504,6 +508,9 @@
     const d = here();
     const stop = s.stops[d];
     const n = state.shopWrong.length;
+    const offers = shopOffers();
+    const readCount = offers.filter((o) => state.read.includes(o.id)).length;
+    const allRead = readCount === offers.length;
     app.innerHTML = `
       <section class="screen clue shop">
         <div class="here">
@@ -521,12 +528,14 @@
           <p class="shop-count">1 match · 3 “recommended for you”</p>
         </div>
         <p class="shop-tip">💡 ${SARA_SHOP.tip}</p>
+        <p class="read-progress ${allRead ? "done" : ""}">${allRead ? "✅ All blurbs read. You may order." : `📖 Blurbs read: <b>${readCount}/${offers.length}</b> — read each one out loud to the table to unlock ordering`}</p>
         ${n ? `<p class="pass-line">🍺 Penalty: <b>${n} ${n === 1 ? "sip" : "sips"}</b> for the last wrong order. Read the listings properly.</p>` : ""}
         ${cancelBtn()}
         ${state.revealed ? "" : `<button class="btn ghost" id="reveal" ${can(COSTS.reveal) ? "" : "disabled"}>🔍 Reveal the real listing · ${COSTS.reveal} ${unit()}</button>`}
-        <div class="offers">${shopOffers().map(offerCard).join("")}</div>
+        <div class="offers">${offers.map((o) => offerCard(o, allRead)).join("")}</div>
         <p class="locked">Buy the right listing and the parcel with Ottilie's note arrives.</p>
       </section>`;
+    app.querySelectorAll("[data-read]").forEach((b) => b.addEventListener("click", () => readBlurb(b.dataset.read)));
     app.querySelectorAll("[data-buy]").forEach((b) => b.addEventListener("click", () => buy(b.dataset.buy)));
     bindCancel();
     $("#reveal")?.addEventListener("click", () => { set({ revealed: true, hearts: state.hearts - COSTS.reveal }); toast(`🔍 Listing revealed · −${COSTS.reveal} ${unit()}`); });
@@ -548,10 +557,23 @@
     });
   }
 
+  // The blurb opens in a big card with "read this out loud"; only after it is closed the listing counts as read.
+  async function readBlurb(id) {
+    const o = shopOffers().find((x) => x.id === id);
+    if (!o || state.read.includes(id)) return;
+    await modal(`
+      <p class="modal-kicker">📣 Read this out loud to the table</p>
+      <h2 class="modal-title">${esc(o.t)}</h2>
+      <p class="modal-by">by ${esc(o.a)}</p>
+      <blockquote class="passage">${esc(o.d)}</blockquote>`, "Done reading");
+    set({ read: [...state.read, id] });
+  }
+
   let buying = false;
   async function buy(id) {
     const o = shopOffers().find((x) => x.id === id);
     if (!o || state.bought || buying) return;
+    if (!shopOffers().every((x) => state.read.includes(x.id))) return; // all blurbs must be read first
     buying = true;
     try {
       buzz([30, 40, 30]);
@@ -570,7 +592,7 @@
       buzz(150);
       if (o.passage) {
         await modal(`
-          <p class="modal-kicker">📦 Delivered</p>
+          <p class="modal-kicker">📦 Delivered · read it out loud 📣</p>
           <h2 class="modal-title">${esc(o.t)}</h2>
           <p class="modal-by">by ${esc(o.a)}</p>
           <blockquote class="passage">${esc(o.passage)}</blockquote>
@@ -729,13 +751,21 @@
     const s = story();
     const stop = s.stops[d];
     const c = p.chat || { hi: "hey", ask: "so… looking for the ice hockey guy?", reveal: "doesn't matter. here's what I heard:" };
-    const script = [c.hi, c.ask, c.reveal, p.bio];
+    // hi (she answers) → red flags → ask (she answers) → "doesn't matter, here's what I heard" → his tip
+    const script = [
+      { t: c.hi, reply: true },
+      ...(c.flags || []).map((t) => ({ t, flag: true })),
+      { t: c.ask, reply: true },
+      { t: c.reveal },
+      { t: p.bio },
+    ];
     const msgs = state.chat;
     const him = msgs.filter((m) => m.from === "him").length;
     const her = msgs.filter((m) => m.from === "her").length;
+    const need = script.slice(0, him).filter((e) => e.reply).length; // answers she owes him so far
     const complete = him >= script.length;
-    const typing = !complete && (him === 0 || (him === 1 && her >= 1) || (him === 2 && her >= 2) || him === 3);
-    const myTurn = !complete && !typing;
+    const myTurn = !complete && her < need;
+    const typing = !complete && !myTurn;
 
     app.innerHTML = `
       <section class="screen clue dating chatpage ${complete ? "chat-done" : ""}">
@@ -748,8 +778,8 @@
           <span class="badge">Matched</span>
         </header>
         <div class="chat-msgs" id="chat-msgs">
-          <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other</p>
-          ${msgs.map((m, i) => `<div class="msg ${m.from}${i === msgs.length - 1 ? " last" : ""}"><span>${m.from === "her" ? esc(m.text) : m.text}</span></div>`).join("")}
+          <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other<br>📣 Read the messages out loud to the table</p>
+          ${msgs.map((m, i) => `<div class="msg ${m.from}${m.flag ? " flag" : ""}${i === msgs.length - 1 ? " last" : ""}"><span>${m.flag ? `<b class="flagtag">🚩 RED FLAG</b>` : ""}${m.from === "her" ? esc(m.text) : m.text}</span></div>`).join("")}
           ${her && !complete && typing ? `<p class="chat-seen">Seen ✓✓</p>` : ""}
           ${typing ? `<div class="msg him typing last" aria-label="${esc(p.name)} is typing"><span><i></i><i></i><i></i></span></div>` : ""}
         </div>
@@ -771,8 +801,9 @@
       chatT = setTimeout(() => {
         chatT = null;
         buzz(30);
-        set({ chat: [...state.chat, { from: "him", text: script[him] }] });
-      }, him === 0 ? 1300 : him === 3 ? 2300 : 1700);
+        const e = script[him];
+        set({ chat: [...state.chat, { from: "him", text: e.t, ...(e.flag ? { flag: true } : {}) }] });
+      }, him === 0 ? 1300 : him === script.length - 1 ? 2300 : script[him].flag ? 1900 : 1600);
     }
     if (myTurn) {
       $("#composer").addEventListener("submit", (e) => {

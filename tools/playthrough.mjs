@@ -121,6 +121,7 @@ async function play(who, p) {
         if (await p.$('#msg')) { await p.fill('#msg', 'hello, it is me ' + i); await p.press('#msg', 'Enter'); await p.waitForTimeout(800); continue; }
         if (await p.$('.chatpage') && !await p.$('[data-guess]')) continue; // his typing
       } else if (await p.$('[data-buy]') && !await p.$('[data-guess]')) {
+        if (await p.$('[data-read]')) { await p.locator('[data-read]').first().click(); await p.waitForTimeout(450); continue; } // blurbs must be read out loud first
         const st = await stateOf(p);
         if (i === 6 && !used.reveal && st.hearts >= 2 && await p.$('#reveal:not([disabled])')) { used.reveal = true; await p.click('#reveal'); await p.waitForTimeout(500); note(who, 'revealed the real listing (2 🔖) ✓'); continue; }
         if (i % 3 === 0 && !used.wrongBuy.has(i)) { used.wrongBuy.add(i); const id = await p.evaluate(() => [...document.querySelectorAll('[data-buy]:not([disabled])')].map((b) => b.dataset.buy).find((x) => x !== 'real')); await p.click(`[data-buy=${id}]`); await p.waitForTimeout(700); note(who, `wrong order (${id}): ` + (await p.innerText('.modal-kicker')).trim()); continue; }

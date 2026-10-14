@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v27) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v28) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Sara must read every blurb (unlocks ordering); Sarah's chat gets 2 red flags per guy | `story.js` (end: red flags), `app.js` (shop, chat), `styles.css`, `tools/playthrough.mjs`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -75,7 +75,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   dark-romance-style title whose blurb only echoes what the local just said), 2 generic decoys and **one real listing of
   another stop** (always sold out), so the puzzle is matching a blurb to *this* stop's encounter. The slot of the real
   one follows an irregular fixed list (`REAL_SLOT`). Buying the real one → "Order confirmed", parcel = souvenir page +
-  riddle + guessing. A wrong order costs penalty sips (1, 2, 3 … per stop, `sips`) and shows either a **weird
+  riddle + guessing. **Every blurb has to be read out loud first:** the descriptions are hidden behind "📖 Read the blurb out loud" buttons (a big card, "Done reading"), a progress line shows `n/4`, and all Buy buttons stay locked ("🔒 Read all blurbs") until all four were opened (`state.read`, reset per stop); read blurbs stay visible so she can compare them. A wrong order costs penalty sips (1, 2, 3 … per stop, `sips`) and shows either a **weird
   dark-romance passage** from that book (the book goes into her haul, 🌶️ counter, finale) or an **"unfortunately sold
   out"** notice (no haul); that listing is then greyed out ("Owned" / "Sold out"). "Reveal the real listing" costs 2 🔖.
   - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
@@ -93,7 +93,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
     face avatars.
   - Like → "It's a match!" → **Tinder-style chat** (`renderChat`): he texts hi (typing dots), she answers anything, he asks
     whether she's looking for the ice hockey guy, she answers anything, then "doesn't matter actually, here's what I
-    heard" + his bio text; only then the riddle and the guess appear. Texts are per guy (`SARAH_FLIRT` in `story.js`).
+    heard" + his bio text; only then the riddle and the guess appear. Texts are per guy (`SARAH_FLIRT` in `story.js`). After her first answer he also sends **two 🚩 RED FLAG bubbles** (pink, `SARAH_FLAGS`) before he asks, so the chat is 8 bubbles; the chat says "Read the messages out loud to the table".
   - Pass → penalty sips (1, 2, 3 … per pass) and a **10-second timeout** (`renderTimeout`, `state.timeoutUntil`, survives a
     reload): blurred photo, countdown, no buttons, a different joke per guy and per pass (3 each, e.g. "Beggars can't be
     choosers"); then the profile comes back.
@@ -228,7 +228,7 @@ See [Open items](#open-items).
 - `STORIES.sara.howTo` overrides the intro's "How it works".
 - `STORIES.<who>.intro` must stay short (it is read aloud before the game starts, 2 short paragraphs); long explanations belong in `howTo`, which is folded away in the intro.
 - `SARAH_FLIRT` (end of `story.js`) — per district id of a profile: `pass[3]` (timeout jokes), `hi`, `ask`, `reveal` (chat
-  script); copied onto `profile.passLines` and `profile.chat`. Nico's `hi` carries the joke about the ex-#99 crying on Insta ("so cringe"). The chat's last bubble is the profile's `bio`.
+  script); `SARAH_FLAGS` adds `chat.flags[2]` (the red flags, shown between `hi` and `ask`); copied onto `profile.passLines` and `profile.chat`. Nico's `hi` carries the joke about the ex-#99 crying on Insta ("so cringe"). The chat's last bubble is the profile's `bio`.
 - `STORIES.<who>.firstClue` — `{label, text, hint}`: the clue to the first meeting point (Auer, Schmidtgasse) shown in the
   intro after the host starts the game. `LOBBY_LINES` — rotating jokes on the "Under construction" screen.
 - `COSTS` — `{hint, cancel, delegate, reveal}`: what the points can buy (see Wallet above). `HINT_AFTER` — wrong guesses
@@ -257,8 +257,8 @@ pending surprise mission first (`renderChallenge(key, "surprise")`, see Mission 
 `renderPick / renderLobby / renderIntro / renderClue / renderTravel (→ renderWaiting while state.waiting) / renderDone`.
 For Sarah, `renderClue()` → `renderDatingClue()`, which shows in order: intermission (if any, not done) → event
 challenge (if any, not done) → profile swipe (`renderTimeout()` for 10 s after a pass) → once liked, the chat
-(`renderChat()`: his messages appear after typing dots, her turn shows the composer; messages live in `state.chat`; when his
-4th message is in, riddle + guess follow) → for non-player stops a plain chat message + riddle + guessing.
+(`renderChat()`: his messages appear after typing dots, her turn shows the composer; messages live in `state.chat`; the script is
+hi (she answers) → 2 red flags → ask (she answers) → reveal → bio, and when his last message is in, riddle + guess follow) → for non-player stops a plain chat message + riddle + guessing.
 For Sara, `renderClue()` first shows a pending intermission/event via `renderChallenge()`, then `renderShop()` while
 `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the normal encounter + riddle + guessing screen
 follows (with an "Order confirmed" ribbon).
@@ -323,7 +323,7 @@ There is no automated test suite in the repo. Before pushing:
    the test with `CHALLENGES[k].seconds = 1`. This catches most regressions.
 6. Worker: import `worker/worker.js` in Node and call `worker.fetch(new Request(...), env)` with a Map-backed fake KV
    (`get/put/delete/list`) and a stubbed global `fetch` for the push endpoints.
-7. **Full playthrough** (run it before a release): `python3 -m http.server 8000`, then `NODE_PATH=$(npm root -g) node tools/playthrough.mjs /tmp/out`. Sarah and Sara play all 17 stops at once against `worker/worker.js` running in-process (lobby, Start, step sync, chats, shop, spending, a host mission, finales, journal) and `story.js` is linted for spoilers/leftovers. ~4 min; ends with `ISSUES: none`. Writes `play.log`, `ending-*.txt`, finale screenshots.
+7. **Full playthrough** (run it before a release): `python3 -m http.server 8000`, then `NODE_PATH=$(npm root -g) node tools/playthrough.mjs /tmp/out`. Sarah and Sara play all 17 stops at once against `worker/worker.js` running in-process (lobby, Start, step sync, chats, shop, spending, a host mission, finales, journal) and `story.js` is linted for spoilers/leftovers. ~5 min; ends with `ISSUES: none`. Writes `play.log`, `ending-*.txt`, finale screenshots.
 8. Installability: Chromium `Page.getInstallabilityErrors` via CDP should only report `in-incognito` in a test context.
 
 ---
@@ -355,7 +355,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · "Adventure day" framing: both birthdays already happened, today they celebrate together (intros, finales "Happy adventure day", picker "Two belated birthdays… One adventure day", "Adventure day, <name>!", shared missions renamed Adventure clink / Dance-off / Adventure wishes, 🎉 instead of 🎂, store/manifest text; worker start notification "🎉 Adventure day has started!" → **redeploy `worker/worker.js`**). Fix found by a full playthrough: a phone that had already allowed notifications was never registered with the worker after choosing a name (Start would have notified 0 phones) → `pushSync()` after the name pick. New `tools/playthrough.mjs` (full two-player run, passes); cache v27.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara has to read every shop blurb out loud before she can order (blurbs hidden behind "Read the blurb out loud", progress `n/4`, Buy locked until all four opened, read blurbs stay visible; delivered passages say "read it out loud"). Sarah's chat: two 🚩 RED FLAG bubbles per guy (10 guys × 2, funny, to read aloud) after her first answer, "read the messages out loud" hint. Playthrough tool reads the blurbs; cache v28.
+- 2026-10-14 · `1635c4a` · Dominik (Claude) · "Adventure day" framing: both birthdays already happened, today they celebrate together (intros, finales "Happy adventure day", picker "Two belated birthdays… One adventure day", "Adventure day, <name>!", shared missions renamed Adventure clink / Dance-off / Adventure wishes, 🎉 instead of 🎂, store/manifest text; worker start notification "🎉 Adventure day has started!" → **redeploy `worker/worker.js`**). Fix found by a full playthrough: a phone that had already allowed notifications was never registered with the worker after choosing a name (Start would have notified 0 phones) → `pushSync()` after the name pick. New `tools/playthrough.mjs` (full two-player run, passes); cache v27.
 - 2026-10-14 · `ad22f38` · Dominik (Claude) · Much less text at the start: each intro is now a ~40-word story to read out loud ("📣 Read this out loud to the table"), a shorter first clue and the Start button on one screen; "How does it work?" folded away, notification card removed from the intro, shorter lobby card. Nico's chat opener now jokes about the ex-#99 crying on Insta ("so cringe"). Cache v25.
 - 2026-10-14 · `f4e2a9b` · Dominik (Claude) · Sarah: 10 s timeout after a pass with a different joke per guy and pass; after a like a Tinder-style chat (hi → her reply → "looking for the ice hockey guy?" → her reply → "doesn't matter, here's what I heard" + tip) before the riddle. Sara: a wrong order now shows a weird dark-romance passage or an "unfortunately sold out" notice; the real book is disguised (same look as all listings, blurb only echoes the encounter) and one real listing of another stop is mixed in as an always-sold-out decoy; the real slot varies irregularly; cache v24.
 - 2026-10-14 · `c39ea52` · Dominik (Claude) · Fix: tapping a mission notification did nothing. The service worker could hand the mission to the open admin window (same origin) instead of the game, and missions were hidden in the lobby/intro. Now: admin window is skipped, missions show in every phase except the name picker, new inbox safety net (`checkInbox`), lobby keeps polling for the game start under a mission screen; cache v23. No Worker change.
