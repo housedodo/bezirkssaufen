@@ -32,6 +32,10 @@ pick Sarah / Sara / Both, tap a quick mission or write your own and press Send. 
 - Admin → `POST /send` with `Authorization: Bearer <PIN>` → the worker stores the text under that player and sends an **empty**, VAPID-signed push to each registered phone (no payload encryption needed).
 - The phone's service worker (`sw.js`) wakes up, asks `POST /inbox {endpoint}` for the text and shows the notification.
 
+## All endpoints
+
+Besides subscribe / inbox / send the worker also handles the lobby (`GET /game`, `POST /start`), step sync (`POST /solved`, `GET /progress`, `POST /release`) and `POST /reset`. The full table is in `CLAUDE.md` → Infrastructure. The Worker name in the dashboard is `bezirkssaufen`; set the secrets `ADMIN_PIN` and `VAPID_PRIVATE_JWK`, the variables `VAPID_PUBLIC` and `VAPID_SUBJECT`, and bind the KV namespace as `KV`.
+
 ## Updating the worker
 
 After changing `worker.js` in the repo: Cloudflare dashboard → your Worker → **Edit code** → replace everything with the new file → **Deploy**.

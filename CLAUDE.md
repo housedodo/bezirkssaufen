@@ -22,10 +22,12 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`) whenever any file the phones load changes — otherwise installed
-   phones keep the old version.
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v22) whenever any file the phones load changes — otherwise
+   installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
+   so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
-   unless both agree.
+   unless both agree. The one exception with a deploy step is `worker/worker.js`: it is **pasted into the Cloudflare
+   dashboard by hand** (Worker → Edit code → Deploy). Every change to it needs a redeploy; say so in the changelog.
 8. **Spoilers**: the README and this file contain all answers. Never send the repo link to Sarah or Sara —
    only the GitHub Pages URL.
 9. Commit messages end with your usual attribution; describe *what* changed for the players, not just code.
@@ -129,8 +131,36 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   or when no `workerUrl` is set. Emergency exit if the server is down: tap the 🚧 7 times. "Reset all progress" in the
   admin page also puts the game back to "not started" (only matters for phones that haven't entered yet).
 
+- **Host app**: `admin.html` can be installed on its own as "Heated Host" (own name, teal icon with gold star badge,
+  own manifest `admin.webmanifest` with scope `admin.html`, own service worker `admin-sw.js`; install button/hint at
+  the top of the page; opens offline). It does not interfere with the game's app.
+- **Name and look**: the game is called **Heated Pages** (picker logo "HEATED / PAGES", kicker "Enemies to lovers · 17
+  districts · 17 drinks"). Icon: ice/fire split heart with a crack, crossed hockey sticks, open book with a dog-eared page,
+  sparkles. Internal names (repo `bezirkssaufen`, localStorage key, cache names, Worker) keep the old name on purpose.
+
 ### Not done / ideas
 See [Open items](#open-items).
+
+---
+
+## Infrastructure
+
+- **GitHub Pages** serves `main`: game `https://housedodo.github.io/bezirkssaufen/`, host panel `.../admin.html`.
+- **Cloudflare Worker** `bezirkssaufen` (`https://bezirkssaufen.domi-dominkovic.workers.dev`), code = `worker/worker.js`
+  pasted into the dashboard. KV binding `KV`; variables `VAPID_PUBLIC`, `VAPID_SUBJECT`; secrets `ADMIN_PIN`,
+  `VAPID_PRIVATE_JWK`. Setup guide: `worker/README.md`. Endpoints (admin = `Authorization: Bearer <PIN>`):
+
+| Endpoint | Who | What |
+|---|---|---|
+| `POST /subscribe {who, sub}` | phone | registers the push subscription of Sarah or Sara |
+| `POST /inbox {endpoint}` | service worker | returns the latest `{title, body, ch, id}` for that phone after an empty push |
+| `POST /send {to, title, body, ch?}` | admin | notification to sarah / sara / both; `ch` = challenge key → surprise mission |
+| `GET /status` | admin | registered phones per player, game started? |
+| `POST /solved {who, step}` | phone | step sync: marks "solved" and answers `{both, released, other}` |
+| `GET /progress`, `POST /release {step}` | admin | who solved what; let both continue anyway |
+| `GET /game` | phone | `{started}` for the lobby |
+| `POST /start` | admin | starts the game, pushes "The game has started!" to both |
+| `POST /reset` | admin | clears all progress and the started flag (KV data also expires after 48 h) |
 
 ---
 
@@ -138,14 +168,14 @@ See [Open items](#open-items).
 
 | File | What it is |
 |---|---|
-| `index.html` | Shell: top bar, progress bar, `<main id="app">`, journal drawer, toast. Loads fonts, `story.js`, `app.js`. |
+| `index.html` | Shell: top bar, progress bar, `<main id="app">`, journal drawer, toast, `#mission-pill`. Loads fonts, `story.js`, `push-config.js`, `app.js`. |
 | `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `CHALLENGES`, `STORIES`, `SARA_SHOP` (end of file). |
 | `app.js` | All logic and rendering (one IIFE, template strings into `#app`). |
 | `styles.css` | Base + three themes via `body[data-theme]`: `night` (picker), `dating` (Sarah), `paper` (Sara). `ice` theme CSS is legacy/unused. |
 | `admin.html` | Host panel (not linked from the app, `noindex`). Needs the worker + PIN. Installable as its own app ("Heated Host"): `admin.webmanifest` (scope `admin.html`), `admin-sw.js` (own small service worker, scope `admin.html`, network-first, `ADMIN_VERSION`), teal icon with a gold star badge `icons/admin-*` (same artwork as the game icon). Install button/hint at the top of the page. |
-| `push-config.js` | `self.PUSH = {workerUrl, vapidPublicKey}`; read by page and service worker. Empty = alerts off. |
+| `push-config.js` | `self.PUSH = {workerUrl, syncSteps, lobby, vapidPublicKey}`; read by page, admin page and service worker. Empty `workerUrl` = alerts, lobby and step sync all off (the game then runs standalone). `syncSteps: false` / `lobby: false` switch those two off individually. |
 | `worker/` | Cloudflare Worker (`worker.js`), VAPID key generator, `wrangler.toml`, setup guide. Not loaded by the game. |
-| `sw.js` | Service worker, cache name `VERSION`, list of files cached for offline use (incl. all player images). |
+| `sw.js` | Game service worker: cache name `VERSION`, list of files cached for offline use (incl. all player images, `push-config.js`), `importScripts("push-config.js")`, and the Web Push handlers (`push` → asks the worker `/inbox` for the text → notification; `notificationclick` → opens/focuses the app with `?mission=<key>&mid=<id>` or `postMessage`). |
 | `manifest.webmanifest`, `icons/` | PWA install metadata and icons. Name "Heated Pages" (short name the same). Icon = ice/fire split heart with a crack, crossed hockey sticks, open book with a dog-eared page, sparkles (`icons/icon.svg`; the PNGs are rendered from the same drawing as a full-bleed square so they work as maskable icons). |
 | `img/players/<name>.jpg` | Full profile photos, 716 px wide (cut from the user's 2×5 image grid, no logos). |
 | `img/players/<name>-face.jpg` | 240×240 face crops for avatars. |
@@ -179,23 +209,41 @@ See [Open items](#open-items).
   and takes its title/icon from the stop's `item`. `real[id] = {p, d, rv}` (price joke, blurb, review). Every Sara stop
   that has a riddle needs a `real` entry (the last stop, Lend, has no shop).
 - `STORIES.sara.howTo` overrides the intro's "How it works".
+- `STORIES.<who>.firstClue` — `{label, text, hint}`: the clue to the first meeting point (Auer, Schmidtgasse) shown in the
+  intro after the host starts the game. `LOBBY_LINES` — rotating jokes on the "Under construction" screen.
+- `COSTS` — `{hint, cancel, delegate, reveal}`: what the points can buy (see Wallet above). `HINT_AFTER` — wrong guesses
+  after which the hint is free. There is no "give up" any more, a district must always be guessed.
 
 - `SARA_CHALLENGES` do not exist as a separate object: Sara's challenges are added to `CHALLENGES` with keys `s_*`
   (end of `story.js`) and attached to stops via `SARA_EVENTS` / `SARA_INTERMISSIONS` (district id → key). Extra
-  optional challenge fields: `fieldLabel` (write), `noteLabel` (notes), `clockSub`, `doneLabel` (timer).
+  optional challenge fields: `fieldLabel` (write), `noteLabel` (notes), `clockSub`, `doneLabel` (timer), `shared: true`
+  (only for the 8 `d_*` missions the host can send to both girls; never attached to a stop). Rewards: events +2,
+  intermissions +1 (shared: +2/+1); a quiz pays `max(1, reward − wrong answers)`.
 
-### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`)
-`char, phase (pick|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
-hearts (❤️ for Sarah, 🔖 for Sara), bonus, bch, missions[], sips, myBio, superLikes[], solvedGaveUp, bought, shopWrong[], haul[]`. Per-step fields (incl. `bought`, `shopWrong`) are reset by `stepReset()` on arrival; `haul` and `sips` are cumulative.
-Adding a new key: add it to `fresh()` so old saved games still load.
+### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`; the key keeps the old game name on purpose, renaming it would wipe saved games)
+`char, phase (pick|lobby|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
+hearts (wallet: ❤️ Sarah / 🔖 Sara, earned minus spent), earned (total ever earned), sips, sipsStep (sips added at this stop),
+revealed (Sara: real listing marked), waiting (solved, waiting for the other phone), bonus, bch, missions[] (surprise
+missions), myBio, superLikes[], bought, shopWrong[], haul[], solvedGaveUp (legacy, always false)`.
+Per-step fields are reset by `stepReset()` on arrival: `wrong, hint, liked, passes, evDone, imDone, ch, solvedGaveUp,
+bought, shopWrong, sipsStep, revealed, waiting`. Cumulative: `hearts, earned, sips, haul, myBio, superLikes` and the
+surprise-mission keys `bonus, bch, missions`. Adding a new key: add it to `fresh()` so old saved games still load.
 
 ### Flow
-`render()` → `renderChrome()` + one of `renderPick / renderIntro / renderClue / renderTravel / renderDone`.
+Phases: `pick` (choose a name) → `lobby` ("Under construction", only while the worker says the game hasn't started) →
+`intro` (story + first clue, "Start the quest" at Auer) → `clue` ⇄ `travel` per stop → `done` (finale at Lend).
+`render()` clears the intervals (`tick` for timers, `pollT` step sync, `lobbyT`/`lobbyL` lobby), runs `renderChrome()`, shows a
+pending surprise mission first (`renderChallenge(key, "surprise")`, see Mission alerts), otherwise one of
+`renderPick / renderLobby / renderIntro / renderClue / renderTravel (→ renderWaiting while state.waiting) / renderDone`.
 For Sarah, `renderClue()` → `renderDatingClue()`, which shows in order: intermission (if any, not done) → event
 challenge (if any, not done) → profile swipe (if profile, not liked) → chat message + riddle + guessing.
-For Sara, `renderClue()` first shows a pending intermission/event via `renderChallenge()`, then `renderShop()` while `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the
-normal encounter + riddle + guessing screen follows (with an "Order confirmed" ribbon).
-`flash()` shows full-screen overlays (match, countdown, +❤️). `set(patch)` saves and re-renders.
+For Sara, `renderClue()` first shows a pending intermission/event via `renderChallenge()`, then `renderShop()` while
+`hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the normal encounter + riddle + guessing screen
+follows (with an "Order confirmed" ribbon).
+`solve()` → (`waiting` if step sync is on) → next-stop screen → "We're in" → `stepReset()`.
+`flash()` shows full-screen overlays (match, countdown, +❤️). `set(patch)` saves and re-renders. Startup also runs
+`pushSync()` (re-registers the push subscription) and handles `?mission=` / service-worker messages (`receiveMission()`).
+Install cards: `installSlot()` / `fillInstall()`; push card: `pushSlot()` / `fillPush()`.
 
 ### Gotchas we already hit
 - Anything that slides off-screen widened the page and broke centred overlays → `html`/`body`/`main` use
@@ -210,37 +258,50 @@ normal encounter + riddle + guessing screen follows (with an "Order confirmed" r
 
 | # | District | Bar | ca. | Getting there | Sarah | Sara |
 |---|---|---|---|---|---|---|
-| 1 | I Innere Stadt | Auer Schmidtgasse | 09:00 | on foot | Matze #14 | bakery note |
-| 2 | VI Jakomini | Sägewerk Sport (Raiffeisenpark) | 10:00 | Tram 5 | Elias #22 | |
-| 3 | VII Liebenau | Gotthardt Cafe-Bar, Murpark | 11:00 | Tram 4 | ⚡ emoji → Tomasz #31 | |
-| 4 | VIII St. Peter | Cuba Bar/Cafe | 12:00 | Bus 64 | Felix #9 | |
-| 5 | IX Waltendorf | Martin Auer, Waltendorfer Hauptstr. 31 | 13:00 | Bus 64 | 💔 biochem quiz | |
-| 6 | II St. Leonhard | Martin Auer Schillerplatz | 14:00 | 1 km on foot | 💔 pick-up line | |
-| 7 | X Ries | Auer, Ragnitzstraße 91 | 15:00 | Bus 64 + 58 | ⚡ super likes → Marcus #77 | |
-| 8 | III Geidorf | Bierbaron | 16:00 | Bus 58 | Luca #4 | |
-| 9 | XI Mariatrost | Sorger, Mariatrosterstr. 24 | 17:00 | Bus 58 | 💔 crew writes bio | |
-| 10 | XII Andritz | Flowers Cafe Lounge | 18:00 | Bus 58 + 41 | ⚡ no hands → Jonas #17 | |
-| 11 | XIII Gösting | Göstinger Hof | 19:00 | Bus 52 | 💔 shot | |
-| 12 | XIV Eggenberg | Das Eggenberg | 20:00 | Bus 65 (or taxi) | Nico #8 | |
-| 13 | XV Wetzelsdorf | Liwi Pub | 21:00 | Bus 62 | 💔 penalty box | |
-| 14 | XVI Straßgang | Clocktower (closes 23:00) | 22:00 | Bus 65 | 💔 goal celebration | |
-| 15 | XVII Puntigam | Pools, Bar & Billard (Cineplexx) | 23:00 | Bus 65 | ⚡ bottle cap → Samuel #10 | |
-| 16 | V Gries | Die Beate | 00:00 | E5 + 67 | Dragan #55 | |
+| 1 | I Innere Stadt | Auer Schmidtgasse | 09:00 | on foot | Matze #14 | intro only (no challenges) · Bookbazaar |
+| 2 | VI Jakomini | Sägewerk Sport (Raiffeisenpark) | 10:00 | Tram 5 | Elias #22 | ⚡ Herbert impression |
+| 3 | VII Liebenau | Gotthardt Cafe-Bar, Murpark | 11:00 | Tram 4 | ⚡ emoji → Tomasz #31 | — |
+| 4 | VIII St. Peter | Cuba Bar/Cafe | 12:00 | Bus 64 | Felix #9 | ⚡ one word each · 📖 menu poetry |
+| 5 | IX Waltendorf | Martin Auer, Waltendorfer Hauptstr. 31 | 13:00 | Bus 64 | 💔 biochem quiz | 📖 Herbert's pop quiz |
+| 6 | II St. Leonhard | Martin Auer Schillerplatz | 14:00 | 1 km on foot | 💔 pick-up line | 📖 dramatic reading |
+| 7 | X Ries | Auer, Ragnitzstraße 91 | 15:00 | Bus 64 + 58 | ⚡ super likes → Marcus #77 | — |
+| 8 | III Geidorf | Bierbaron | 16:00 | Bus 58 | Luca #4 | ⚡ Herbert's nap · 📖 name that first line |
+| 9 | XI Mariatrost | Sorger, Mariatrosterstr. 24 | 17:00 | Bus 58 | 💔 crew writes bio | 📖 back cover blurb |
+| 10 | XII Andritz | Flowers Cafe Lounge | 18:00 | Bus 58 + 41 | ⚡ no hands → Jonas #17 | — |
+| 11 | XIII Gösting | Göstinger Hof | 19:00 | Bus 52 | 💔 shot | 📖 title this bar |
+| 12 | XIV Eggenberg | Das Eggenberg | 20:00 | Bus 65 (or taxi) | Nico #8 | ⚡ silence in the library |
+| 13 | XV Wetzelsdorf | Liwi Pub | 21:00 | Bus 62 | 💔 penalty box | 📖 five-star reviews |
+| 14 | XVI Straßgang | Clocktower (closes 23:00) | 22:00 | Bus 65 | 💔 goal celebration | 📖 chapter toast |
+| 15 | XVII Puntigam | Pools, Bar & Billard (Cineplexx) | 23:00 | Bus 65 | ⚡ bottle cap → Samuel #10 | — |
+| 16 | V Gries | Die Beate | 00:00 | E5 + 67 | Dragan #55 | ⚡ book swap |
 | 17 | IV Lend | Wherever we wanna verend | 01:00 | on foot | finale (jersey #99) | finale (the book) |
 
-Riddle landmarks per district are listed in `README.md` ("Host cheat sheet").
+Riddle landmarks per district are listed in `README.md` ("Host cheat sheet"). Sara's challenges are placed so that none lands on a
+stop where Sarah has an intermission (⚡) and her ⚡ avoid Sarah's 💔; stop 1 is only the introduction for both.
+Sara's reward values: 📖 +2, ⚡ +1. Sarah: 💔 +2, ⚡ +1.
 
 ---
 
 ## Testing
 
-There are no automated tests in the repo. Before pushing:
+There is no automated test suite in the repo. Before pushing:
 1. `python3 -m http.server 8000` in the repo root, open `http://localhost:8000` in a phone-sized window (390×844).
 2. Start each story you touched from "Start over" and play the stops you changed. For Sarah, also try a pass, a wrong
    quiz answer and the penalty-box timer if you touched challenges.
 3. Check the browser console for errors.
-4. If you have Playwright: a quick script that picks a story, clicks `#start`, then for each step handles
-   `.ch-title` challenges, `#like`, `[data-guess='<next id>']` and `#arrive` catches most regressions.
+4. **`push-config.js` points at the real Worker**, so a local run will wait in the lobby and at step sync. Either set
+   `lobby: false` / `syncSteps: false` temporarily (don't commit that) or, with Playwright, intercept
+   `https://bezirkssaufen.domi-dominkovic.workers.dev/**`: `GET /game` → `{"started":true}`, `POST /solved` →
+   `{"both":true}`, everything else → `{}` (with `access-control-allow-origin: *`). Fake push state with
+   `localStorage['bezirkssaufen.v1']` (e.g. `{char:'sara',phase:'clue',step:4,hearts:10}`).
+5. Playwright (preinstalled Chromium at `/opt/pw-browsers/chromium`, `serviceWorkers:'block'` for app tests): pick a story,
+   click `#start`, then for each step handle `.ch-title` challenges (quiz: `.q-opt:not([disabled])`, write: `#bio`,
+   notes: `[data-note]`, timer: `#startclock`, countdown: `#countdown`, else `#confirm`; wait out the `.match-overlay`
+   flashes ~1.9 s), the Sara shop (`[data-buy=real]`), `#like`, `[data-guess='<next id>']` and `#arrive`. Shorten timers in
+   the test with `CHALLENGES[k].seconds = 1`. This catches most regressions.
+6. Worker: import `worker/worker.js` in Node and call `worker.fetch(new Request(...), env)` with a Map-backed fake KV
+   (`get/put/delete/list`) and a stubbed global `fetch` for the push endpoints.
+7. Installability: Chromium `Page.getInstallabilityErrors` via CDP should only report `in-incognito` in a test context.
 
 ---
 
@@ -250,14 +311,16 @@ There are no automated tests in the repo. Before pushing:
   first. The app uses Geidorf 16:00 / Mariatrost 17:00. Confirm.
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
-- **Mission alerts** need the one-time Cloudflare setup in `worker/README.md` and a real-iPhone test (only unit-tested with mocks; Web Push can't run headless). Do it the day before.
-- **Game day order**: (1) both install + choose their name, (2) press "Reset all progress + back to the lobby" in admin.html, (3) at the start press "Start the game".
-- **Step sync** and mission alerts are only tested with mocks: do a real two-phone run the evening before (and press "Reset all progress" in the admin page afterwards).
+- **Real-device test** of mission alerts, step sync, lobby and Start game on the two iPhones (everything was only tested with mocks; Web Push can't run headless). Do it the evening before.
+- **Worker redeploy**: after any change to `worker/worker.js` paste it into the Cloudflare dashboard (Edit code → Deploy). If a Git repo is connected under Worker → Settings → Builds, disconnect it, otherwise a push to `main` could overwrite the pasted code.
+- **Secrets**: `ADMIN_PIN` and the VAPID private key live only in Cloudflare (never commit them). The VAPID private key was pasted once into a Claude chat; rotate it after the party if that matters (new keys: `node worker/gen-vapid.mjs`, update `VAPID_PUBLIC`, `VAPID_PRIVATE_JWK` and `push-config.js`).
+- **Game day order**: (0) install the host app once, (1) both girls install + choose their name, (2) press "Reset all progress + back to the lobby" in admin.html, (3) at the start press "Start the game". Android install only works from a normal Chrome tab (not private, not Edge/Samsung).
+- **After the test run** press "Reset all progress + back to the lobby" in the admin page.
 - **GitHub Pages** not confirmed enabled yet (Settings → Pages → `main` / root).
 - Sara's challenge texts (dramatic-reading lines, decoy titles) are PG-13 parodies — tone up/down as wanted.
 - Sara's timers (45 s / 60 s) and the 90 s blurb are untested on a real phone with real hands; adjust `seconds` if too long/short.
 - **Lend finale** (both stories) is a plain message — could get a special ending.
-- Likes (❤️) are score-only; penalty sips aren't enforced by the app (the group does it).
+- Penalty sips aren't enforced by the app (the group does it); hearts/bookmarks can be spent, see Wallet.
 - Player photos are from a small source image; higher-res versions would look sharper on phones.
 - Design mockups (8 style directions, flat illustrated encounters, early photo profiles) live on a private
   Claude design canvas "Icebreaker — Sarah's dating app" in Dominik's account; not in the repo.
@@ -266,26 +329,27 @@ There are no automated tests in the repo. Before pushing:
 
 ## Changelog
 
-Newest first. One line per commit: date · short hash (or "this commit") · who · what.
+Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Host panel is installable as its own app "Heated Host" (own manifest, teal icon with star badge, own service worker, install button, opens offline); the game's app is unaffected.
+- 2026-10-14 · this commit · Dominik (Claude) · Handbook audit: state keys and phases (lobby, waiting), flow, files, new Infrastructure section (Pages, Worker, endpoints, secrets), route table now lists Sara's challenges, testing recipes (mocking the Worker, Playwright selectors), open items (real-device test, Worker redeploy, secrets), real commit hashes in the changelog.
+- 2026-10-14 · `afbd11e` · Dominik (Claude) · Host panel is installable as its own app "Heated Host" (own manifest, teal icon with star badge, own service worker, install button, opens offline); the game's app is unaffected.
 - 2026-10-14 · `e795fc9` · Dominik (Claude) · Name shortened to two words: "Heated Pages" (heated = rivalry/spice, pages = book nerd) in picker logo, page title, manifest, home-screen name, notification-settings hint, README, handbook; icon unchanged; cache v22.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Name extended with the book-nerd side: "Icebreakers, Heated Rivalries & Dog-Eared Hearts" (third title line in the picker, page title, manifest, README, handbook); icon now has an open book with a dog-eared page under the heart; cache v21.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Game renamed "Icebreakers & Heated Rivalries" (short name "Icebreakers"; enemies-to-lovers kicker, "only one bed (at the end)" joke) in picker, page title, manifest, home-screen name, notification-settings hint, README, handbook; new icon (ice/fire split heart, crossed hockey sticks, sparkles on a romance-cover gradient) as SVG + 180/192/512 PNGs. Internal names (repo, localStorage key, cache, Worker) unchanged; cache v20.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Cats are now "Herbert the Gracious" and "Kafka the Schlimm" (intro + finale); removed "fat" everywhere; cache v19.
+- 2026-10-14 · `cb42b59` · Dominik (Claude) · Name extended with the book-nerd side: "Icebreakers, Heated Rivalries & Dog-Eared Hearts" (third title line in the picker, page title, manifest, README, handbook); icon now has an open book with a dog-eared page under the heart; cache v21.
+- 2026-10-14 · `7882ba3` · Dominik (Claude) · Game renamed "Icebreakers & Heated Rivalries" (short name "Icebreakers"; enemies-to-lovers kicker, "only one bed (at the end)" joke) in picker, page title, manifest, home-screen name, notification-settings hint, README, handbook; new icon (ice/fire split heart, crossed hockey sticks, sparkles on a romance-cover gradient) as SVG + 180/192/512 PNGs. Internal names (repo, localStorage key, cache, Worker) unchanged; cache v20.
+- 2026-10-14 · `3168e94` · Dominik (Claude) · Cats are now "Herbert the Gracious" and "Kafka the Schlimm" (intro + finale); removed "fat" everywhere; cache v19.
 - 2026-10-14 · `8d9bb20` · Dominik (Claude) · Lobby: after choosing a name the app shows "Under construction" until the host presses Start game in admin.html (notification to both, lobbies unlock by themselves); intro now has a first clue to Auer (hint + Maps); worker `/game`, `/start`, `/reset` clears game; **redeploy `worker/worker.js`**; cache v18.
 - 2026-10-14 · `5f35368` · Dominik (Claude) · First stop is introduction only: intro button is now "Start the quest" (sit down at Auer, press it, then the shop / dating app starts); no challenges at stop I (Sara's menu poetry became a +2 event @VIII); cats renamed to Herbert and Kafka everywhere (book: "The Library of Herbert and Kafka", intro mentions both cats); cache v17.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
-- 2026-10-14 · `847b92a` · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
-- 2026-10-14 · earlier commit · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
-- 2026-10-14 · `d7ca3cc`+ · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
+- 2026-10-14 · `1ce76c4` · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
+- 2026-10-14 · `59c0e53` · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
+- 2026-10-14 · `7254232` · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
+- 2026-10-14 · `41970b8` · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
+- 2026-10-14 · `20f652a` · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
+- 2026-10-14 · `e6cc2d4` · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
 - 2026-10-14 · `d98eaf6` · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.
 - 2026-10-14 · `9d1bfbb` · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herbert impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
 - 2026-10-14 · `92f3b2a` · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
 - 2026-10-14 · `e86a442` · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
-- 2026-10-14 · earlier commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
+- 2026-10-14 · `3b396fc` · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.
 - 2026-10-14 · `6bb66bd` · Dominik (Claude) · Sarah: 10 challenges (6 events +3 ❤️, 4 sudden intermissions +2 ❤️), pass penalty sips, ❤️ counter, finale with crew bio and super likes; README schedule.
 - 2026-10-14 · `98caddc` · Dominik (Claude) · Sarah: 10 full-photo profiles (Felix, Marcus, Jonas, Nico, Samuel added), info below photo, face avatars, floating like/pass buttons, toasts at top.
 - 2026-10-14 · `70ef8b8` · Dominik (Claude) · Sarah's story rebuilt as the Icebreaker dating app (profiles, like/pass, match screen, chat messages).
