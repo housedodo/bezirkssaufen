@@ -61,11 +61,15 @@ At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's r
 
 **Sara's challenges** (earn 🔖 bookmarks, done before the shop): events — pop quiz @IX · dramatic reading @II · name that first line @III · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — menu poetry @I · Herb impression @VI · one word each @VIII · Herb's nap @III · silence in the library @XIV · book swap @V. Sara's stops never coincide with Sarah's intermissions.
 
+## Spending points, and moving on together
+
+Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sips of the current stop (2), skip a challenge (3), Sara can have the real Bookbazaar listing marked (2). Only when **both** phones have solved the district (correct guess or "just tell us") does the next-stop screen appear; the host can release a stuck stop in `admin.html` → "Game sync".
+
 ## Sarah's dating app ("Icebreaker")
 
 - **Player stops** show a teammate's profile. **Like** → "It's a match!" → his message and the riddle. **Pass** → he swipes back in and Sarah owes penalty sips (1st pass 1 sip, 2nd pass 2 sips, …). She can't skip him — he's her only lead.
-- **Event stops** ("💔 No matches nearby") have a challenge before the message and riddle: +3 ❤️.
-- **Sudden intermissions** interrupt some player stops before the profile shows: +2 ❤️.
+- **Event stops** ("💔 No matches nearby") have a challenge before the message and riddle: +2 ❤️ (quizzes: −1 per wrong answer, at least +1).
+- **Sudden intermissions** interrupt some player stops before the profile shows: +1 ❤️.
 - The top bar counts drinks and ❤️. The finale shows matches, likes earned, penalty sips, the bio her crew wrote and the super likes.
 
 | District | What happens |

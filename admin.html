@@ -61,6 +61,11 @@
   <p class="sub" id="presets-sub">Pick who gets it first. The list then only shows missions that fit: Sarah's own, Sara's own, or the shared ones for both. The notification opens the challenge in the app and the reward counts.</p>
   <div id="presets"></div>
 
+  <h2>3 · Game sync</h2>
+  <p class="sub">Neither girl continues until both solved the stop. Here you see who is waiting, and can let them through anyway.</p>
+  <div class="card" id="sync"><span class="status">Enter the PIN to see progress.</span></div>
+  <button id="reset" style="margin-top:8px;background:var(--card);color:var(--bad);border:1.5px solid var(--line)">Reset all progress (before the game)</button>
+
   <h2>Sent</h2>
   <div id="log"><span class="status">Nothing sent yet.</span></div>
 
@@ -94,8 +99,39 @@
         el.innerHTML = `Registered phones: Sarah <b>${devices.sarah}</b> · Sara <b>${devices.sara}</b>`;
       } catch (e) { el.innerHTML = `<span class="err">${e.message}</span>`; }
     }
-    pinEl.addEventListener("change", refreshStatus);
+    pinEl.addEventListener("change", () => { refreshStatus(); refreshSync(); });
     refreshStatus();
+
+    // ── step sync view ──
+    const stopName = (step) => (typeof ROUTE !== "undefined" && typeof DISTRICTS !== "undefined" && DISTRICTS[ROUTE[step]])
+      ? `${DISTRICTS[ROUTE[step]].roman} ${DISTRICTS[ROUTE[step]].name} → ${DISTRICTS[ROUTE[step + 1]] ? DISTRICTS[ROUTE[step + 1]].name : "?"}` : `step ${step}`;
+    async function refreshSync() {
+      const box = $("#sync");
+      if (!pinEl.value || !cfg.workerUrl) return;
+      try {
+        const { steps } = await call("/progress", "GET");
+        const nums = Object.keys(steps).map(Number).sort((a, b) => b - a).slice(0, 4);
+        if (!nums.length) { box.innerHTML = `<span class="status">Nobody has solved a stop yet.</span>`; return; }
+        box.innerHTML = nums.map((n) => {
+          const p = steps[n], done = (p.sarah && p.sara) || p.released;
+          return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)">
+            <span><b>${stopName(n)}</b><br><span class="status">Sarah ${p.sarah ? "✅" : "⏳"} · Sara ${p.sara ? "✅" : "⏳"}${p.released ? " · released" : ""}</span></span>
+            ${done ? `<span class="good">go ✓</span>` : `<button data-release="${n}">Let them through</button>`}</div>`;
+        }).join("");
+        box.querySelectorAll("[data-release]").forEach((b) => b.addEventListener("click", async () => {
+          if (!confirm(`Let both continue at "${stopName(Number(b.dataset.release))}" although not both have solved it?`)) return;
+          try { await call("/release", "POST", { step: Number(b.dataset.release) }); } catch (e) { alert(e.message); }
+          refreshSync();
+        }));
+      } catch (e) { box.innerHTML = `<span class="err">${e.message}</span>`; }
+    }
+    refreshSync();
+    setInterval(refreshSync, 5000);
+    $("#reset").addEventListener("click", async () => {
+      if (!confirm("Forget ALL step progress for both players? Only do this before the game starts.")) return;
+      try { const r = await call("/reset", "POST"); alert(`Cleared (${r.cleared} steps).`); } catch (e) { alert(e.message); }
+      refreshSync();
+    });
 
     const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
     document.querySelectorAll("#who button").forEach((b) => b.addEventListener("click", () => {

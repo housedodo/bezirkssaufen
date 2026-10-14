@@ -3,6 +3,10 @@
 //   POST /inbox      {endpoint}            service worker asks "what is my mission?" after an (empty) push
 //   POST /send       {to, title, body, ch?} admin only (Authorization: Bearer <ADMIN_PIN>); to = sarah | sara | both
 //   GET  /status                           admin only: how many phones are registered
+//   POST /solved     {who, step}           step sync: "I solved stop <step>" → {both, released, other}; both phones poll this
+//   GET  /progress                         admin only: per step who has solved, and released steps
+//   POST /release    {step}                admin only: let both continue although one hasn't solved (override)
+//   POST /reset                            admin only: forget all progress (do this before the game starts)
 // Pushes are sent WITHOUT payload (no encryption needed, only a VAPID signature). The phone then fetches
 // the text from /inbox. Needs: KV binding `KV`, secrets ADMIN_PIN + VAPID_PRIVATE_JWK, vars VAPID_PUBLIC + VAPID_SUBJECT.
 
@@ -107,6 +111,43 @@ export default {
         const result = {};
         for (const who of targets) result[who] = await pushTo(env, who, String(title).slice(0, 120), String(body || "").slice(0, 400), ch);
         return json({ ok: true, result });
+      }
+
+      // ── step sync: both girls must have solved a stop before either continues ──
+      if (path === "/solved" && req.method === "POST") {
+        const { who, step } = await req.json();
+        if (!WHO.includes(who) || !Number.isInteger(step) || step < 0 || step > 40) return json({ error: "bad request" }, 400);
+        const key = `prog:${step}`;
+        const p = JSON.parse((await env.KV.get(key)) || "{}");
+        if (!p[who]) { p[who] = Date.now(); await env.KV.put(key, JSON.stringify(p), { expirationTtl: 172800 }); }
+        const other = WHO.find((w) => w !== who);
+        return json({ both: !!(p.sarah && p.sara), released: !!p.released, other: !!p[other] });
+      }
+
+      if (path === "/progress" && req.method === "GET") {
+        if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
+        const list = await env.KV.list({ prefix: "prog:" });
+        const steps = {};
+        await Promise.all(list.keys.map(async (k) => { steps[k.name.slice(5)] = JSON.parse((await env.KV.get(k.name)) || "{}"); }));
+        return json({ ok: true, steps });
+      }
+
+      if (path === "/release" && req.method === "POST") {
+        if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
+        const { step } = await req.json();
+        if (!Number.isInteger(step) || step < 0 || step > 40) return json({ error: "bad request" }, 400);
+        const key = `prog:${step}`;
+        const p = JSON.parse((await env.KV.get(key)) || "{}");
+        p.released = Date.now();
+        await env.KV.put(key, JSON.stringify(p), { expirationTtl: 172800 });
+        return json({ ok: true });
+      }
+
+      if (path === "/reset" && req.method === "POST") {
+        if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
+        const list = await env.KV.list({ prefix: "prog:" });
+        await Promise.all(list.keys.map((k) => env.KV.delete(k.name)));
+        return json({ ok: true, cleared: list.keys.length });
       }
 
       if (path === "/status" && req.method === "GET") {

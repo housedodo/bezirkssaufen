@@ -619,3 +619,11 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
   border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 700;
   background: #ff9f1c; color: #2a1d00; box-shadow: 0 10px 22px -10px rgba(0,0,0,.5); cursor: pointer;
 }
+
+/* ── Spending, step sync ───────────────────────────────────── */
+.wait-card { text-align: center; margin: 14px 0; }
+.wait-main { font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+.wait-sub { margin: 0; color: var(--muted); font-size: 15px; }
+.screen.waiting .btn { margin-top: 10px; }
+.offer.revealed { outline: 3px solid #ffb347; box-shadow: 0 0 0 6px rgba(255, 179, 71, .25); }
+#cancelsips, #reveal, #skipch { margin: 6px 0; width: 100%; }

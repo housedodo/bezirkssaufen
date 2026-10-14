@@ -26,7 +26,11 @@
     evDone: false,   // event challenge at the current step done
     imDone: false,   // intermission at the current step done
     ch: {},          // progress inside the current challenge
-    hearts: 0,       // likes earned through challenges
+    hearts: 0,       // wallet: ❤️/🔖 earned through challenges minus what was spent (COSTS in story.js)
+    earned: 0,       // total ever earned (finale stat)
+    sipsStep: 0,     // penalty sips added at the current stop (what "cancel" removes)
+    revealed: false, // Sara: real listing revealed at the current stop
+    waiting: false,  // solved this stop, waiting for the other phone (step sync)
     sips: 0,         // penalty sips for passing
     myBio: "",       // profile written by the crew
     superLikes: [],  // super likes written by the crew
@@ -67,6 +71,10 @@
   const isDating = () => state.char && story().theme === "dating";
   const here = () => ROUTE[state.step];
   const unit = () => (isDating() ? "❤️" : "🔖"); // reward icon (stored in state.hearts)
+  const can = (cost) => state.hearts >= cost;
+  // Step sync: both phones must have solved the current stop before either continues (needs the worker, see worker/README.md).
+  const syncOn = () => typeof PUSH !== "undefined" && !!PUSH.workerUrl && PUSH.syncSteps !== false;
+  let pollT = null;
   // Sara's Bookbazaar: the stop has a shop page that must be cleared before the riddle.
   const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id];
   const hasShop = () => shopAt(here());
@@ -264,7 +272,7 @@
     });
   }
 
-  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [] });
+  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [], sipsStep: 0, revealed: false, waiting: false });
 
   // Shared "Where to next?" block (district guessing).
   function guessBlock() {
@@ -288,8 +296,9 @@
             </button>`).join("")}
         </div>
         <div class="guess-help">
-          ${!state.hint ? `<button class="btn ghost" id="hint" ${canHint ? "" : "disabled"}>
-            ${canHint ? "💡 Show a hint" : "💡 Hint unlocks after a wrong guess"}</button>` : ""}
+          ${!state.hint ? (canHint
+            ? `<button class="btn ghost" id="hint">💡 Show a hint</button>`
+            : `<button class="btn ghost" id="buyhint" ${can(COSTS.hint) ? "" : "disabled"}>💡 Buy a hint · ${COSTS.hint} ${unit()}</button>`) : ""}
           ${canGiveUp ? `<button class="btn ghost" id="giveup">🏳️ Just tell us</button>` : ""}
         </div>
       </div>`;
@@ -299,6 +308,7 @@
       b.addEventListener("click", () => guess(Number(b.dataset.guess), b))
     );
     $("#hint")?.addEventListener("click", () => set({ hint: true }));
+    $("#buyhint")?.addEventListener("click", () => { set({ hint: true, hearts: state.hearts - COSTS.hint }); toast(`💡 Hint bought · −${COSTS.hint} ${unit()}`); });
     $("#giveup")?.addEventListener("click", () => solve(true));
   }
   const riddleCard = (s, stop) => `
@@ -363,11 +373,11 @@
       ? `<span class="stars">★★★★★</span> <span class="rv">1 review</span>`
       : `<span class="stars">${starsOf(4)}</span> <span class="rv">4.${(o.i * 3) % 6 + 3} (${(1000 + o.i * 371).toLocaleString("en")})</span>`;
     const badges = o.real
-      ? `<span class="obadge only">Only 1 left</span>`
+      ? `<span class="obadge only">Only 1 left</span>${state.revealed ? `<span class="obadge best">⭐ The real one</span>` : ""}`
       : `${o.i % 3 === 0 ? `<span class="obadge spons">Sponsored</span>` : ""}${o.i % 4 === 1 ? `<span class="obadge best">Bestseller</span>` : ""}
          <span class="obadge spice">${"🌶️".repeat(o.s)}</span>`;
     return `
-      <article class="offer ${o.real ? "offer-real" : ""} ${owned ? "owned" : ""}">
+      <article class="offer ${o.real ? "offer-real" : ""} ${o.real && state.revealed ? "revealed" : ""} ${owned ? "owned" : ""}">
         ${cover}
         <div class="offer-main">
           <div class="offer-badges">${badges}</div>
@@ -407,10 +417,14 @@
         </div>
         <p class="shop-tip">💡 ${SARA_SHOP.tip}</p>
         ${n ? `<p class="pass-line">🍺 Penalty: <b>${n} ${n === 1 ? "sip" : "sips"}</b> for the last wrong order. Read the listings properly.</p>` : ""}
+        ${cancelBtn()}
+        ${state.revealed ? "" : `<button class="btn ghost" id="reveal" ${can(COSTS.reveal) ? "" : "disabled"}>🔍 Reveal the real listing · ${COSTS.reveal} ${unit()}</button>`}
         <div class="offers">${shopOffers().map(offerCard).join("")}</div>
         <p class="locked">Buy the right listing and the parcel with Ottilie's note arrives.</p>
       </section>`;
     app.querySelectorAll("[data-buy]").forEach((b) => b.addEventListener("click", () => buy(b.dataset.buy)));
+    bindCancel();
+    $("#reveal")?.addEventListener("click", () => { set({ revealed: true, hearts: state.hearts - COSTS.reveal }); toast(`🔍 Listing revealed · −${COSTS.reveal} ${unit()}`); });
   }
 
   async function buy(id) {
@@ -430,7 +444,7 @@
       await flash(`
         <p class="match-title">Delivered 📦</p>
         <p class="match-sub">“${esc(o.t)}” is now yours. Not a clue. A lifestyle.<br>🍺 ${n} ${n === 1 ? "sip" : "sips"}</p>`, 2200, "boost");
-      set({ shopWrong: [...state.shopWrong, id], haul: [...state.haul, o.t], sips: state.sips + n });
+      set({ shopWrong: [...state.shopWrong, id], haul: [...state.haul, o.t], sips: state.sips + n, sipsStep: state.sipsStep + n });
     }
   }
 
@@ -455,6 +469,12 @@
       </article>`;
   }
 
+  const cancelBtn = () => state.sipsStep > 0
+    ? `<button class="btn ghost" id="cancelsips" ${can(COSTS.cancel) ? "" : "disabled"}>🧾 Cancel ${state.sipsStep} ${state.sipsStep === 1 ? "sip" : "sips"} · ${COSTS.cancel} ${unit()}</button>` : "";
+  const bindCancel = () => $("#cancelsips")?.addEventListener("click", () => {
+    set({ hearts: state.hearts - COSTS.cancel, sips: state.sips - state.sipsStep, sipsStep: 0 });
+    toast(`🧾 Penalty cancelled · −${COSTS.cancel} ${unit()}`);
+  });
   const passLine = (n) => {
     const sips = n === 1 ? "1 sip" : `${n} sips`;
     const tail = n === 1 ? "He's the only one who saw Jakob leave. Give him a chance?"
@@ -479,6 +499,7 @@
         <section class="screen clue dating">
           <p class="match-kicker"><span class="dot"></span> New match nearby · ${DISTRICTS[d].name} · like him to see where Jakob went</p>
           ${state.passes ? `<p class="pass-line">${passLine(state.passes)}</p>` : ""}
+          ${state.passes ? cancelBtn() : ""}
           ${profileCard(p, d)}
           <div class="swipe-btns">
             <button class="round pass" id="pass" aria-label="Pass">${ICON_X}</button>
@@ -489,8 +510,9 @@
         buzz(80);
         $("#profile").classList.add("swipe-left");
         const n = state.passes + 1;
-        setTimeout(() => { set({ passes: n, sips: state.sips + n }); window.scrollTo({ top: 0 }); }, 320);
+        setTimeout(() => { set({ passes: n, sips: state.sips + n, sipsStep: state.sipsStep + n }); window.scrollTo({ top: 0 }); }, 320);
       });
+      bindCancel();
       $("#like").addEventListener("click", () => {
         buzz([30, 40, 30]);
         $("#profile").classList.add("swipe-right");
@@ -608,11 +630,17 @@
           <span class="ch-icon" aria-hidden="true">${c.icon}</span>
           <h2 class="ch-title">${c.title}</h2>
           ${paras(c.story)}
-          <p class="ch-reward">Reward: +${c.reward} ${unit()}</p>
+          <p class="ch-reward">Reward: +${c.reward} ${unit()}${c.type === "quiz" && c.reward > 1 ? " (−1 per wrong answer, at least +1)" : ""}</p>
         </article>
-        <div class="ch-body">${body}${mode === "surprise" ? `<button class="btn ghost" id="later">⏸ Not now — remind me later</button>` : ""}</div>
+        <div class="ch-body">${body}${mode === "surprise" ? `<button class="btn ghost" id="later">⏸ Not now — remind me later</button>`
+          : `<button class="btn ghost" id="skipch" ${can(COSTS.skip) ? "" : "disabled"}>⏭ Skip this challenge · ${COSTS.skip} ${unit()}</button>`}</div>
       </section>`;
     $("#later")?.addEventListener("click", () => set({ bonus: { ...state.bonus, paused: true } }));
+    $("#skipch")?.addEventListener("click", () => {
+      if (!confirm(`Skip "${c.title}" for ${COSTS.skip} ${unit()}? No reward.`)) return;
+      set({ hearts: state.hearts - COSTS.skip, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {} });
+      window.scrollTo({ top: 0 });
+    });
 
     // bindings
     app.querySelectorAll("[data-opt]").forEach((b) => b.addEventListener("click", () => {
@@ -625,7 +653,7 @@
       } else {
         buzz(120);
         b.classList.add("shake");
-        setTimeout(() => setCh({ wrongOpts: [...(ch.wrongOpts || []), i] }), 350);
+        setTimeout(() => setCh({ wrongOpts: [...(chNow().wrongOpts || []), i], misses: (chNow().misses || 0) + 1 }), 350);
       }
     }));
     $("#another")?.addEventListener("click", () => setCh({ line: ((ch.line ?? state.step) + 1) % c.lines.length }));
@@ -671,15 +699,16 @@
 
   async function complete(c, mode) {
     buzz([30, 40, 30, 40, 30]);
+    const reward = c.type === "quiz" ? Math.max(1, c.reward - (chNow().misses || 0)) : c.reward;
     await flash(`
-      <p class="match-title">+${c.reward} ${unit()}</p>
+      <p class="match-title">+${reward} ${unit()}</p>
       <p class="match-sub">${mode === "surprise" ? "Surprise mission accomplished. Your host is impressed." : isDating()
         ? `${mode === "intermission" ? "Intermission survived." : "Profile boosted."} Your likes are back.`
         : `${mode === "intermission" ? "Plot twist survived." : "Chapter complete."} Ottilie's cart is open.`}</p>`, 1400, "boost");
     if (mode === "surprise") {
-      set({ hearts: state.hearts + c.reward, bonus: null, bch: {}, missions: [...state.missions, state.bonus && state.bonus.id], myBio: state.myBio, superLikes: state.superLikes });
+      set({ hearts: state.hearts + reward, earned: state.earned + reward, bonus: null, bch: {}, missions: [...state.missions, state.bonus && state.bonus.id], myBio: state.myBio, superLikes: state.superLikes });
     } else {
-      set({ hearts: state.hearts + c.reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
+      set({ hearts: state.hearts + reward, earned: state.earned + reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
     }
     window.scrollTo({ top: 0 });
   }
@@ -697,11 +726,57 @@
 
   function solve(gaveUp) {
     const entry = { d: here(), wrong: state.wrong.length, hint: state.hint, gaveUp };
-    set({ phase: "travel", log: [...state.log, entry], solvedGaveUp: gaveUp });
+    set({ phase: "travel", log: [...state.log, entry], solvedGaveUp: gaveUp, waiting: syncOn() });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Solved, but the other phone hasn't yet: nobody continues until both have (the worker keeps score).
+  function renderWaiting() {
+    const n = next();
+    const other = state.char === "sarah" ? "Sara" : "Sarah";
+    app.innerHTML = `
+      <section class="screen travel waiting">
+        <p class="verdict">${state.solvedGaveUp ? "Fine. We'll tell you." : state.wrong.length === 0 ? "First try. Impressive." : "Got it!"}</p>
+        <p class="kicker">You found it</p>
+        <div class="dest">
+          <span class="dest-roman">${DISTRICTS[n].roman}</span>
+          <span class="dest-name">${DISTRICTS[n].name}</span>
+        </div>
+        <div class="card wait-card">
+          <p class="wait-main" id="wait-main">⏳ Waiting for ${other} to find it too…</p>
+          <p class="wait-sub" id="wait-sub">No spoilers, no pointing. You both continue together.</p>
+        </div>
+        <button class="btn ghost" id="wait-skip" hidden>Server not reachable — continue anyway</button>
+      </section>`;
+    $("#wait-skip").addEventListener("click", () => { set({ waiting: false }); window.scrollTo({ top: 0 }); });
+    const step = state.step, who = state.char;
+    let fails = 0;
+    const check = async () => {
+      try {
+        const r = await fetch(`${PUSH.workerUrl}/solved`, {
+          method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ who, step }),
+        });
+        if (!r.ok) throw new Error("bad status");
+        const j = await r.json();
+        fails = 0;
+        if (state.step !== step || !state.waiting) return;
+        if (j.both || j.released) { buzz([60, 40, 60]); set({ waiting: false }); window.scrollTo({ top: 0 }); return; }
+        const w = $("#wait-sub");
+        if (w) w.textContent = "No spoilers, no pointing. You both continue together.";
+      } catch (_) {
+        if (++fails >= 4) {
+          const w = $("#wait-sub"), b = $("#wait-skip");
+          if (w) w.textContent = "Can't reach the server. Check your connection, or ask the host.";
+          if (b) b.hidden = false;
+        }
+      }
+    };
+    check();
+    pollT = setInterval(check, 3000);
+  }
+
   function renderTravel() {
+    if (state.waiting) return renderWaiting();
     const n = next();
     const gaveUp = state.solvedGaveUp;
     app.innerHTML = `
@@ -737,9 +812,9 @@
     const matches = ROUTE.filter((id) => s.stops[id].profile).length;
     const stats = isDating()
       ? `<div><b>${matches}</b><span>matches</span></div>
-         <div><b>${state.hearts}</b><span>likes earned</span></div>
+         <div><b>${state.earned}</b><span>likes earned</span></div>
          <div><b>${state.sips}</b><span>penalty sips</span></div>`
-      : `<div><b>${state.hearts}</b><span>bookmarks</span></div>
+      : `<div><b>${state.earned}</b><span>bookmarks earned</span></div>
          <div><b>${state.haul.length}</b><span>dark romances</span></div>
          <div><b>${state.sips}</b><span>penalty sips</span></div>`;
     const haulTitles = [...new Set(state.haul)];
@@ -845,6 +920,7 @@
   // ── Render ─────────────────────────────────────────────────
   function render() {
     if (tick) { clearInterval(tick); tick = null; }
+    if (pollT) { clearInterval(pollT); pollT = null; }
     if (!state.char) state.phase = "pick";
     renderChrome();
     const b = state.bonus;

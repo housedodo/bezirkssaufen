@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Spend hearts/bookmarks (hint, cancel sips, skip, reveal), lower rewards, both-must-solve step sync | `story.js` (rewards, `COSTS`), `app.js`, `styles.css`, `worker/worker.js`, `admin.html`, `push-config.js`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -72,8 +72,8 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   "Order confirmed", parcel = souvenir page + riddle + guessing. Buying a decoy → penalty sips (1, 2, 3 … per stop,
   added to `sips`), the book goes into her haul (🌶️ counter in the top bar, listed in the finale).
   - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
-    7 "📖 Reading room" events (+3: pop quiz @IX, dramatic reading @II, name that first line @III, back-cover blurb
-    @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 6 "⚡ Sudden plot twist" intermissions (+2:
+    7 "📖 Reading room" events (+2: pop quiz @IX, dramatic reading @II, name that first line @III, back-cover blurb
+    @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 6 "⚡ Sudden plot twist" intermissions (+1:
     menu poetry @I, Herb impression @VI, one word each @VIII, Herb's nap @III, silence in the library @XIV, book swap
     @V; `SARA_EVENTS` / `SARA_INTERMISSIONS` in `story.js` are authoritative). **Sarah and Sara play at the same time**, so Sara has nothing on a stop where
     Sarah has an intermission, and her intermissions avoid Sarah's events too. Check this when moving any challenge.
@@ -83,7 +83,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   - 10 teammate profiles with full photos (name/tags/bio *below* the photo, nothing over the face) and round
     face avatars.
   - Like → "It's a match!" → message + riddle. Pass → profile comes back, penalty sips (1, 2, 3 … per pass).
-  - 6 "💔 No matches nearby" event challenges (+3 ❤️) and 4 "⚡ Sudden intermission" challenges (+2 ❤️).
+  - 6 "💔 No matches nearby" event challenges (+2 ❤️) and 4 "⚡ Sudden intermission" challenges (+1 ❤️).
   - ❤️ and 🍻 in the top bar; finale shows matches, likes, penalty sips, crew-written bio, super likes.
   - Non-player stops show a chat message from a person in that district.
 - Fully played through in a headless phone browser (390×844) after each change: no JS errors, both stories end in
@@ -102,6 +102,19 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   own, or the 8 **shared missions** for Both) and the confirm dialog repeats the recipient. Shared missions are
   `CHALLENGES` keys `d_*` with `shared: true` at the end of `story.js` (never attached to a stop, theme-neutral text). "Not now" pauses it and shows a 🎯 pill (`#mission-pill`). Inactive until
   `push-config.js` is filled in (the app hides the alerts card). Setup: `worker/README.md`.
+
+- **Wallet** (❤️ Sarah / 🔖 Sara, `state.hearts`; `state.earned` = total ever earned, shown in the finale). Earning is
+  deliberately slow: events +2, intermissions +1, shared missions +2/+1, quizzes −1 per wrong answer (min +1). Spending
+  (`COSTS` in `story.js`): 💡 buy a hint before a wrong guess unlocks it (1) · 🧾 cancel the penalty sips of the current
+  stop (2, Sarah's passes / Sara's wrong orders, tracked in `state.sipsStep`) · ⏭ skip an event/intermission, no reward
+  (3) · 🔍 Sara: mark the real Bookbazaar listing (2). Surprise missions can't be skipped, only paused.
+- **Step sync** ("only if both found the district, both continue"): after a correct guess or "just tell us",
+  `solve()` sets `state.waiting`; `renderWaiting()` polls worker `POST /solved {who, step}` every 3 s until it answers
+  `both` (or the host `released` the step) and only then shows the next-stop screen. Switch it off with
+  `syncSteps: false` in `push-config.js`; without a `workerUrl` it is off automatically. If the worker can't be
+  reached for 4 polls the phone offers "continue anyway". Admin page section "3 · Game sync" shows who is waiting,
+  has "Let them through" per step and "Reset all progress" (**press it before the game**; KV data also expires after
+  48 h; the in-app "Start over" does not touch the worker).
 
 ### Not done / ideas
 See [Open items](#open-items).
@@ -225,6 +238,7 @@ There are no automated tests in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **Mission alerts** need the one-time Cloudflare setup in `worker/README.md` and a real-iPhone test (only unit-tested with mocks; Web Push can't run headless). Do it the day before.
+- **Step sync** and mission alerts are only tested with mocks: do a real two-phone run the evening before (and press "Reset all progress" in the admin page afterwards).
 - **GitHub Pages** not confirmed enabled yet (Settings → Pages → `main` / root).
 - Sara's challenge texts (dramatic-reading lines, decoy titles) are PG-13 parodies — tone up/down as wanted.
 - Sara's timers (45 s / 60 s) and the 90 s blurb are untested on a real phone with real hands; adjust `seconds` if too long/short.
@@ -240,7 +254,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
+- 2026-10-14 · this commit · Dominik (Claude) · Wallet: spend ❤️/🔖 on hints, cancelling sips, skipping challenges, revealing Sara's real listing (`COSTS`); rewards lowered (events +2, intermissions +1, quizzes −1 per miss); step sync: neither girl continues until both solved the stop (worker `/solved`, `/progress`, `/release`, `/reset`, admin sync panel; **redeploy `worker/worker.js`**); cache v14.
+- 2026-10-14 · earlier commit · Dominik (Claude) · 8 shared "both do it" missions (`d_*`: clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, birthday wishes); admin page now picks the recipient first and only lists matching missions; cache v13.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Surprise missions: admin lists every intermission/event per player; tapping the notification opens that challenge in the app (reward counts, once per mission, "not now" pill); worker stores `ch`+`id` (**redeploy `worker/worker.js` in Cloudflare**); cache v12.
 - 2026-10-14 · `d7ca3cc`+ · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
 - 2026-10-14 · `d98eaf6` · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.

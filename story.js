@@ -54,18 +54,26 @@ const STOPS = {
 
 // After this many wrong guesses the hint button lights up,
 // after GIVE_UP_AFTER wrong guesses the "just tell us" button appears.
+// What the points (❤️ Sarah / 🔖 Sara) can buy. Earning is deliberately slow: events +2, intermissions +1,
+// quizzes lose 1 per wrong answer (min +1). Tune here.
+const COSTS = {
+  hint: 1,    // buy a hint before a wrong guess unlocks it for free
+  cancel: 2,  // cancel the penalty sips of the current stop (pass / wrong shop order)
+  skip: 3,    // skip an event or intermission challenge without reward
+  reveal: 2,  // Sara: mark the real listing in the Bookbazaar
+};
 const HINT_AFTER = 1;
 const GIVE_UP_AFTER = 3;
 
 // ── Sarah's challenges ────────────────────────────────────────
-// Two kinds, both earn likes (❤️):
+// Two kinds, both earn likes (❤️) — events +2, intermissions +1:
 //   event        – at a stop with no players ("No matches nearby"); done before the message + riddle
 //   intermission – pops up suddenly when arriving at a player stop, before his profile
 // Types: quiz (app checks answers) · confirm (group confirms) · timer (countdown)
 //        write (crew writes Sarah's bio) · notes (crew writes super likes)
 const CHALLENGES = {
   quiz: {
-    type: "quiz", icon: "🧬", reward: 3,
+    type: "quiz", icon: "🧬", reward: 2,
     title: "Brains are sexy",
     story: "Jakob's teammates only swipe right on smart women. Three easy biochemistry questions — get all three right to boost your profile.",
     questions: [
@@ -75,7 +83,7 @@ const CHALLENGES = {
     ],
   },
   pickup: {
-    type: "confirm", icon: "😏", reward: 3,
+    type: "confirm", icon: "😏", reward: 2,
     title: "Flirt practice",
     story: "Your flirting is rusty. Deliver this line to the person behind the counter — straight face, full eye contact. Don't like the line? Get another one.",
     lines: [
@@ -89,31 +97,31 @@ const CHALLENGES = {
     confirmLabel: "✅ Delivered — the group says it counts",
   },
   profile: {
-    type: "write", icon: "✍️", reward: 3, seconds: 90,
+    type: "write", icon: "✍️", reward: 2, seconds: 90,
     title: "Profile makeover",
     story: "Your profile is empty — that's why nobody's matching. Hand the phone to your crew: they have 90 seconds to write your dating bio. It stays on your profile for the rest of the day.",
     placeholder: "Sarah, 2?. Loves … Hates … Looking for a man who …",
     confirmLabel: "💾 Save my profile",
   },
   shot: {
-    type: "confirm", icon: "🥃", reward: 3, countdown: true,
+    type: "confirm", icon: "🥃", reward: 2, countdown: true,
     title: "Liquid courage",
     story: "Matches don't come to the shy. One shot. The whole bar can count down with you.",
     confirmLabel: "✅ Shot's gone — the group saw it",
   },
   penalty: {
-    type: "timer", icon: "⏱️", reward: 3, seconds: 120,
+    type: "timer", icon: "⏱️", reward: 2, seconds: 120,
     title: "Two minutes for interference",
     story: "You've been flirting too aggressively. Two minutes in the penalty box: no talking, no phone. Your crew is only allowed to say nice things about you the whole time.",
   },
   celebration: {
-    type: "confirm", icon: "📣", reward: 3,
+    type: "confirm", icon: "📣", reward: 2,
     title: "Show us your squad",
     story: "Jakob's team needs to know you've got a squad. The whole group does one big goal celebration together — chant, knee slide, team huddle. Somebody films it. If anyone sits it out, it doesn't count.",
     confirmLabel: "🎉 Everyone joined in — it counts",
   },
   emoji: {
-    type: "quiz", icon: "🔣", reward: 2,
+    type: "quiz", icon: "🔣", reward: 1,
     title: "They only text in emojis",
     story: "Jakob's teammates can't spell. Decode their three messages to keep them talking to you.",
     questions: [
@@ -123,20 +131,20 @@ const CHALLENGES = {
     ],
   },
   superlikes: {
-    type: "notes", icon: "⭐", reward: 2, count: 3,
+    type: "notes", icon: "⭐", reward: 1, count: 3,
     title: "Super likes",
     story: "Your likes are running low. Three people from your crew each send you a super like: one thing they love about you. Pass the phone around.",
     placeholder: "From …: I love that Sarah …",
     confirmLabel: "⭐ Send the super likes",
   },
   nohands: {
-    type: "confirm", icon: "🙌", reward: 2,
+    type: "confirm", icon: "🙌", reward: 1,
     title: "Goalie style",
     story: "Goalies use their whole body. Finish your drink without using your hands.",
     confirmLabel: "✅ No hands — the group saw it",
   },
   goal: {
-    type: "confirm", icon: "🥅", reward: 2,
+    type: "confirm", icon: "🥅", reward: 1,
     title: "Score a goal",
     story: "Flick a bottle cap or a beer mat into a glass. Three tries. Miss all three and your crew picks a new target.",
     confirmLabel: "🚨 GOAL! The group saw it",
@@ -525,12 +533,12 @@ const SARA_SHOP = {
 
 // ─────────────────────── SARA'S CHALLENGES ───────────────────────
 // Same engine as Sarah's (see CHALLENGES above), but the reward is bookmarks (🔖, stored in `hearts`).
-//   event        – "📖 Reading room", before the shop (+3 🔖)
-//   intermission – "⚡ Sudden plot twist", pops up on arrival, before everything else (+2 🔖)
+//   event        – "📖 Reading room", before the shop (+2 🔖)
+//   intermission – "⚡ Sudden plot twist", pops up on arrival, before everything else (+1 🔖)
 // Optional extras on a challenge: fieldLabel (write), noteLabel (notes), clockSub (timer), doneLabel (timer).
 Object.assign(CHALLENGES, {
   s_catquiz: {
-    type: "quiz", icon: "🐈", reward: 3,
+    type: "quiz", icon: "🐈", reward: 2,
     title: "Herb's pop quiz",
     story: "Herb only sits on the laps of well-read people. Three questions — get all three right and Ottilie's cart will open for you.",
     questions: [
@@ -540,7 +548,7 @@ Object.assign(CHALLENGES, {
     ],
   },
   s_reading: {
-    type: "confirm", icon: "🎭", reward: 3,
+    type: "confirm", icon: "🎭", reward: 2,
     title: "Dramatic reading",
     story: "Ottilie needs a voice for her audiobook. Read one of these passages to the person behind the counter — lowest, most smouldering voice you own. Full commitment. Whoever giggles first drinks a sip. Don't like the passage? Get another one.",
     lines: [
@@ -554,7 +562,7 @@ Object.assign(CHALLENGES, {
     confirmLabel: "✅ Read with feeling — the group says it counts",
   },
   s_blurb: {
-    type: "write", icon: "✍️", reward: 3, seconds: 90,
+    type: "write", icon: "✍️", reward: 2, seconds: 90,
     title: "Back cover blurb",
     story: "Every great book needs a blurb. Hand the phone to your crew: 90 seconds to write the back cover of “Sara: A Life”. It gets printed in your finale.",
     fieldLabel: "Back cover of “Sara: A Life”",
@@ -562,13 +570,13 @@ Object.assign(CHALLENGES, {
     confirmLabel: "💾 Print the blurb",
   },
   s_titles: {
-    type: "confirm", icon: "📚", reward: 3,
+    type: "confirm", icon: "📚", reward: 2,
     title: "Title this bar",
     story: "Everybody at the table invents a dark-romance title for tonight's bar — “The Duke of ___”, “Claimed in the ___”. The group votes for the best one. The author of the worst drinks a sip.",
     confirmLabel: "✅ We have a winner",
   },
   s_reviews: {
-    type: "notes", icon: "⭐", reward: 3, count: 3,
+    type: "notes", icon: "⭐", reward: 2, count: 3,
     title: "Five-star reviews",
     story: "A book without reviews doesn't sell. Three people from your crew each write a five-star Bookbazaar review of Sara. Pass the phone around.",
     noteLabel: "Review",
@@ -576,39 +584,39 @@ Object.assign(CHALLENGES, {
     confirmLabel: "⭐ Publish the reviews",
   },
   s_toast: {
-    type: "confirm", icon: "🥂", reward: 3, countdown: true,
+    type: "confirm", icon: "🥂", reward: 2, countdown: true,
     title: "Chapter toast",
     story: "Everyone names the last book that made them cry, laugh or fall asleep. Then a toast to Sara — the whole bar can count down with you.",
     confirmLabel: "✅ Prost! The group saw it",
   },
   s_story: {
-    type: "confirm", icon: "🧵", reward: 2,
+    type: "confirm", icon: "🧵", reward: 1,
     title: "Plot twist: one word each",
     story: "Build a story around the table, one word at a time, starting with “Once upon a…”. It ends when somebody says “THE END” — or when it turns into a dark romance. Whoever breaks the chain takes a sip.",
     confirmLabel: "✅ The story has an ending",
   },
   s_nap: {
-    type: "timer", icon: "😴", reward: 2, seconds: 45,
+    type: "timer", icon: "😴", reward: 1, seconds: 45,
     title: "Herb's nap",
     story: "Herb sleeps 19 hours a day. For 45 seconds the whole table freezes like a sleeping cat. Anyone who moves, laughs or speaks drinks one sip.",
     clockSub: "Shhh. Herb is dreaming about tuna.",
     doneLabel: "Herb woke up — collect your bookmarks",
   },
   s_silence: {
-    type: "timer", icon: "🤫", reward: 2, seconds: 60,
+    type: "timer", icon: "🤫", reward: 1, seconds: 60,
     title: "Silence in the library",
     story: "The librarian has spoken. One minute: no talking, no phone. Order your next drink by miming it. Whoever speaks drinks a sip.",
     clockSub: "Shhh. This is a library.",
     doneLabel: "Library's open — collect your bookmarks",
   },
   s_swap: {
-    type: "confirm", icon: "🔖", reward: 2,
+    type: "confirm", icon: "🔖", reward: 1,
     title: "Book swap",
     story: "Everybody recommends one book to the person on their left and has to sell it in a single sentence. Sara's pick must be something she will actually read this year.",
     confirmLabel: "✅ Everyone recommended something",
   },
   s_firstlines: {
-    type: "quiz", icon: "📖", reward: 3,
+    type: "quiz", icon: "📖", reward: 2,
     title: "Name that first line",
     story: "Ottilie's cart has a trivia board: three famous opening lines, one book each. Get all three right.",
     questions: [
@@ -618,13 +626,13 @@ Object.assign(CHALLENGES, {
     ],
   },
   s_poetry: {
-    type: "confirm", icon: "📜", reward: 2,
+    type: "confirm", icon: "📜", reward: 1,
     title: "Menu poetry",
     story: "No bookshelf to make spine poetry with — so use the drink menu. Everyone writes a two-line poem using only words from the menu or the beer mats. The best one gets read aloud to the table, in a dramatic voice.",
     confirmLabel: "✅ The poem has been read",
   },
   s_impression: {
-    type: "confirm", icon: "🐱", reward: 2,
+    type: "confirm", icon: "🐱", reward: 1,
     title: "Herb impression",
     story: "Everyone does a ten-second impression of Herb: slow stretch, ignoring a human, staring at nothing. The group crowns the best Herb. Everyone else takes a sip.",
     confirmLabel: "✅ A Herb has been crowned",
@@ -643,51 +651,51 @@ Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].i
 // same text shows up on Sarah's and on Sara's phone; both do it at the same time, together.
 Object.assign(CHALLENGES, {
   d_toast: {
-    type: "confirm", icon: "🥂", reward: 3, shared: true,
+    type: "confirm", icon: "🥂", reward: 2, shared: true,
     title: "Birthday clink",
     story: "Find each other, wherever you are in the bar. Clink glasses, look each other in the eye and say one genuinely nice thing about the other. No jokes. The crew judges.",
     confirmLabel: "✅ Clinked — the crew heard it",
   },
   d_selfie: {
-    type: "confirm", icon: "🤳", reward: 3, shared: true,
+    type: "confirm", icon: "🤳", reward: 2, shared: true,
     title: "Twin selfie",
     story: "Take a selfie of the two of you in the exact same pose, with the most dramatic faces you can pull. A third person from the crew has to approve it.",
     confirmLabel: "✅ Selfie approved",
   },
   d_swap: {
-    type: "confirm", icon: "🔄", reward: 2, shared: true,
+    type: "confirm", icon: "🔄", reward: 1, shared: true,
     title: "Drink swap",
     story: "Swap drinks. Each of you takes a proper sip of the other's glass and has to guess what's in it. Wrong guess: another sip of your own.",
     confirmLabel: "✅ Swapped and guessed",
   },
   d_compliments: {
-    type: "timer", icon: "💬", reward: 3, seconds: 45, shared: true,
+    type: "timer", icon: "💬", reward: 2, seconds: 45, shared: true,
     title: "Compliment battle",
     story: "Take turns giving each other compliments, no repeats, no hesitation, for 45 seconds. Whoever gets stuck first drinks a sip.",
     clockSub: "Keep talking. Nice things only.",
     doneLabel: "Battle over — collect your reward",
   },
   d_dance: {
-    type: "timer", icon: "💃", reward: 3, seconds: 30, shared: true,
+    type: "timer", icon: "💃", reward: 2, seconds: 30, shared: true,
     title: "Birthday dance-off",
     story: "Thirty seconds, the two of you, full commitment, in the middle of the bar. The crew films it. Standing still counts as losing.",
     clockSub: "Dance. Now.",
     doneLabel: "Last move — collect your reward",
   },
   d_stare: {
-    type: "confirm", icon: "👀", reward: 2, shared: true,
+    type: "confirm", icon: "👀", reward: 1, shared: true,
     title: "Staring contest",
     story: "Eye to eye, no blinking, no laughing. The first one to break takes a sip. A third person is the referee.",
     confirmLabel: "✅ We have a loser",
   },
   d_rps: {
-    type: "confirm", icon: "✊", reward: 2, shared: true,
+    type: "confirm", icon: "✊", reward: 1, shared: true,
     title: "Rock, paper, scissors",
     story: "Best of three. The loser takes a sip and tells the winner one thing they are proud of this year.",
     confirmLabel: "✅ Winner decided",
   },
   d_wish: {
-    type: "confirm", icon: "🌠", reward: 3, shared: true,
+    type: "confirm", icon: "🌠", reward: 2, shared: true,
     title: "Birthday wishes",
     story: "Each of you makes one wish for the other's next year, out loud, in front of the whole crew. Then a drink to both wishes.",
     confirmLabel: "✅ Wishes made, drinks raised",
