@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Lobby ("Under construction" after picking a name) + admin "Start game" with notification + first clue to Auer | `app.js`, `story.js`, `worker/worker.js`, `admin.html`, `push-config.js`, `styles.css`, `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
