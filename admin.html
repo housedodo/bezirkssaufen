@@ -4,6 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#14171f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Heated Host">
+  <link rel="manifest" href="admin.webmanifest">
+  <link rel="icon" href="icons/admin-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/admin-apple-touch-icon.png">
   <title>Heated Pages · Host</title>
   <style>
     :root { --bg:#14171f; --card:#1e232e; --line:#2f3646; --text:#eef1f7; --muted:#97a0b5; --accent:#ffb347; --ok:#5fd38d; --bad:#ff6b6b; }
@@ -37,7 +44,9 @@
   <h1>🎯 Host panel</h1>
   <p class="sub">Send a mission notification to a phone. Only works with your PIN.</p>
 
-  <div class="card">
+  <div class="card" id="installbox" hidden></div>
+
+  <div class="card" style="margin-top:12px">
     <input id="pin" type="password" inputmode="numeric" placeholder="Admin PIN" autocomplete="off">
     <p class="status" id="status" style="margin:8px 0 0">Enter the PIN to see which phones are registered.</p>
   </div>
@@ -83,6 +92,31 @@
     const $ = (s) => document.querySelector(s);
     const cfg = self.PUSH || {};
     let to = null;
+
+    // ── install as an app (own icon, opens without the browser bar) ──
+    let installEvt = null;
+    const standalone = () => navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+    function fillInstall() {
+      const box = $("#installbox");
+      if (standalone()) { box.hidden = true; return; }
+      const android = /Android/i.test(navigator.userAgent), ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!installEvt && !android && !ios) { box.hidden = true; return; }
+      box.hidden = false;
+      box.innerHTML = installEvt
+        ? `<b>📲 Install the host app</b><p class="status" style="margin:4px 0 8px">Opens full screen from your home screen, no browser needed.</p><button id="doinstall">Install</button>`
+        : `<b>📲 Install the host app</b><p class="status" style="margin:4px 0 0">${ios ? "Tap <b>Share</b> → <b>Add to Home Screen</b>." : "Browser menu <b>⋮</b> → <b>Install app</b> (or <b>Add to Home screen</b>)."}</p>`;
+      $("#doinstall")?.addEventListener("click", async () => {
+        const ev = installEvt; if (!ev) return;
+        ev.prompt(); try { await ev.userChoice; } catch (_) {}
+        installEvt = null; fillInstall();
+      });
+    }
+    window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; fillInstall(); });
+    window.addEventListener("appinstalled", () => { installEvt = null; fillInstall(); });
+    fillInstall();
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("admin-sw.js", { scope: "./admin.html" }).catch(() => {});
+    }
 
     const pinEl = $("#pin");
     try { pinEl.value = localStorage.getItem("bezirk.adminpin") || ""; } catch (_) {}

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2230"/><stop offset=".55" stop-color="#0f4a52"/><stop offset="1" stop-color="#13806c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="54%" r="46%">
+      <stop offset="0" stop-color="#ff7a45" stop-opacity=".5"/><stop offset="1" stop-color="#ff7a45" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0fdff"/><stop offset=".5" stop-color="#82d6ff"/><stop offset="1" stop-color="#3a86ff"/>
+    </linearGradient>
+    <linearGradient id="fire" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd54a"/><stop offset=".45" stop-color="#ff7a2f"/><stop offset="1" stop-color="#e0245e"/>
+    </linearGradient>
+    <clipPath id="L"><rect x="0" y="0" width="256" height="512"/></clipPath>
+    <clipPath id="R"><rect x="256" y="0" width="256" height="512"/></clipPath>
+    <path id="heart" d="M256 408C112 318 84 214 138 160C186 112 242 134 256 182C270 134 326 112 374 160C428 214 400 318 256 408Z"/>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- crossed hockey sticks -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#0d0820" stroke-opacity=".35" stroke-width="32"><path d="M96 96L404 414H454"/><path d="M416 96L108 414H58"/></g>
+    <g stroke="#efeaff" stroke-width="20"><path d="M96 96L404 414H454"/><path d="M416 96L108 414H58"/></g>
+    <g stroke="#b9a8ff" stroke-width="20" stroke-dasharray="3 14"><path d="M96 96L150 152"/><path d="M416 96L362 152"/></g>
+  </g>
+  <g transform="translate(0,-26)">
+  <!-- split heart: ice | fire -->
+  <g clip-path="url(#L)"><use href="#heart" fill="url(#ice)"/></g>
+  <g clip-path="url(#R)"><use href="#heart" fill="url(#fire)"/></g>
+  <path d="M150 196L212 250L182 332M212 250L246 214" fill="none" stroke="#ffffff" stroke-opacity=".65" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#L)"/>
+  <path d="M322 152C300 120 336 112 326 78C352 98 372 128 352 158Z" fill="url(#fire)"/>
+  <path d="M370 170C354 148 382 140 378 116C398 132 406 154 392 174Z" fill="url(#fire)"/>
+  <!-- the crack where ice meets heat -->
+  <path d="M256 168L240 212L268 246L238 290L262 330L248 376" fill="none" stroke="#fff6c9" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- open book with a dog-eared page -->
+  <g stroke-linejoin="round">
+    <path d="M256 394C230 378 190 374 148 382L148 454C190 446 230 450 256 464Z" fill="#fff4e0" stroke="#e3cfa8" stroke-width="3"/>
+    <path d="M256 394C282 378 320 374 340 378L364 402L364 454C322 446 282 450 256 464Z" fill="#fff4e0" stroke="#e3cfa8" stroke-width="3"/>
+    <path d="M340 378L340 402L364 402Z" fill="#e0c391" stroke="#cfae78" stroke-width="3"/>
+    <path d="M168 402C190 398 222 400 240 410M168 420C190 416 222 418 240 428M168 438C190 434 222 436 240 446M272 410C290 400 318 398 336 410M272 428C290 418 318 416 344 426" fill="none" stroke="#d9c3a0" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <!-- sparkles -->
+  <path d="M256 54L261 70L277 75L261 80L256 96L251 80L235 75L251 70Z" fill="#fff6e8"/>
+  <path d="M82 292L86 306L100 310L86 314L82 328L78 314L64 310L78 306Z" fill="#cfeaff"/>
+  <path d="M432 262L436 276L450 280L436 284L432 298L428 284L414 280L428 276Z" fill="#ffe3b0"/>
+  <!-- host badge -->
+  <circle cx="410" cy="112" r="58" fill="#ffcf4d" stroke="#fff3c4" stroke-width="6"/>
+  <path d="M410.0 78.0 L418.2 100.7 L442.3 101.5 L423.3 116.3 L430.0 139.5 L410.0 126.0 L390.0 139.5 L396.7 116.3 L377.7 101.5 L401.8 100.7Z" fill="#6b4300"/>
+</svg>

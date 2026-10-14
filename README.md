@@ -65,6 +65,7 @@ At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's r
 
 ## Game day (host)
 
+0. Install the host app once: open `admin.html` in Chrome/Safari and tap Install (or Add to Home Screen). It has its own teal icon ("Heated Host").
 1. Both girls install the app and choose their name. They only see "Under construction" until you start.
 2. In `admin.html`: enter the PIN, check both phones are registered, press **Reset all progress + back to the lobby**.
 3. When everyone is ready, press **🚀 Start the game**. Both phones get a notification; each girl reads her story and a first clue to the meeting point (Auer, Schmidtgasse, Innere Stadt). At Auer they press **Start the quest**.

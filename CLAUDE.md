@@ -142,7 +142,7 @@ See [Open items](#open-items).
 | `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `CHALLENGES`, `STORIES`, `SARA_SHOP` (end of file). |
 | `app.js` | All logic and rendering (one IIFE, template strings into `#app`). |
 | `styles.css` | Base + three themes via `body[data-theme]`: `night` (picker), `dating` (Sarah), `paper` (Sara). `ice` theme CSS is legacy/unused. |
-| `admin.html` | Host panel (not linked from the app, `noindex`). Needs the worker + PIN. |
+| `admin.html` | Host panel (not linked from the app, `noindex`). Needs the worker + PIN. Installable as its own app ("Heated Host"): `admin.webmanifest` (scope `admin.html`), `admin-sw.js` (own small service worker, scope `admin.html`, network-first, `ADMIN_VERSION`), teal icon with a gold star badge `icons/admin-*` (same artwork as the game icon). Install button/hint at the top of the page. |
 | `push-config.js` | `self.PUSH = {workerUrl, vapidPublicKey}`; read by page and service worker. Empty = alerts off. |
 | `worker/` | Cloudflare Worker (`worker.js`), VAPID key generator, `wrangler.toml`, setup guide. Not loaded by the game. |
 | `sw.js` | Service worker, cache name `VERSION`, list of files cached for offline use (incl. all player images). |
@@ -268,7 +268,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Name shortened to two words: "Heated Pages" (heated = rivalry/spice, pages = book nerd) in picker logo, page title, manifest, home-screen name, notification-settings hint, README, handbook; icon unchanged; cache v22.
+- 2026-10-14 · this commit · Dominik (Claude) · Host panel is installable as its own app "Heated Host" (own manifest, teal icon with star badge, own service worker, install button, opens offline); the game's app is unaffected.
+- 2026-10-14 · `e795fc9` · Dominik (Claude) · Name shortened to two words: "Heated Pages" (heated = rivalry/spice, pages = book nerd) in picker logo, page title, manifest, home-screen name, notification-settings hint, README, handbook; icon unchanged; cache v22.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Name extended with the book-nerd side: "Icebreakers, Heated Rivalries & Dog-Eared Hearts" (third title line in the picker, page title, manifest, README, handbook); icon now has an open book with a dog-eared page under the heart; cache v21.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Game renamed "Icebreakers & Heated Rivalries" (short name "Icebreakers"; enemies-to-lovers kicker, "only one bed (at the end)" joke) in picker, page title, manifest, home-screen name, notification-settings hint, README, handbook; new icon (ice/fire split heart, crossed hockey sticks, sparkles on a romance-cover gradient) as SVG + 180/192/512 PNGs. Internal names (repo, localStorage key, cache, Worker) unchanged; cache v20.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Cats are now "Herbert the Gracious" and "Kafka the Schlimm" (intro + finale); removed "fat" everywhere; cache v19.
