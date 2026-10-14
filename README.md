@@ -59,7 +59,7 @@ The riddle you read in a district points to the **next** row.
 
 ## Sara's Bookbazaar
 
-At every stop Sara lands on a fake book marketplace with 4 listings: Ottilie's real page (the blurb repeats what the locals just said) and 3 dark-romance decoys. Only the right purchase delivers Ottilie's note (the riddle). A wrong order = a dark romance in her haul and penalty sips (1, 2, 3 … per stop). The finale shows her accidental library.
+At every stop Sara lands on a fake book marketplace with 4 listings that all look alike: Ottilie's *disguised* real book (its blurb only echoes what the local just said) and 3 decoys, one of which is a real page from another stop (always sold out). Only the right purchase delivers Ottilie's note (the riddle). A wrong order = penalty sips (1, 2, 3 … per stop) and either a weird dark-romance passage from that book (it joins her haul) or an "unfortunately sold out" notice. The finale shows her accidental library.
 
 **Sara's challenges** (earn 🔖 bookmarks, done before the shop; none at stop I, the intro): events — pop quiz @IX · dramatic reading @II · name that first line @III · menu poetry @VIII · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — Herbert impression @VI · one word each @VIII · Herbert's nap @III · silence in the library @XIV · book swap @V. Sara's stops never coincide with Sarah's intermissions.
 
@@ -76,7 +76,7 @@ Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sip
 
 ## Sarah's dating app ("Icebreaker")
 
-- **Player stops** show a teammate's profile. **Like** → "It's a match!" → his message and the riddle. **Pass** → he swipes back in and Sarah owes penalty sips (1st pass 1 sip, 2nd pass 2 sips, …). She can't skip him — he's her only lead.
+- **Player stops** show a teammate's profile. **Like** → "It's a match!" → a Tinder-style chat: he says hi, she replies, he asks whether she's looking for the ice hockey guy, she replies (anything works), "doesn't matter actually, here's what I heard" and only then the riddle. **Pass** → Sarah owes penalty sips (1st pass 1 sip, 2nd 2 sips, …), gets a 10-second timeout with a joke (different for every guy) and he swipes back in. She can't skip him — he's her only lead.
 - **Event stops** ("💔 No matches nearby") have a challenge before the message and riddle: +2 ❤️ (quizzes: −1 per wrong answer, at least +1).
 - **Sudden intermissions** interrupt some player stops before the profile shows: +1 ❤️.
 - The top bar counts drinks and ❤️. The finale shows matches, likes earned, penalty sips, the bio her crew wrote and the super likes.

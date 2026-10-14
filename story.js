@@ -475,7 +475,7 @@ Your crew has a drink for you. Prost! 🎂`,
 // Spice is 1–5 🌶️. Titles are parodies, keep them PG-13.
 const SARA_SHOP = {
   name: "Bookbazaar",
-  tip: "Ottilie never sells her pages under a fancy title. Buy the listing that matches what the locals told you.",
+  tip: "Ottilie hides her pages inside other books. Exactly one blurb knows what the local just told you.",
   decoys: [
     { t: "Bound to the Baron", a: "L. Nightshade", d: "He owns the castle. And the contract. And, unfortunately, your attention.", s: 4, p: "€9.99" },
     { t: "Ruthless Kings & Velvet Crows", a: "V. Ravenscroft", d: "A crown, a cage, a very long staircase.", s: 3, p: "€11.49" },
@@ -508,25 +508,155 @@ const SARA_SHOP = {
     { t: "Possessive Pirates of the Mur", a: "Captain H. Schwarzbart", d: "The Mur has pirates. Nobody asked how.", s: 3, p: "€8.99" },
     { t: "Dangerous Liaisons at the Grazer Opernball", a: "Gräfin Dahlia Dunkel", d: "Waltz now. Regret later. Dress code: ruin.", s: 4, p: "€10.99" },
   ],
-  // The real listing per district: blurb quotes the encounter, price is a joke.
+  // Passages (shown when a decoy is delivered) by decoy index; a decoy without a passage is "sold out".
+  passages: {
+  "0": "“You will marry me,” said the Baron, buttering his toast with menace. “I have a form in the drawer that says you already did.” Her eye twitched. It was the third time this week.",
+  "2": "Dante cracked his knuckles, then his espresso cup. “You owe me,” he whispered. “Three euros and a favour.” She paid the euros. The favour is still pending. The pigeons know.",
+  "3": "“Till death do us part,” the priest read. “Which is Thursday,” the groom added darkly. The guests clapped politely, because they had RSVP'd.",
+  "5": "The Duke stared into the rain for forty pages. Forty. She counted. “Is it going to stop?” she asked. “Never,” he growled. It was Scotland.",
+  "7": "He hip-checked her into the boards, and into his heart. “You play dirty,” she gasped. “I play Tuesdays,” he said, and sharpened his skates menacingly.",
+  "8": "Eight siblings. One will. “It's mine,” hissed Ludovika. “I wrote my name on the fridge,” hissed Konrad. The butler poured something that was definitely not tea.",
+  "10": "The prince handed her a rose. It had thorns. The thorns had thorns. “It's a metaphor,” he said, bleeding quietly on the carpet.",
+  "11": "She yodelled at the full moon. Something howled back. “Is that a werewolf?” “That's my husband,” she sighed. “He's seen the dirndl bill.”",
+  "12": "He fell from heaven, landed in her hedge and asked for tea. “Are you evil?” she asked. “Mostly I'm early,” said the angel.",
+  "14": "Candles flickered. Skulls stared. “This is our first date,” he murmured, “and it's already the third circle of the cellar.” She checked her phone. No reception, obviously.",
+  "15": "“Open wide,” breathed the dragon, a tiny mirror in his claw. Smoke curled from his nostrils. “This may cause mild scorching.” She nodded bravely. She had lost her insurance card.",
+  "17": "His shadow kissed her hand. He did not. “That's rude,” she told the shadow. The shadow shrugged. The man looked embarrassed and slightly overdrawn.",
+  "18": "She moved to a new city. He moved in next door. She moved in with her mother. He moved in with her mother's neighbour. By season two the neighbours had formed a union.",
+  "20": "Behind her mask she smiled. Behind his mask he smiled. Behind the curtain a third person smiled and held a very small knife. Nobody had read the dress code.",
+  "21": "“One more bourbon,” he growled. “That's your fourth,” she said. “And my fifth bad decision,” he agreed, and the jukebox played something sad in a minor key.",
+  "23": "“Wanted: dead or alive,” the sheriff read. “Preferably available on weekends.” The outlaw tipped his hat at the sunset, then at her, then at his horse, who rolled his eyes.",
+  "24": "He pressed a laminated contract into her hands. “Clause four is binding.” “Clause four is a recipe for hummus,” she said. He had not read clause four.",
+  "26": "The gravedigger proposed beside a freshly dug hole. “I'm always buried in work,” he said. She said yes, mostly to avoid falling in.",
+  "27": "No reception. No wifi. No mercy. “Here,” growled the Mountain Lord, “we communicate by yodel.” She yodelled. A glacier calved in shame.",
+  "29": "They waltzed. They scowled. They waltzed again, scowling. By the third waltz the string quartet was openly rooting for a duel."
+},
+  // Sold-out notices (a decoy without passage, and the other stops' pages, get one of these).
+  soldOut: [
+  "Sold out. Somebody with a candlelit bathtub got there first.",
+  "Unfortunately sold out. The last copy is currently being read aloud, dramatically, in a castle.",
+  "Sorry, sold out. The author is “revising the ending” (killing off the Baron again).",
+  "Out of stock. The warehouse cat sat on the last copy and refuses to move.",
+  "Sold out! Apparently half of Graz is reading it in secret on the tram.",
+  "Temporarily unavailable: confiscated by a very flustered librarian."
+],
+  // The real listing per district. It is disguised: same format as the decoys, no seller/badge/cover giveaway.
+  // Its blurb only echoes what the local just said (the stop's encounter). The shop also shows ONE real listing of
+  // another stop as a decoy (always "sold out"), so matching the blurb to *this* encounter is the puzzle.
   real: {
-    1:  { p: "€0.00 + 1 coffee", d: "Slightly used. Smells of croissant. One (1) cat hair included, free of charge. As seen at the bakery.", rv: "“Paid for her coffee in bookmarks. Honest woman.” ★★★★★" },
-    6:  { p: "€2.00", d: "Page 1 of the legendary cat book. Sold at the tram stop, right after one very good map of Graz.", rv: "“Herbert wanted to see the Zamboni.” ★★★★★" },
-    7:  { p: "€3.50", d: "Kafka meets the Zamboni. Originally sold at the ice rink, next to a hockey player's two copies of 'How to Talk to Women'.", rv: "“Even the gatekeeper of heaven needs something to read.” ★★★★☆" },
-    8:  { p: "€1.99", d: "Herbert on the radio. Meowed into the microphone for four full minutes. Recorded at the TV studio.", rv: "“Ratings were incredible.” ★★★★★" },
-    9:  { p: "€4.00", d: "Herbert's horoscope, as read by an actual astronomer: Taurus. Explains a lot.", rv: "“Prediction: nap.” ★★★★☆" },
-    2:  { p: "€2.00 + 1 song", d: "Sold to a piano student for two euros and one (1) song. Kafka plays piano. Badly.", rv: "“Had to play her a song. Worth it.” ★★★★★" },
-    10: { p: "€5.00", d: "Herbert, Captain of the Cart. Spotted riding on top of the books uphill like a figurehead. Faster than a cyclist.", rv: "“Pushed a cart uphill faster than me.” ★★★★★" },
-    3:  { p: "€0.99", d: "A footnote about tuna. Paid for with cat food vouchers after a book was 41 years overdue.", rv: "“Fine accepted. Cat food vouchers.” ★★★☆☆" },
-    11: { p: "€3.00", d: "The candle incident. Scorched slightly. Herbert knocked over three candles in a church; we left quickly.", rv: "“Prayed for a worthy reader.” ★★★★☆" },
-    12: { p: "€2.50", d: "Herbert sleeps for 19 hours. Includes a children's book as apology for hissing at a dog by the spring.", rv: "“My dog cried. 5 stars anyway.” ★★★★☆" },
-    13: { p: "€6.00", d: "Kafka refuses a bath. Bought by the hut keeper along with a ghost story and a bag of cat treats (eaten by Herbert).", rv: "“Herbert ate the treats.” ★★★★★" },
-    14: { p: "€2.00 + parking ticket", d: "The Peacock War. Herbert vs. peacock, 0–1. Book cart parked illegally on the palace lawn.", rv: "“The peacock won.” ★★★★★" },
-    15: { p: "€4.50", d: "The butler did it. Reveals the murderer. One police officer is still upset about that.", rv: "“Told him who did it. Spoilers!” ★★★☆☆" },
-    16: { p: "€3.50", d: "Herbert, sommelier. Written during one hour and half a glass of wine, in a notebook.", rv: "“Every last chapter deserves a beer.” ★★★★★" },
-    17: { p: "€1.50", d: "Herbert cheats at billiards. Cat sat on the table, balls nudged into the wrong pockets. Won four games.", rv: "“My balls ended up in the wrong pockets.” ★★★★☆" },
-    5:  { p: "€0.00 + 1 falafel", d: "The last chapter (unfinished). Traded for a falafel at a kebab shop. Herbert got the meat.", rv: "“She's always a little late. This time I'll wait.” ★★★★★" },
+  "1": {
+    "t": "Crumbs & Consequences",
+    "a": "Brioche Blackwood",
+    "d": "She paid for her coffee in paper. He soon learned that some debts can't be settled with bookmarks.",
+    "s": 3,
+    "p": "€9.49"
   },
+  "6": {
+    "t": "Last Tram to Ruin",
+    "a": "Mara Schiene",
+    "d": "He already knew every street. She sold him a map anyway. Some men have to get lost to be found.",
+    "s": 2,
+    "p": "€8.99"
+  },
+  "7": {
+    "t": "Two Copies, One Broken Heart",
+    "a": "Puck Valentine",
+    "d": "He bought the same advice twice and still said the wrong thing. Frozen out. Mostly hopeless.",
+    "s": 3,
+    "p": "€10.99"
+  },
+  "8": {
+    "t": "Dead Air, Hot Mic",
+    "a": "Sloane Frequenz",
+    "d": "Four minutes live on air and not one word. The ratings were incredible. Someone, somewhere, was purring.",
+    "s": 2,
+    "p": "€9.99"
+  },
+  "9": {
+    "t": "Written in the Stars (and Signed in Blood)",
+    "a": "Celeste Orion",
+    "d": "His sign explains everything: stubborn, sensual, asleep by eight. The stars warned her. She did not listen.",
+    "s": 3,
+    "p": "€11.49"
+  },
+  "2": {
+    "t": "A Song for a Sonnet",
+    "a": "Lyra Dunkel",
+    "d": "He paid in poetry. She asked for a melody. Neither could carry a tune, but both could carry a grudge.",
+    "s": 2,
+    "p": "€8.49"
+  },
+  "10": {
+    "t": "Uphill Both Ways",
+    "a": "Hartmut Steil",
+    "d": "Her cargo was heavy, her will heavier. She passed him on the hill without a word and he never recovered.",
+    "s": 3,
+    "p": "€9.29"
+  },
+  "3": {
+    "t": "Overdue for a Miracle",
+    "a": "Prudence Mahnung",
+    "d": "Forty-one years late. The fine was settled in tuna vouchers, but the librarian demanded a far steeper price.",
+    "s": 4,
+    "p": "€10.49"
+  },
+  "11": {
+    "t": "Candlelit Sins",
+    "a": "Magdalena Wachs",
+    "d": "Three candles fell. Three vows broke. The sacristan swept up the ashes and swore he had seen nothing.",
+    "s": 4,
+    "p": "€9.99"
+  },
+  "12": {
+    "t": "The Hound and the Hiss",
+    "a": "Fenrir Bellmann",
+    "d": "Her dog cried. His pride cried louder. Nothing apologises like a bedtime story.",
+    "s": 2,
+    "p": "€8.99"
+  },
+  "13": {
+    "t": "Ghost Stories for Greedy Lovers",
+    "a": "Ophelia Moor",
+    "d": "She sold him a ghost and a snack. The ghost stayed. The snack didn't.",
+    "s": 3,
+    "p": "€10.00"
+  },
+  "14": {
+    "t": "Parking Violations of the Heart",
+    "a": "Winnie Strafzettel",
+    "d": "He fought a bird and lost. He fought a ticket and lost harder. Love, at least, was free.",
+    "s": 2,
+    "p": "€9.49"
+  },
+  "15": {
+    "t": "Whodunit? Him.",
+    "a": "Dolores Spoiler",
+    "d": "She named the murderer on page one. He arrested the wrong man out of pure spite.",
+    "s": 3,
+    "p": "€10.99"
+  },
+  "16": {
+    "t": "Half a Glass of Obsession",
+    "a": "Vino Veritas",
+    "d": "One hour, one notebook, half a glass. She wrote his name on every page and never finished the wine.",
+    "s": 4,
+    "p": "€11.99"
+  },
+  "17": {
+    "t": "Wrong Pockets",
+    "a": "Carom Cue",
+    "d": "Four games, four wins. Every ball ended up in the wrong pocket and every pocket in the wrong hands.",
+    "s": 3,
+    "p": "€9.79"
+  },
+  "5": {
+    "t": "Dictionary of Desire",
+    "a": "Falaf Bell",
+    "d": "Fair trade: one dictionary, one falafel. He kept the meat. She kept him waiting.",
+    "s": 3,
+    "p": "€9.19"
+  }
+},
 };
 
 // ─────────────────────── SARA'S CHALLENGES ───────────────────────
@@ -726,3 +856,115 @@ STORIES.sara.firstClue = {
   text: `<i>"Chapter One is baked, not written. Find the old town's blacksmith lane, a stone's throw from the main square with the town hall and the Archduke fountain. A bakery-bar named after the meadow. Your first page is waiting at the counter."</i>`,
   hint: FIRST_HINT,
 };
+
+// ─────────────────────── SARAH: pass timeout + chat with the match ───────────────────────
+// For every teammate: `pass` = funny lines for the 10-second timeout after she swipes left (1st / 2nd / 3rd pass, then they
+// repeat); `hi`, `ask`, `reveal` = what he texts in the Tinder-style chat before she gets the riddle. Whatever she
+// answers, he carries on with `reveal` and then the profile's `bio` (what he heard about Jakob), then the riddle.
+const SARAH_FLIRT = {
+  "1": {
+    "pass": [
+      "Beggars can't be choosers, Sarah. Matze is the only guy who showed up before ten. 🥂",
+      "Swipe left again and Matze finishes your Spritzer too. Ten seconds to reflect.",
+      "Matze is crying into his Spritzer. At nine in the morning. Look what you've done."
+    ],
+    "hi": "hey 👋 sorry, small Spritzer situation over here",
+    "ask": "so… are you looking for the ice hockey guy? 🏒",
+    "reveal": "doesn't matter actually. here's what I know:"
+  },
+  "6": {
+    "pass": [
+      "He spent forty minutes on that hair. Ten seconds of respect is the least you can give it.",
+      "Rookie mistake, Sarah. Elias has potential and an excellent conditioner.",
+      "Elias is checking his reflection in the penalty box glass. Sad hair noises."
+    ],
+    "hi": "heyyy 😎 omg is this the Icebreaker? I'm new here lol",
+    "ask": "wait are you the girl looking for Jakob?? 👀",
+    "reveal": "oh it doesn't matter!! anyway, here's what I saw:"
+  },
+  "7": {
+    "pass": [
+      "Tomasz saves everything. Except, apparently, your attention. Ten seconds.",
+      "Saves > feelings. That one still stung a little.",
+      "The Wall has been breached. Please wait while he rebuilds."
+    ],
+    "hi": "Hi.",
+    "ask": "You're looking for the hockey guy. Jakob.",
+    "reveal": "Doesn't matter. I stop pucks, not conversations. Here's what happened:"
+  },
+  "8": {
+    "pass": [
+      "Felix has a radio voice and nobody to use it on. Ten seconds of dead air.",
+      "He's rehearsing a heartbreak jingle. Please hold the line.",
+      "This is Felix, live from the penalty box, and he is disappointed."
+    ],
+    "hi": "Hey hey, Felix here. Voice of the people. 🎙️",
+    "ask": "Quick question, live on air: are you after the hockey guy?",
+    "reveal": "doesn't matter, you're on air either way. here's the story:"
+  },
+  "10": {
+    "pass": [
+      "Captains don't get rejected. Captains get a ten-second timeout. Reflect.",
+      "Marcus has seen things. He did not see this coming.",
+      "The captain is writing “left-swiped by Sarah” on the whiteboard."
+    ],
+    "hi": "Evening. Captain Marcus. Very approachable, I promise.",
+    "ask": "Let me guess. You're looking for the ice hockey guy.",
+    "reveal": "doesn't matter, I look after my guys and my matches. here's what the boys told me:"
+  },
+  "3": {
+    "pass": [
+      "Luca has fresh stitches and now a fresh heartbreak. You monster.",
+      "Careful, Sarah. He can't smile yet, but he's trying to cry.",
+      "Ten seconds to think about the face you just rejected. It has stitches."
+    ],
+    "hi": "hey 🙂 (can't smile properly, stitches, sorry)",
+    "ask": "so you're after the hockey guy, right? ow, don't make me laugh",
+    "reveal": "doesn't matter, it hurts to talk anyway. here's what I know:"
+  },
+  "12": {
+    "pass": [
+      "Jonas is now doing sad squats. Drink some water and think about your choices.",
+      "Hydrate or cry-drate, Sarah. Jonas chooses both.",
+      "He skipped leg day for you and this is what he gets?"
+    ],
+    "hi": "hey!! 💪 have you had water today? asking for a friend (me)",
+    "ask": "ok but real question: you're hunting the ice hockey guy, right? 🏒",
+    "reveal": "doesn't matter, stay hydrated. here's what I know:"
+  },
+  "14": {
+    "pass": [
+      "Nico filmed that rejection. In slow motion. It is already in the team chat.",
+      "He's cropping you out of the group photo. Ten seconds.",
+      "Nico: “I will remember this in 4K.”"
+    ],
+    "hi": "hey 📸 hold on, great light, don't move",
+    "ask": "so are you the one chasing the hockey guy? asking for the caption",
+    "reveal": "doesn't matter, I got it all on camera anyway. here's what I filmed:"
+  },
+  "17": {
+    "pass": [
+      "Samuel is chalking his cue and his feelings. Ten seconds.",
+      "Hat-trick hero, one-swipe loser. Think about that.",
+      "Samuel scratched on the eight ball. Out of heartbreak. Totally."
+    ],
+    "hi": "yo 🎱 wanna rack up? first game's on me",
+    "ask": "so you're hunting the ice hockey guy, huh? 😏",
+    "reveal": "doesn't matter, I never lose. well, to you maybe. here's what I know:"
+  },
+  "5": {
+    "pass": [
+      "Dragan has been hit in the face a lot, but never rejected. Ten seconds. Look him in the eye.",
+      "Soft heart, missing tooth, and now this.",
+      "Dragan is eating a kebab to cope. It's not helping."
+    ],
+    "hi": "hello beautiful lady 🥙 sorry, I am in the middle of kebab",
+    "ask": "you are looking for my friend the hockey guy, yes?",
+    "reveal": "doesn't matter, you listen to Dragan now, I tell you everything:"
+  }
+};
+Object.entries(SARAH_FLIRT).forEach(([d, f]) => {
+  const p = STORIES.sarah.stops[d].profile;
+  p.passLines = f.pass;
+  p.chat = { hi: f.hi, ask: f.ask, reveal: f.reveal };
+});

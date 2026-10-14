@@ -656,3 +656,56 @@ body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97
 .logo { display: flex; flex-direction: column; align-items: center; }
 .logo-sub { display: block; font-size: .42em; line-height: 1.1; letter-spacing: .02em; margin-top: .25em; color: #ff8a5c; text-shadow: 0 0 24px rgba(255,122,47,.35); }
 .logo-sub { font-size: 1em; margin-top: .02em; color: #ff8a5c; }
+
+/* ── Sarah: timeout after a pass ───────────────────────────── */
+.timeout-photo { position: relative; }
+.timeout-photo .profile { filter: grayscale(.9) blur(2px) brightness(.65); pointer-events: none; }
+.timeout-lock { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: #ffffff; }
+.timeout-lock span { font-size: 44px; line-height: 1; }
+.timeout-lock b { font-size: 100px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 4px 24px rgba(0,0,0,.55); }
+.timeout-card { background: #ffffff; border-radius: 22px; padding: 16px 18px; margin-top: 14px; box-shadow: 0 14px 34px -24px rgba(27, 31, 59, .45); }
+.timeout-line { font-size: 21px; font-weight: 800; line-height: 1.3; margin: 0 0 10px; color: var(--text); }
+.timeout-card .pass-line { margin: 0 0 6px; }
+
+/* ── Sarah: Tinder-style chat ──────────────────────────────── */
+.chatpage { padding-bottom: 24px; }
+.chatpage:not(.chat-done) { padding-bottom: 110px; }
+.chat-head { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #ffffff; border-radius: 18px; box-shadow: 0 10px 26px -20px rgba(27, 31, 59, .5); margin-bottom: 12px; }
+.chat-ava { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--accent); }
+.chat-who { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.chat-name { font-weight: 800; font-size: 19px; line-height: 1.15; }
+.verified { color: #1da1f2; font-size: 14px; }
+.chat-online { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-online i { width: 8px; height: 8px; border-radius: 50%; background: #34c759; flex: none; }
+.chat-msgs { display: flex; flex-direction: column; gap: 6px; padding: 4px 2px 12px; }
+.chat-sys { text-align: center; color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+.msg { max-width: 82%; display: flex; animation: msgin .22s ease-out; }
+.msg span { padding: 10px 14px; font-size: 16px; line-height: 1.4; border-radius: 20px; overflow-wrap: anywhere; }
+.msg.him { align-self: flex-start; }
+.msg.him span { background: #eceef4; color: #1b1f3b; border-bottom-left-radius: 6px; }
+.msg.her { align-self: flex-end; }
+.msg.her span { background: linear-gradient(135deg, #ff5f6d, #e8364a); color: #ffffff; border-bottom-right-radius: 6px; }
+.chat-seen { align-self: flex-end; margin: 0; font-size: 12px; color: var(--muted); }
+.msg.typing span { display: flex; gap: 5px; padding: 14px 16px; }
+.msg.typing i { width: 8px; height: 8px; border-radius: 50%; background: #98a0b8; animation: blink 1.2s infinite; }
+.msg.typing i:nth-child(2) { animation-delay: .2s; }
+.msg.typing i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+@keyframes msgin { from { opacity: 0; transform: translateY(6px); } }
+.composer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; max-width: 560px; margin: 0 auto; display: flex; gap: 8px; padding: 10px 12px calc(10px + var(--safe-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+.composer input { flex: 1; min-width: 0; border: 1.5px solid var(--line); border-radius: 999px; padding: 12px 16px; font: inherit; font-size: 16px; background: #ffffff; color: var(--text); }
+.composer input:focus { outline: none; border-color: var(--accent); }
+.composer input.shake { animation: shake .35s ease; border-color: var(--accent); }
+.composer .send { width: 48px; height: 48px; flex: none; border: 0; border-radius: 50%; background: var(--accent); color: #ffffff; display: grid; place-items: center; cursor: pointer; }
+.composer .send:active { transform: scale(.94); }
+
+/* ── Sara: delivered passage / sold out ────────────────────── */
+.modal-overlay { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: rgba(24, 12, 10, .72); opacity: 0; transition: opacity .22s ease; }
+.modal-overlay.show { opacity: 1; }
+.modal-card { width: 100%; max-width: 420px; max-height: 86dvh; overflow: auto; background: var(--surface); color: var(--text); border: 2px double var(--line); border-radius: 18px; padding: 20px; text-align: center; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .6); }
+.modal-kicker { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--accent); }
+.modal-title { margin: 0; font-size: 24px; line-height: 1.15; font-weight: 600; }
+.modal-by { margin: 2px 0 12px; color: var(--muted); font-style: italic; }
+.passage { margin: 0 0 12px; padding: 14px 16px; background: var(--bg-2); border-left: 4px solid var(--accent); border-radius: 6px; text-align: left; font-style: italic; font-size: 16.5px; line-height: 1.5; }
+.soldout-msg { font-size: 18px; font-weight: 600; margin: 12px 0; line-height: 1.4; }
+.modal-sips { margin: 0 0 14px; font-weight: 700; color: var(--accent); }

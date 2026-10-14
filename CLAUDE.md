@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v23) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v24) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Sarah: 10 s pass timeout + Tinder-style chat before the riddle; Sara: wrong order = dark-romance passage or sold out, real book disguised | `story.js` (end: `SARAH_FLIRT`, `SARA_SHOP`), `app.js` (dating clue, shop), `styles.css`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -70,10 +70,14 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 - Progress saved per phone in `localStorage` (`bezirkssaufen.v1`); "Start over" in the ☰ journal.
 - Route follows the **JJ Odyssey** plan (Google Sheet "JJ Odyssey"), see [Route](#route).
 - **Sara** (paper theme): full story for all 17 districts (encounter, souvenir page, riddle, hint) plus the
-  **Bookbazaar** shop (Amazon/eBay-style fake marketplace). At each of the 16 stops with a riddle she sees 4 listings:
-  Ottilie's real page (blurb quotes what the locals just said) and 3 dark-romance decoys. Buying the real one →
-  "Order confirmed", parcel = souvenir page + riddle + guessing. Buying a decoy → penalty sips (1, 2, 3 … per stop,
-  added to `sips`), the book goes into her haul (🌶️ counter in the top bar, listed in the finale).
+  **Bookbazaar** shop (Amazon/eBay-style fake marketplace). At each of the 16 stops with a riddle she sees 4 listings
+  that all look alike (same layout, no seller/"only 1 left"/special cover): Ottilie's **disguised** real book (a
+  dark-romance-style title whose blurb only echoes what the local just said), 2 generic decoys and **one real listing of
+  another stop** (always sold out), so the puzzle is matching a blurb to *this* stop's encounter. The slot of the real
+  one follows an irregular fixed list (`REAL_SLOT`). Buying the real one → "Order confirmed", parcel = souvenir page +
+  riddle + guessing. A wrong order costs penalty sips (1, 2, 3 … per stop, `sips`) and shows either a **weird
+  dark-romance passage** from that book (the book goes into her haul, 🌶️ counter, finale) or an **"unfortunately sold
+  out"** notice (no haul); that listing is then greyed out ("Owned" / "Sold out"). "Reveal the real listing" costs 2 🔖.
   - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
     8 "📖 Reading room" events (+2: pop quiz @IX, dramatic reading @II, name that first line @III, menu poetry @VIII,
     back-cover blurb @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 5 "⚡ Sudden plot twist"
@@ -87,7 +91,12 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 - **Sarah** (dating theme):
   - 10 teammate profiles with full photos (name/tags/bio *below* the photo, nothing over the face) and round
     face avatars.
-  - Like → "It's a match!" → message + riddle. Pass → profile comes back, penalty sips (1, 2, 3 … per pass).
+  - Like → "It's a match!" → **Tinder-style chat** (`renderChat`): he texts hi (typing dots), she answers anything, he asks
+    whether she's looking for the ice hockey guy, she answers anything, then "doesn't matter actually, here's what I
+    heard" + his bio text; only then the riddle and the guess appear. Texts are per guy (`SARAH_FLIRT` in `story.js`).
+  - Pass → penalty sips (1, 2, 3 … per pass) and a **10-second timeout** (`renderTimeout`, `state.timeoutUntil`, survives a
+    reload): blurred photo, countdown, no buttons, a different joke per guy and per pass (3 each, e.g. "Beggars can't be
+    choosers"); then the profile comes back.
   - 6 "💔 No matches nearby" event challenges (+2 ❤️) and 4 "⚡ Sudden intermission" challenges (+1 ❤️).
   - ❤️ and 🍻 in the top bar; finale shows matches, likes, penalty sips, crew-written bio, super likes.
   - Non-player stops show a chat message from a person in that district.
@@ -208,11 +217,16 @@ See [Open items](#open-items).
   - `write` — `seconds` (optional clock), textarea → saved to `state.myBio`.
   - `notes` — `count` textareas → appended to `state.superLikes`.
 
-- `SARA_SHOP` — `{ name, tip, decoys[30], real{districtId} }`. `decoys[i] = {t, a, d, s(spice 1–5), p}`. At route
-  index `step` the shop shows decoys `(step*3+k) % 30` for k=0..2; the real listing sits at position `(step*2+1) % 4`
-  and takes its title/icon from the stop's `item`. `real[id] = {p, d, rv}` (price joke, blurb, review). Every Sara stop
-  that has a riddle needs a `real` entry (the last stop, Lend, has no shop).
+- `SARA_SHOP` — `{ name, tip, decoys[30], passages{decoyIndex}, soldOut[6], real{districtId} }`. `decoys[i] = {t, a, d,
+  s(spice 1–5), p}`; `passages[i]` = the weird excerpt shown when that decoy is delivered (a decoy without one is "sold
+  out"; `soldOut[]` are the notices, handed out in turn). `real[id] = {t, a, d, s, p}`: the *disguised* listing of that
+  stop; its blurb `d` must echo the stop's encounter without quoting it. At route index `step` the shop shows decoys
+  `(step*2+k) % 30` for k=0,1, one real listing of another stop (`others[(step*5+3) % …]`, always sold out) and the real one
+  at slot `REAL_SLOT[step]` (app.js). The souvenir is still the stop's `item`. Every Sara stop that has a riddle needs a
+  `real` entry (the last stop, Lend, has no shop).
 - `STORIES.sara.howTo` overrides the intro's "How it works".
+- `SARAH_FLIRT` (end of `story.js`) — per district id of a profile: `pass[3]` (timeout jokes), `hi`, `ask`, `reveal` (chat
+  script); copied onto `profile.passLines` and `profile.chat`. The chat's last bubble is the profile's `bio`.
 - `STORIES.<who>.firstClue` — `{label, text, hint}`: the clue to the first meeting point (Auer, Schmidtgasse) shown in the
   intro after the host starts the game. `LOBBY_LINES` — rotating jokes on the "Under construction" screen.
 - `COSTS` — `{hint, cancel, delegate, reveal}`: what the points can buy (see Wallet above). `HINT_AFTER` — wrong guesses
@@ -226,11 +240,11 @@ See [Open items](#open-items).
 
 ### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`; the key keeps the old game name on purpose, renaming it would wipe saved games)
 `char, phase (pick|lobby|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
-hearts (wallet: ❤️ Sarah / 🔖 Sara, earned minus spent), earned (total ever earned), sips, sipsStep (sips added at this stop),
+hearts (wallet: ❤️ Sarah / 🔖 Sara, earned minus spent), earned (total ever earned), timeoutUntil (Sarah's 10 s timeout), chat[] (Sarah's chat messages), sips, sipsStep (sips added at this stop),
 revealed (Sara: real listing marked), waiting (solved, waiting for the other phone), bonus, bch, missions[] (surprise
 missions), myBio, superLikes[], bought, shopWrong[], haul[], solvedGaveUp (legacy, always false)`.
 Per-step fields are reset by `stepReset()` on arrival: `wrong, hint, liked, passes, evDone, imDone, ch, solvedGaveUp,
-bought, shopWrong, sipsStep, revealed, waiting`. Cumulative: `hearts, earned, sips, haul, myBio, superLikes` and the
+bought, shopWrong, sipsStep, revealed, waiting, timeoutUntil, chat`. Cumulative: `hearts, earned, sips, haul, myBio, superLikes` and the
 surprise-mission keys `bonus, bch, missions`. Adding a new key: add it to `fresh()` so old saved games still load.
 
 ### Flow
@@ -240,12 +254,14 @@ Phases: `pick` (choose a name) → `lobby` ("Under construction", only while the
 pending surprise mission first (`renderChallenge(key, "surprise")`, see Mission alerts), otherwise one of
 `renderPick / renderLobby / renderIntro / renderClue / renderTravel (→ renderWaiting while state.waiting) / renderDone`.
 For Sarah, `renderClue()` → `renderDatingClue()`, which shows in order: intermission (if any, not done) → event
-challenge (if any, not done) → profile swipe (if profile, not liked) → chat message + riddle + guessing.
+challenge (if any, not done) → profile swipe (`renderTimeout()` for 10 s after a pass) → once liked, the chat
+(`renderChat()`: his messages appear after typing dots, her turn shows the composer; messages live in `state.chat`; when his
+4th message is in, riddle + guess follow) → for non-player stops a plain chat message + riddle + guessing.
 For Sara, `renderClue()` first shows a pending intermission/event via `renderChallenge()`, then `renderShop()` while
 `hasShop() && !state.bought`; `buy(id)` handles both outcomes, then the normal encounter + riddle + guessing screen
 follows (with an "Order confirmed" ribbon).
 `solve()` → (`waiting` if step sync is on) → next-stop screen → "We're in" → `stepReset()`.
-`flash()` shows full-screen overlays (match, countdown, +❤️). `set(patch)` saves and re-renders. Startup also runs
+`flash()` shows full-screen overlays (match, countdown, +❤️); `modal()` shows a card the player must close (Sara's passage / sold-out). `set(patch)` saves and re-renders. Startup also runs
 `pushSync()` (re-registers the push subscription) and handles `?mission=` / service-worker messages (`receiveMission()`).
 Install cards: `installSlot()` / `fillInstall()`; push card: `pushSlot()` / `fillPush()`.
 
@@ -336,7 +352,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Fix: tapping a mission notification did nothing. The service worker could hand the mission to the open admin window (same origin) instead of the game, and missions were hidden in the lobby/intro. Now: admin window is skipped, missions show in every phase except the name picker, new inbox safety net (`checkInbox`), lobby keeps polling for the game start under a mission screen; cache v23. No Worker change.
+- 2026-10-14 · this commit · Dominik (Claude) · Sarah: 10 s timeout after a pass with a different joke per guy and pass; after a like a Tinder-style chat (hi → her reply → "looking for the ice hockey guy?" → her reply → "doesn't matter, here's what I heard" + tip) before the riddle. Sara: a wrong order now shows a weird dark-romance passage or an "unfortunately sold out" notice; the real book is disguised (same look as all listings, blurb only echoes the encounter) and one real listing of another stop is mixed in as an always-sold-out decoy; the real slot varies irregularly; cache v24.
+- 2026-10-14 · `c39ea52` · Dominik (Claude) · Fix: tapping a mission notification did nothing. The service worker could hand the mission to the open admin window (same origin) instead of the game, and missions were hidden in the lobby/intro. Now: admin window is skipped, missions show in every phase except the name picker, new inbox safety net (`checkInbox`), lobby keeps polling for the game start under a mission screen; cache v23. No Worker change.
 - 2026-10-14 · `f87806e` · Dominik (Claude) · Handbook audit: state keys and phases (lobby, waiting), flow, files, new Infrastructure section (Pages, Worker, endpoints, secrets), route table now lists Sara's challenges, testing recipes (mocking the Worker, Playwright selectors), open items (real-device test, Worker redeploy, secrets), real commit hashes in the changelog.
 - 2026-10-14 · `afbd11e` · Dominik (Claude) · Host panel is installable as its own app "Heated Host" (own manifest, teal icon with star badge, own service worker, install button, opens offline); the game's app is unaffected.
 - 2026-10-14 · `e795fc9` · Dominik (Claude) · Name shortened to two words: "Heated Pages" (heated = rivalry/spice, pages = book nerd) in picker logo, page title, manifest, home-screen name, notification-settings hint, README, handbook; icon unchanged; cache v22.

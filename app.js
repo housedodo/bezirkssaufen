@@ -31,6 +31,8 @@
     sipsStep: 0,     // penalty sips added at the current stop (what "cancel" removes)
     revealed: false, // Sara: real listing revealed at the current stop
     waiting: false,  // solved this stop, waiting for the other phone (step sync)
+    timeoutUntil: 0, // Sarah: 10-second timeout after a pass (epoch ms)
+    chat: [],        // Sarah: chat with the matched teammate [{from:"him"|"her", text}]
     sips: 0,         // penalty sips for passing
     myBio: "",       // profile written by the crew
     superLikes: [],  // super likes written by the crew
@@ -78,6 +80,7 @@
   // Lobby: until the host presses "Start game" a phone that picked a name only shows "Under construction".
   const lobbyOn = () => typeof PUSH !== "undefined" && !!PUSH.workerUrl && PUSH.lobby !== false;
   let lobbyT = null, lobbyL = null, lobbyCheckNow = null, introHint = false;
+  let chatT = null; // timer for the typing indicator in Sarah's chat
   // Sara's Bookbazaar: the stop has a shop page that must be cleared before the riddle.
   const shopAt = (id) => !isDating() && typeof SARA_SHOP !== "undefined" && !!SARA_SHOP.real[id];
   const hasShop = () => shopAt(here());
@@ -102,6 +105,7 @@
 
   const ICON_PIN = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>`;
   const ICON_X = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>`;
+  const ICON_SEND = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 11.5L21 3l-6.5 18-3.2-7.3z"></path></svg>`;
   const ICON_HEART = `<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21l-8.5-8.6A5 5 0 0 1 12 5.6a5 5 0 0 1 8.5 6.8z"></path></svg>`;
 
   function toast(html, ms = 2600) {
@@ -373,7 +377,7 @@
     });
   }
 
-  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [], sipsStep: 0, revealed: false, waiting: false });
+  const stepReset = () => ({ wrong: [], hint: false, liked: false, passes: 0, evDone: false, imDone: false, ch: {}, solvedGaveUp: false, bought: false, shopWrong: [], sipsStep: 0, revealed: false, waiting: false, timeoutUntil: 0, chat: [] });
 
   // Shared "Where to next?" block (district guessing).
   function guessBlock() {
@@ -450,43 +454,45 @@
   const starsOf = (n) => "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
   const COVER_ICONS = ["🖤", "🌹", "🗡️", "🦇", "🔥", "🐺", "👑", "🕯️", "⛓️", "🌙"];
 
+  // Four listings that all look alike: the real one, two generic decoys and one real listing of ANOTHER stop
+  // (always sold out). Which is right can only be told by matching the blurb to what the local just said.
+  const PUBLISHERS = ["Dark Desires Verlag", "Nachtschatten Press", "Midnight Quill Books", "Crimson Spine Verlag"];
+  const REAL_SLOT = [2, 0, 3, 1, 1, 3, 0, 2, 3, 1, 2, 0, 1, 2, 0, 3];
   function shopOffers() {
     const N = SARA_SHOP.decoys.length;
-    const decoys = [0, 1, 2].map((k) => {
-      const i = (state.step * 3 + k) % N;
-      return { id: `d${i}`, i, real: false, ...SARA_SHOP.decoys[i] };
+    const generic = [0, 1].map((k) => {
+      const i = (state.step * 2 + k) % N;
+      return { id: `d${i}`, key: i, kind: "decoy", passage: SARA_SHOP.passages[i] || null, ...SARA_SHOP.decoys[i] };
     });
-    const real = { id: "real", real: true, ...SARA_SHOP.real[here()], ...story().stops[here()].item };
-    const offers = [...decoys];
-    offers.splice((state.step * 2 + 1) % 4, 0, real); // position of the real one varies
+    const others = ROUTE.slice(0, -1).filter((dd) => dd !== here() && SARA_SHOP.real[dd]);
+    const od = others[(state.step * 5 + 3) % others.length];
+    const cross = { id: `x${od}`, key: 100 + od, kind: "cross", passage: null, ...SARA_SHOP.real[od] };
+    const real = { id: "real", key: 200 + here(), kind: "real", ...SARA_SHOP.real[here()] };
+    const offers = [...generic, cross];
+    offers.splice(REAL_SLOT[state.step % REAL_SLOT.length], 0, real); // irregular on purpose: no pattern to learn
     return offers;
   }
+  // each failed order at a stop gets the next notice, so two in a row never repeat
+  const soldOutText = (o) => SARA_SHOP.soldOut[(state.step * 2 + state.shopWrong.length * 3 + o.key) % SARA_SHOP.soldOut.length];
 
   function offerCard(o) {
     const owned = state.shopWrong.includes(o.id);
-    const cover = o.real
-      ? `<div class="cover cover-real" aria-hidden="true"><span>${o.icon}</span></div>`
-      : `<div class="cover" style="background:linear-gradient(160deg,hsl(${(o.i * 47) % 360} 55% 24%),hsl(${(o.i * 47 + 40) % 360} 60% 10%))" aria-hidden="true"><span>${COVER_ICONS[o.i % COVER_ICONS.length]}</span></div>`;
-    const meta = o.real
-      ? `<span class="stars">★★★★★</span> <span class="rv">1 review</span>`
-      : `<span class="stars">${starsOf(4)}</span> <span class="rv">4.${(o.i * 3) % 6 + 3} (${(1000 + o.i * 371).toLocaleString("en")})</span>`;
-    const badges = o.real
-      ? `<span class="obadge only">Only 1 left</span>${state.revealed ? `<span class="obadge best">⭐ The real one</span>` : ""}`
-      : `${o.i % 3 === 0 ? `<span class="obadge spons">Sponsored</span>` : ""}${o.i % 4 === 1 ? `<span class="obadge best">Bestseller</span>` : ""}
-         <span class="obadge spice">${"🌶️".repeat(o.s)}</span>`;
+    const hue = (o.key * 47) % 360;
+    const badges = `${o.key % 3 === 0 ? `<span class="obadge spons">Sponsored</span>` : ""}${o.key % 4 === 1 ? `<span class="obadge best">Bestseller</span>` : ""}
+      <span class="obadge spice">${"🌶️".repeat(o.s)}</span>${o.kind === "real" && state.revealed ? `<span class="obadge best">⭐ The one</span>` : ""}`;
+    const label = owned ? (o.passage ? "📦 Owned" : "🚫 Sold out") : "🛒 Buy now";
     return `
-      <article class="offer ${o.real ? "offer-real" : ""} ${o.real && state.revealed ? "revealed" : ""} ${owned ? "owned" : ""}">
-        ${cover}
+      <article class="offer ${o.kind === "real" && state.revealed ? "revealed" : ""} ${owned ? "owned" : ""}">
+        <div class="cover" style="background:linear-gradient(160deg,hsl(${hue} 55% 24%),hsl(${(hue + 40) % 360} 60% 10%))" aria-hidden="true"><span>${COVER_ICONS[o.key % COVER_ICONS.length]}</span></div>
         <div class="offer-main">
           <div class="offer-badges">${badges}</div>
-          <h3 class="offer-title">${esc(o.real ? o.name : o.t)}</h3>
-          <p class="offer-by">${o.real ? "Sold by <b>Ottilie's Cart 🐾</b>" : `by ${esc(o.a)} · Dark Desires Verlag`}</p>
-          <p class="offer-desc">${o.real ? esc(o.d) : `<i>${esc(o.d)}</i>`}</p>
-          ${o.real ? `<p class="offer-rv">${esc(o.rv)}</p>` : ""}
-          <div class="offer-meta">${meta}</div>
+          <h3 class="offer-title">${esc(o.t)}</h3>
+          <p class="offer-by">by ${esc(o.a)} · ${PUBLISHERS[o.key % PUBLISHERS.length]}</p>
+          <p class="offer-desc"><i>${esc(o.d)}</i></p>
+          <div class="offer-meta"><span class="stars">${starsOf(4)}</span> <span class="rv">4.${(o.key * 3) % 6 + 3} (${(1000 + o.key * 371).toLocaleString("en")})</span></div>
           <div class="offer-buy">
             <span class="price">${o.p}</span>
-            <button class="btn buy" data-buy="${o.id}" ${owned ? "disabled" : ""}>${owned ? "📦 Owned" : "🛒 Buy now"}</button>
+            <button class="btn buy" data-buy="${o.id}" ${owned ? "disabled" : ""}>${label}</button>
           </div>
         </div>
       </article>`;
@@ -525,25 +531,58 @@
     $("#reveal")?.addEventListener("click", () => { set({ revealed: true, hearts: state.hearts - COSTS.reveal }); toast(`🔍 Listing revealed · −${COSTS.reveal} ${unit()}`); });
   }
 
+  // Centered card the player has to close (used for passages and "sold out").
+  function modal(html, label = "Close") {
+    return new Promise((resolve) => {
+      const o = document.createElement("div");
+      o.className = "modal-overlay";
+      o.setAttribute("role", "dialog");
+      o.innerHTML = `<div class="modal-card">${html}<button class="btn primary" id="modal-ok">${label}</button></div>`;
+      document.body.appendChild(o);
+      requestAnimationFrame(() => o.classList.add("show"));
+      o.querySelector("#modal-ok").addEventListener("click", () => {
+        o.classList.remove("show");
+        setTimeout(() => { o.remove(); resolve(); }, 220);
+      });
+    });
+  }
+
+  let buying = false;
   async function buy(id) {
     const o = shopOffers().find((x) => x.id === id);
-    if (!o || state.bought) return;
-    buzz([30, 40, 30]);
-    if (o.real) {
-      await flash(`
-        <p class="match-title">Order confirmed 📦</p>
-        <p class="match-sub">Right book. Ottilie's parcel is on its way — and it's already here.</p>`, 1500, "boost");
-      set({ bought: true });
-      window.scrollTo({ top: 0 });
-      toast(`<span class="toast-icon">${o.icon}</span> Added to journal: ${o.name}`);
-    } else {
+    if (!o || state.bought || buying) return;
+    buying = true;
+    try {
+      buzz([30, 40, 30]);
+      if (o.kind === "real") {
+        const item = story().stops[here()].item;
+        await flash(`
+          <p class="match-title">Order confirmed 📦</p>
+          <p class="match-sub">Right book. Ottilie's parcel is on its way — and it's already here.</p>`, 1500, "boost");
+        set({ bought: true });
+        window.scrollTo({ top: 0 });
+        toast(`<span class="toast-icon">${item.icon}</span> Added to journal: ${item.name}`);
+        return;
+      }
       const n = state.shopWrong.length + 1;
+      const sips = `🍺 Wrong order: ${n} ${n === 1 ? "sip" : "sips"}`;
       buzz(150);
-      await flash(`
-        <p class="match-title">Delivered 📦</p>
-        <p class="match-sub">“${esc(o.t)}” is now yours. Not a clue. A lifestyle.<br>🍺 ${n} ${n === 1 ? "sip" : "sips"}</p>`, 2200, "boost");
-      set({ shopWrong: [...state.shopWrong, id], haul: [...state.haul, o.t], sips: state.sips + n, sipsStep: state.sipsStep + n });
-    }
+      if (o.passage) {
+        await modal(`
+          <p class="modal-kicker">📦 Delivered</p>
+          <h2 class="modal-title">${esc(o.t)}</h2>
+          <p class="modal-by">by ${esc(o.a)}</p>
+          <blockquote class="passage">${esc(o.passage)}</blockquote>
+          <p class="modal-sips">Lovely. Not what you needed. ${sips}</p>`, "Close the book");
+      } else {
+        await modal(`
+          <p class="modal-kicker">📭 Order failed</p>
+          <h2 class="modal-title">${esc(o.t)}</h2>
+          <p class="soldout-msg">${esc(soldOutText(o))}</p>
+          <p class="modal-sips">${sips}</p>`, "Back to the shop");
+      }
+      set({ shopWrong: [...state.shopWrong, id], haul: o.passage ? [...state.haul, o.t] : state.haul, sips: state.sips + n, sipsStep: state.sipsStep + n });
+    } finally { buying = false; }
   }
 
   // ── Sarah: dating-app clue screen ──────────────────────────
@@ -591,6 +630,9 @@
     if (stop.intermission && !state.imDone) return renderChallenge(stop.intermission, "intermission");
     if (stop.event && !state.evDone) return renderChallenge(stop.event, "event");
 
+    // 1a) Timeout after a pass: 10 seconds, a joke, no buttons.
+    if (p && !state.liked && state.timeoutUntil > Date.now()) return renderTimeout(p, d);
+
     // 1) A teammate's profile that hasn't been liked yet: swipe screen.
     if (p && !state.liked) {
       app.innerHTML = `
@@ -608,7 +650,7 @@
         buzz(80);
         $("#profile").classList.add("swipe-left");
         const n = state.passes + 1;
-        setTimeout(() => { set({ passes: n, sips: state.sips + n, sipsStep: state.sipsStep + n }); window.scrollTo({ top: 0 }); }, 320);
+        setTimeout(() => { set({ passes: n, sips: state.sips + n, sipsStep: state.sipsStep + n, timeoutUntil: Date.now() + 10000 }); window.scrollTo({ top: 0 }); }, 320);
       });
       bindCancel();
       $("#like").addEventListener("click", () => {
@@ -626,17 +668,11 @@
       return;
     }
 
-    // 2) Liked teammate, or a regular message from someone in the district.
-    const header = p
-      ? `<div class="matched">
-           <img src="${p.face || p.photo}" alt="" class="matched-photo">
-           <div class="matched-main">
-             <span class="matched-name">${esc(p.name)} <span class="badge">Matched</span></span>
-             <span class="matched-sub">#${p.number} · ${esc(p.position)} · ${DISTRICTS[d].name}</span>
-           </div>
-         </div>
-         <div class="bubble">${p.bio}</div>`
-      : `<div class="matched">
+    // 2a) Liked teammate: the chat (the riddle only appears at the end of it).
+    if (p) return renderChat(p, d);
+
+    // 2) A regular message from someone in the district.
+    const header = `<div class="matched">
            <span class="avatar" aria-hidden="true">${stop.from ? stop.from.avatar : "💬"}</span>
            <div class="matched-main">
              <span class="matched-name">${stop.from ? esc(stop.from.name) : "New message"}</span>
@@ -647,7 +683,7 @@
 
     app.innerHTML = `
       <section class="screen clue dating">
-        <p class="match-kicker"><span class="dot"></span> ${p ? "It's a match" : "New message"} · ${DISTRICTS[d].roman} ${DISTRICTS[d].name}</p>
+        <p class="match-kicker"><span class="dot"></span> New message · ${DISTRICTS[d].roman} ${DISTRICTS[d].name}</p>
         <article class="chat">
           ${header}
           <p class="item"><span class="item-icon">${stop.item.icon}</span> ${stop.item.name}</p>
@@ -656,6 +692,98 @@
         ${guessBlock()}
       </section>`;
     bindGuess();
+  }
+
+  // ── Sarah: timeout after a pass ────────────────────────────
+  function renderTimeout(p, d) {
+    const lines = p.passLines || ["Ten seconds. Think about what you've done."];
+    const line = lines[(state.passes - 1) % lines.length];
+    const left0 = Math.max(0, state.timeoutUntil - Date.now());
+    app.innerHTML = `
+      <section class="screen clue dating timeout">
+        <p class="match-kicker"><span class="dot"></span> Timeout · ${esc(p.name)} is not impressed</p>
+        <article class="timeout-card">
+          <p class="timeout-line">${line}</p>
+          <p class="pass-line">${passLine(state.passes)}</p>
+          ${cancelBtn()}
+        </article>
+        <div class="timeout-photo">
+          ${profileCard(p, d)}
+          <div class="timeout-lock"><span>⏱</span><b id="tclock">${Math.ceil(left0 / 1000)}</b></div>
+        </div>
+      </section>`;
+    bindCancel();
+    tick = setInterval(() => {
+      const left = state.timeoutUntil - Date.now();
+      const el = $("#tclock");
+      if (el) el.textContent = Math.max(0, Math.ceil(left / 1000));
+      if (left <= 0) { clearInterval(tick); tick = null; buzz([60, 40, 60]); set({ timeoutUntil: 0 }); window.scrollTo({ top: 0 }); }
+    }, 250);
+  }
+
+  // ── Sarah: Tinder-style chat with the match ────────────────
+  // He texts "hi" → she answers anything → he asks if she's looking for the ice hockey guy → she answers anything →
+  // "doesn't matter, here's what I heard" + his bio text → only then the riddle and the district guess.
+  function renderChat(p, d) {
+    const s = story();
+    const stop = s.stops[d];
+    const c = p.chat || { hi: "hey", ask: "so… looking for the ice hockey guy?", reveal: "doesn't matter. here's what I heard:" };
+    const script = [c.hi, c.ask, c.reveal, p.bio];
+    const msgs = state.chat;
+    const him = msgs.filter((m) => m.from === "him").length;
+    const her = msgs.filter((m) => m.from === "her").length;
+    const complete = him >= script.length;
+    const typing = !complete && (him === 0 || (him === 1 && her >= 1) || (him === 2 && her >= 2) || him === 3);
+    const myTurn = !complete && !typing;
+
+    app.innerHTML = `
+      <section class="screen clue dating chatpage ${complete ? "chat-done" : ""}">
+        <header class="chat-head">
+          <img class="chat-ava" src="${p.face || p.photo}" alt="">
+          <div class="chat-who">
+            <span class="chat-name">${esc(p.name)} <span class="verified" aria-hidden="true">✔</span></span>
+            <span class="chat-online"><i></i> Online now · #${p.number} · ${DISTRICTS[d].name}</span>
+          </div>
+          <span class="badge">Matched</span>
+        </header>
+        <div class="chat-msgs" id="chat-msgs">
+          <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other</p>
+          ${msgs.map((m, i) => `<div class="msg ${m.from}${i === msgs.length - 1 ? " last" : ""}"><span>${m.from === "her" ? esc(m.text) : m.text}</span></div>`).join("")}
+          ${her && !complete && typing ? `<p class="chat-seen">Seen ✓✓</p>` : ""}
+          ${typing ? `<div class="msg him typing last" aria-label="${esc(p.name)} is typing"><span><i></i><i></i><i></i></span></div>` : ""}
+        </div>
+        ${myTurn ? `
+        <form class="composer" id="composer" autocomplete="off">
+          <input id="msg" type="text" maxlength="200" enterkeyhint="send" placeholder="${her === 0 ? `Say hi back to ${esc(p.name)}…` : "Type a message…"}" aria-label="Message">
+          <button class="send" aria-label="Send">${ICON_SEND}</button>
+        </form>` : ""}
+        ${complete ? `
+        <p class="item"><span class="item-icon">${stop.item.icon}</span> ${stop.item.name}</p>
+        ${riddleCard(s, stop)}
+        ${guessBlock()}` : ""}
+      </section>`;
+
+    const last = app.querySelector(".chat-msgs .last");
+    if (last && msgs.length) last.scrollIntoView({ block: "center", behavior: "smooth" });
+
+    if (typing) {
+      chatT = setTimeout(() => {
+        chatT = null;
+        buzz(30);
+        set({ chat: [...state.chat, { from: "him", text: script[him] }] });
+      }, him === 0 ? 1300 : him === 3 ? 2300 : 1700);
+    }
+    if (myTurn) {
+      $("#composer").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const inp = $("#msg");
+        const text = inp.value.trim();
+        if (!text) { inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); return; }
+        buzz(20);
+        set({ chat: [...state.chat, { from: "her", text }] });
+      });
+    }
+    if (complete) bindGuess();
   }
 
   // ── Sarah: challenges ──────────────────────────────────────
@@ -1034,6 +1162,7 @@
   function render() {
     if (tick) { clearInterval(tick); tick = null; }
     if (pollT) { clearInterval(pollT); pollT = null; }
+    if (chatT) { clearTimeout(chatT); chatT = null; }
     if (lobbyT) { clearInterval(lobbyT); lobbyT = null; }
     if (lobbyL) { clearInterval(lobbyL); lobbyL = null; }
     lobbyCheckNow = null;
