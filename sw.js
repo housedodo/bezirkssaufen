@@ -1,12 +1,14 @@
 // Offline cache: the whole game works without signal once opened once.
 // Bump VERSION whenever you change story.js or any other file.
-const VERSION = "bezirk-v9";
+const VERSION = "bezirk-v10";
+importScripts("push-config.js"); // self.PUSH = { workerUrl, vapidPublicKey }
 const CORE = [
   "./",
   "index.html",
   "styles.css",
   "app.js",
   "story.js",
+  "push-config.js",
   "manifest.webmanifest",
   "icons/icon.svg",
   "icons/icon-192.png",
@@ -65,4 +67,34 @@ self.addEventListener("fetch", (e) => {
       })
       .catch(() => caches.match(req).then((hit) => hit || caches.match("index.html")))
   );
+});
+
+// ── Mission alerts (Web Push) ───────────────────────────────────────────────
+// The push itself carries no text. We ask the worker what the mission is, then show it.
+self.addEventListener("push", (e) => {
+  e.waitUntil((async () => {
+    let msg = { title: "New mission 🎯", body: "Open the app." };
+    try {
+      const sub = await self.registration.pushManager.getSubscription();
+      const res = await fetch(`${self.PUSH.workerUrl}/inbox`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ endpoint: sub && sub.endpoint }),
+      });
+      if (res.ok) msg = await res.json();
+    } catch (_) { /* offline: show the generic text, iOS requires a visible notification */ }
+    await self.registration.showNotification(msg.title, {
+      body: msg.body,
+      icon: "icons/icon-192.png",
+      badge: "icons/icon-192.png",
+      tag: "mission",
+      renotify: true,
+    });
+  })());
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) =>
+    list.length ? list[0].focus() : self.clients.openWindow("./")));
 });

@@ -605,3 +605,9 @@ body[data-theme="paper"] .field { background: var(--surface); }
 body[data-theme="paper"] .clock { font-family: var(--display); font-weight: 600; }
 body[data-theme="paper"] .count-num { font-family: var(--display); }
 body[data-theme="paper"] .match-overlay.count { background: rgba(43, 33, 24, .97); }
+
+/* ── Mission alerts card ───────────────────────────────────── */
+.push-card { margin: 14px 0; }
+.push-card p { margin: 0 0 6px; }
+.push-card .push-note { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+.push-card .btn { margin-top: 6px; }

@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Admin page + push notifications (Cloudflare Worker, Web Push) | new `worker/`, `admin.html`, `push-config.js`; `app.js` (push card), `sw.js` (push handler), `styles.css` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -89,6 +89,12 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
 - Fully played through in a headless phone browser (390×844) after each change: no JS errors, both stories end in
   Lend.
 
+- **Mission alerts** (host → phone notifications): `admin.html` (host panel, PIN-protected via the worker) →
+  Cloudflare Worker in `worker/` → Web Push to each girl's iPhone (installed PWA, iOS 16.4+). Push is sent empty
+  and the service worker fetches the text from the worker (`/inbox`), so no payload encryption. Quick missions on the
+  admin page = every `confirm`/`timer` challenge from both stories, plus free text. Inactive until
+  `push-config.js` is filled in (the app hides the alerts card). Setup: `worker/README.md`.
+
 ### Not done / ideas
 See [Open items](#open-items).
 
@@ -102,6 +108,9 @@ See [Open items](#open-items).
 | `story.js` | **All content**: `DISTRICTS`, `ROUTE`, `STOPS`, `HINT_AFTER`, `GIVE_UP_AFTER`, `CHALLENGES`, `STORIES`, `SARA_SHOP` (end of file). |
 | `app.js` | All logic and rendering (one IIFE, template strings into `#app`). |
 | `styles.css` | Base + three themes via `body[data-theme]`: `night` (picker), `dating` (Sarah), `paper` (Sara). `ice` theme CSS is legacy/unused. |
+| `admin.html` | Host panel (not linked from the app, `noindex`). Needs the worker + PIN. |
+| `push-config.js` | `self.PUSH = {workerUrl, vapidPublicKey}`; read by page and service worker. Empty = alerts off. |
+| `worker/` | Cloudflare Worker (`worker.js`), VAPID key generator, `wrangler.toml`, setup guide. Not loaded by the game. |
 | `sw.js` | Service worker, cache name `VERSION`, list of files cached for offline use (incl. all player images). |
 | `manifest.webmanifest`, `icons/` | PWA install metadata and icons. |
 | `img/players/<name>.jpg` | Full profile photos, 716 px wide (cut from the user's 2×5 image grid, no logos). |
@@ -207,6 +216,7 @@ There are no automated tests in the repo. Before pushing:
   first. The app uses Geidorf 16:00 / Mariatrost 17:00. Confirm.
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
+- **Mission alerts** need the one-time Cloudflare setup in `worker/README.md` and a real-iPhone test (only unit-tested with mocks; Web Push can't run headless). Do it the day before.
 - **GitHub Pages** not confirmed enabled yet (Settings → Pages → `main` / root).
 - Sara's challenge texts (dramatic-reading lines, decoy titles) are PG-13 parodies — tone up/down as wanted.
 - Sara's timers (45 s / 60 s) and the 90 s blurb are untested on a real phone with real hands; adjust `seconds` if too long/short.
@@ -222,7 +232,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herb impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
+- 2026-10-14 · this commit · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.
+- 2026-10-14 · `9d1bfbb` · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herb impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
 - 2026-10-14 · `92f3b2a` · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
 - 2026-10-14 · `e86a442` · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Added `CLAUDE.md` project handbook with collaboration rules.

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Bezirkssaufen · Host</title>
+  <style>
+    :root { --bg:#14171f; --card:#1e232e; --line:#2f3646; --text:#eef1f7; --muted:#97a0b5; --accent:#ffb347; --ok:#5fd38d; --bad:#ff6b6b; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.45 system-ui,-apple-system,sans-serif; padding:16px 16px 60px; max-width:640px; margin-inline:auto; }
+    h1 { font-size:22px; margin:6px 0 2px; } h2 { font-size:15px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:26px 0 8px; }
+    .sub { color:var(--muted); margin:0 0 14px; font-size:14px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+    input, textarea { width:100%; background:var(--bg); color:var(--text); border:1.5px solid var(--line); border-radius:10px; padding:11px 12px; font:inherit; }
+    textarea { min-height:70px; resize:vertical; } input + textarea, textarea + button, input + input { margin-top:8px; }
+    button { font:inherit; border:0; border-radius:10px; padding:12px 14px; background:var(--accent); color:#2a1d00; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.5; }
+    .who { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; position:sticky; top:0; background:var(--bg); padding:8px 0; z-index:2; }
+    .who button { background:var(--card); color:var(--text); border:2px solid var(--line); }
+    .who button.on { border-color:var(--accent); background:#33280f; color:var(--accent); }
+    .status { font-size:14px; color:var(--muted); }
+    .status b { color:var(--text); }
+    .list { display:grid; gap:8px; }
+    .mission { text-align:left; background:var(--card); color:var(--text); border:1px solid var(--line); font-weight:400; display:block; width:100%; }
+    .mission b { display:block; } .mission span { color:var(--muted); font-size:13.5px; }
+    .mission small { color:var(--accent); font-size:12px; }
+    #log { font-size:14px; display:grid; gap:4px; } .good { color:var(--ok); } .err { color:var(--bad); }
+  </style>
+</head>
+<body>
+  <h1>🎯 Host panel</h1>
+  <p class="sub">Send a mission notification to a phone. Only works with your PIN.</p>
+
+  <div class="card">
+    <input id="pin" type="password" inputmode="numeric" placeholder="Admin PIN" autocomplete="off">
+    <p class="status" id="status" style="margin:8px 0 0">Enter the PIN to see which phones are registered.</p>
+  </div>
+
+  <h2>Send to</h2>
+  <div class="who" id="who">
+    <button data-to="sarah">Sarah</button>
+    <button data-to="sara">Sara</button>
+    <button data-to="both">Both</button>
+  </div>
+
+  <h2>Your own mission</h2>
+  <div class="card">
+    <input id="title" placeholder="Title, e.g. ⚡ Mission: dance on the table" maxlength="120">
+    <textarea id="body" placeholder="Details (optional)" maxlength="400"></textarea>
+    <button id="send">Send</button>
+  </div>
+
+  <h2>Quick missions</h2>
+  <p class="sub">Physical dares from the game. Tap one to send it to the selected player(s).</p>
+  <div class="list" id="presets"></div>
+
+  <h2>Sent</h2>
+  <div id="log"><span class="status">Nothing sent yet.</span></div>
+
+  <script src="story.js"></script>
+  <script src="push-config.js"></script>
+  <script>
+  (() => {
+    const $ = (s) => document.querySelector(s);
+    const cfg = self.PUSH || {};
+    let to = null;
+
+    const pinEl = $("#pin");
+    try { pinEl.value = localStorage.getItem("bezirk.adminpin") || ""; } catch (_) {}
+    const call = async (path, method, body) => {
+      if (!cfg.workerUrl) throw new Error("push-config.js has no workerUrl yet");
+      const r = await fetch(cfg.workerUrl + path, {
+        method, headers: { authorization: "Bearer " + pinEl.value, "content-type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || r.status);
+      return j;
+    };
+
+    async function refreshStatus() {
+      const el = $("#status");
+      if (!pinEl.value) return;
+      try { localStorage.setItem("bezirk.adminpin", pinEl.value); } catch (_) {}
+      try {
+        const { devices } = await call("/status", "GET");
+        el.innerHTML = `Registered phones: Sarah <b>${devices.sarah}</b> · Sara <b>${devices.sara}</b>`;
+      } catch (e) { el.innerHTML = `<span class="err">${e.message}</span>`; }
+    }
+    pinEl.addEventListener("change", refreshStatus);
+    refreshStatus();
+
+    document.querySelectorAll("#who button").forEach((b) => b.addEventListener("click", () => {
+      to = b.dataset.to;
+      document.querySelectorAll("#who button").forEach((x) => x.classList.toggle("on", x === b));
+    }));
+
+    const name = { sarah: "Sarah", sara: "Sara", both: "both of them" };
+    async function send(title, body) {
+      if (!to) return alert("Pick Sarah, Sara or Both first.");
+      if (!title.trim()) return;
+      if (!confirm(`Send to ${name[to]}?\n\n${title}${body ? "\n" + body : ""}`)) return;
+      const row = document.createElement("div");
+      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      try {
+        const { result } = await call("/send", "POST", { to, title, body });
+        const parts = Object.entries(result).map(([w, r]) => `${name[w]}: ${r.sent}/${r.devices} phone${r.devices === 1 ? "" : "s"}`);
+        row.innerHTML = `<span class="good">✓ ${time}</span> ${title} → ${parts.join(", ")}`;
+      } catch (e) { row.innerHTML = `<span class="err">✗ ${time}</span> ${title} — ${e.message}`; }
+      const log = $("#log");
+      if (log.querySelector(".status")) log.innerHTML = "";
+      log.prepend(row);
+      refreshStatus();
+    }
+    $("#send").addEventListener("click", async (e) => {
+      e.target.disabled = true;
+      await send($("#title").value, $("#body").value);
+      e.target.disabled = false;
+    });
+
+    // Quick missions: the "do something" challenges from both stories (quizzes/writing need the app screens).
+    const list = $("#presets");
+    if (typeof CHALLENGES !== "undefined") {
+      Object.entries(CHALLENGES)
+        .filter(([, c]) => c.type === "confirm" || c.type === "timer")
+        .forEach(([key, c]) => {
+          const sara = key.startsWith("s_");
+          const b = document.createElement("button");
+          b.className = "mission";
+          b.innerHTML = `<small>${sara ? "Sara's book theme" : "Sarah's hockey theme"}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
+          b.addEventListener("click", () => send(`${c.icon} Mission: ${c.title}`, c.story));
+          list.appendChild(b);
+        });
+    }
+  })();
+  </script>
+</body>
+</html>

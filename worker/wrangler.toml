@@ -1,0 +1,14 @@
+name = "bezirkssaufen-push"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# 1) wrangler kv namespace create KV   → paste the id below
+kv_namespaces = [{ binding = "KV", id = "PASTE_KV_NAMESPACE_ID" }]
+
+[vars]
+VAPID_PUBLIC = "PASTE_PUBLIC_KEY_FROM_gen-vapid.mjs"
+VAPID_SUBJECT = "mailto:domi.dominkovic@gmail.com"
+
+# Secrets (not in this file):
+#   wrangler secret put ADMIN_PIN
+#   wrangler secret put VAPID_PRIVATE_JWK

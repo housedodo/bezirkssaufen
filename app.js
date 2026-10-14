@@ -138,6 +138,67 @@
     }).join("");
   }
 
+  // ── Mission alerts (Web Push) ──────────────────────────────
+  // Needs push-config.js to be filled in (see worker/README.md). Otherwise everything here stays hidden.
+  const pushCfg = () => (typeof PUSH !== "undefined" && PUSH.workerUrl && PUSH.vapidPublicKey ? PUSH : null);
+  const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  const isStandalone = () => window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+  const keyBytes = (b64) => {
+    const raw = atob(b64.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(b64.length / 4) * 4, "="));
+    return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  };
+
+  async function sendSubscription(sub) {
+    const r = await fetch(`${pushCfg().workerUrl}/subscribe`, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ who: state.char, sub: sub.toJSON() }),
+    });
+    if (!r.ok) throw new Error("subscribe failed");
+  }
+  async function enablePush() {
+    if (await Notification.requestPermission() !== "granted") return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) ||
+      (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(pushCfg().vapidPublicKey) }));
+    await sendSubscription(sub);
+  }
+  // Quietly re-register on every start (subscriptions can change); also tells the worker which player this phone is.
+  async function pushSync() {
+    try {
+      if (!pushCfg() || !pushSupported() || !state.char || Notification.permission !== "granted") return;
+      const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+      if (sub) await sendSubscription(sub);
+    } catch (_) {}
+  }
+
+  // Fills `el` with the right state: add to home screen / turn on / on / blocked.
+  async function fillPush(el) {
+    if (!el || !pushCfg() || !state.char) return;
+    let html;
+    if (!pushSupported() || !isStandalone()) {
+      html = `<p><b>🔔 Mission alerts</b></p>
+        <p class="push-note">Your host can send you surprise missions. On iPhone this only works from the home screen:
+        tap <b>Share</b> → <b>Add to Home Screen</b>, open the app from the new icon, then come back to this screen.</p>`;
+    } else if (Notification.permission === "denied") {
+      html = `<p><b>🔔 Mission alerts are blocked</b></p>
+        <p class="push-note">Turn them back on in iPhone Settings → Notifications → Bezirkssaufen.</p>`;
+    } else if (Notification.permission === "granted") {
+      html = `<p><b>🔔 Mission alerts are on</b> ✅</p>
+        <p class="push-note">You'll get a notification when your host sends a mission.</p>`;
+    } else {
+      html = `<p><b>🔔 Mission alerts</b></p>
+        <p class="push-note">Your host can send you surprise missions during the day. Turn on notifications so you don't miss them.</p>
+        <button class="btn primary" data-push-on>Turn on mission alerts</button>`;
+    }
+    el.innerHTML = html;
+    el.querySelector("[data-push-on]")?.addEventListener("click", async (ev) => {
+      ev.target.disabled = true;
+      try { await enablePush(); } catch (_) { toast("Couldn't turn on alerts. Check your connection and try again."); }
+      fillPush(el);
+    });
+  }
+  const pushSlot = () => (pushCfg() && state.char ? `<div class="card push-card" data-push-slot></div>` : "");
+
   // ── Screens ────────────────────────────────────────────────
   function renderPick() {
     const card = (key) => {
@@ -184,9 +245,11 @@
           <h2>How it works</h2>
           <ol>${steps.map((t) => `<li>${t}</li>`).join("")}</ol>
         </div>
+        ${pushSlot()}
         <p class="start-note">You start where you are: <b>${label(first)}</b>${stopInfo(first) ? ` — ${stopInfo(first).venue}, ca. ${stopInfo(first).time}` : ""}.</p>
         <button class="btn primary big" id="start">We're in the ${DISTRICTS[first].name} 🍻</button>
       </section>`;
+    fillPush(app.querySelector("[data-push-slot]"));
     $("#start").addEventListener("click", () => {
       set({ phase: "clue", step: 0, ...stepReset() });
       announceItem();
@@ -738,6 +801,10 @@
             <span class="j-note">${note}</span>
           </li>`;
         }).join("")}</ol>`;
+    if (pushCfg()) {
+      $("#drawer-body").insertAdjacentHTML("beforeend", pushSlot());
+      fillPush($("#drawer-body").querySelector("[data-push-slot]"));
+    }
     $("#scrim").hidden = false;
     $("#drawer").hidden = false;
     requestAnimationFrame(() => document.body.classList.add("drawer-open"));
@@ -768,6 +835,7 @@
   }
 
   render();
+  pushSync();
 
   // ── Offline support ────────────────────────────────────────
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
