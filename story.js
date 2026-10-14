@@ -996,3 +996,19 @@ const SARAH_FLAGS = {
   ]
 };
 Object.entries(SARAH_FLAGS).forEach(([d, f]) => { STORIES.sarah.stops[d].profile.chat.flags = f; });
+
+// ─────────────────────── SARAH: a genuine-but-weird question before the red flags ───────────────────────
+// Chat order: `hi`, then this question (she answers), then the two red flags, then `ask` (she answers), `reveal`, the tip.
+const SARAH_QUESTIONS = {
+  "1": "random question: do you also feel sorry for the last olive at the bottom of the glass? genuinely curious 🫒",
+  "6": "do you think my hair has its own personality? be honest. I've started saying good morning to it.",
+  "7": "weird question: when you're sad, what do you do? I talk to my gloves. they listen.",
+  "8": "serious question: what does silence sound like to you? I've been trying to record it for weeks.",
+  "10": "honest question: do you cry at the end of movies? I do. every time. even the cartoons about cars.",
+  "3": "what's the kindest thing a stranger ever did for you? mine held my hand during the stitches. and gave me a lollipop. I'm 33. I cried.",
+  "12": "what's your midnight comfort snack? mine is plain rice cakes. I eat them at the window like a gentleman.",
+  "14": "what's the last thing that made you stop and just stare? mine was a pigeon in perfect light. eleven minutes.",
+  "17": "do you believe things happen for a reason? I lost a pool game to a nine-year-old and I'm still looking for it.",
+  "5": "what do you miss most from when you were small? me: my grandmother's soup. and my tooth. I miss both."
+};
+Object.entries(SARAH_QUESTIONS).forEach(([d, t]) => { STORIES.sarah.stops[d].profile.chat.q = t; });

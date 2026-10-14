@@ -751,9 +751,9 @@
     const s = story();
     const stop = s.stops[d];
     const c = p.chat || { hi: "hey", ask: "so… looking for the ice hockey guy?", reveal: "doesn't matter. here's what I heard:" };
-    // hi (she answers) → red flags → ask (she answers) → "doesn't matter, here's what I heard" → his tip
+    // hi → a warm-but-weird question (she answers) → red flags → ask (she answers) → "doesn't matter, here's what I heard" → his tip
     const script = [
-      { t: c.hi, reply: true },
+      ...(c.q ? [{ t: c.hi }, { t: c.q, reply: true }] : [{ t: c.hi, reply: true }]),
       ...(c.flags || []).map((t) => ({ t, flag: true })),
       { t: c.ask, reply: true },
       { t: c.reveal },
@@ -785,7 +785,7 @@
         </div>
         ${myTurn ? `
         <form class="composer" id="composer" autocomplete="off">
-          <input id="msg" type="text" maxlength="200" enterkeyhint="send" placeholder="${her === 0 ? `Say hi back to ${esc(p.name)}…` : "Type a message…"}" aria-label="Message">
+          <input id="msg" type="text" maxlength="200" enterkeyhint="send" placeholder="${her === 0 ? `Answer ${esc(p.name)}…` : "Type a message…"}" aria-label="Message">
           <button class="send" aria-label="Send">${ICON_SEND}</button>
         </form>` : ""}
         ${complete ? `

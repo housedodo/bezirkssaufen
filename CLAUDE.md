@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Sarah's chat: a genuine-but-weird question first, red flags after her answer | `story.js` (end: `SARAH_QUESTIONS`), `app.js` (chat), `sw.js` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
