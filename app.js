@@ -548,11 +548,11 @@
 
 
   // ── Sara: replacement games instead of the shop (SARA_ALT) ──
-  async function altWrong(html) {
+  async function altWrong(html, keep = false) {
     const n = state.shopWrong.length + 1;
     buzz(150);
     await modal(`<p class="modal-kicker">🍺 Not quite</p>${html}<p class="modal-sips">Wrong: ${n} ${n === 1 ? "sip" : "sips"}</p>`, "Try again");
-    set({ shopWrong: [...state.shopWrong, "w" + n], sips: state.sips + n, sipsStep: state.sipsStep + n, alt: {} });
+    set({ shopWrong: [...state.shopWrong, "w" + n], sips: state.sips + n, sipsStep: state.sipsStep + n, alt: keep ? state.alt : {} });
   }
   async function altDone(readHtml) {
     const a = SARA_ALT[here()];
@@ -572,11 +572,12 @@
     const n = state.shopWrong.length;
     const alt = state.alt || {};
     let body = "";
-    if (a.kind === "pages") {
-      const seq = alt.seq || [];
-      body = `
-        <ol class="alt-seq">${seq.map((p) => `<li>${esc(a.pieces.find((x) => x.pos === p).t)}</li>`).join("") || `<li class="alt-empty">Tap the strips in the right order…</li>`}</ol>
-        <div class="alt-pieces">${a.pieces.map((p) => `<button class="q-opt" data-piece="${p.pos}" ${seq.includes(p.pos) ? "disabled" : ""}>${esc(p.t)}</button>`).join("")}</div>`;
+    if (a.kind === "science") {
+      const qi = alt.qi || 0;
+      const q = a.qs[qi];
+      body = `<p class="q-count">Question ${qi + 1} of ${a.qs.length}</p><p class="alt-q">${esc(q.q)}</p>
+        <p class="herbert-tip">🐈 Herbert says: “${esc(q.herbert)}” <i>(Herbert is never right)</i></p>
+        <div class="alt-pieces">${q.opts.map((o, i) => `<button class="q-opt" data-alt-opt="${i}" data-ok="${i === q.ok ? 1 : 0}">${esc(o)}</button>`).join("")}</div>`;
     } else if (a.kind === "judge") {
       body = `<p class="alt-q">${esc(a.q)}</p><div class="alt-pieces">${a.opts.map((o, i) => `<button class="q-opt" data-alt-opt="${i}" data-ok="${o.ok ? 1 : 0}"><b>${esc(o.who)}:</b> ${esc(o.t)}</button>`).join("")}</div>`;
     } else if (a.kind === "postcards") {
@@ -613,15 +614,14 @@
         <p class="locked">Solve it and Ottilie's note arrives.</p>
       </section>`;
     bindCancel();
-    app.querySelectorAll("[data-piece]").forEach((b) => b.addEventListener("click", async () => {
-      const seq = [...(state.alt.seq || []), Number(b.dataset.piece)];
-      if (seq.length < a.pieces.length) return set({ alt: { seq } });
-      if (seq.every((p, i) => p === i)) {
-        set({ alt: { seq } });
-        await altDone(`<p class="modal-kicker">📣 Read the page out loud to the table</p><h2 class="modal-title">${esc(a.title)}</h2><blockquote class="passage">${a.pieces.slice().sort((x, y) => x.pos - y.pos).map((p) => esc(p.t)).join(" ")}</blockquote>`);
-      } else await altWrong(`<h2 class="modal-title">${esc(a.title)}</h2><p class="soldout-msg">That is not the order the driver told it. The strips fly back into a pile.</p>`);
-    }));
     app.querySelectorAll("[data-alt-opt]").forEach((b) => b.addEventListener("click", async () => {
+      if (a.kind === "science") {
+        const qi = state.alt.qi || 0, q = a.qs[qi], i = Number(b.dataset.altOpt);
+        if (i !== q.ok) await altWrong(`<h2 class="modal-title">${esc(a.title)}</h2><p class="soldout-msg">${esc(q.why)}</p>`, true);
+        else if (qi + 1 >= a.qs.length) await altDone();
+        else { buzz([30, 40, 30]); set({ alt: { qi: qi + 1 } }); }
+        return;
+      }
       const o = a.opts[Number(b.dataset.altOpt)];
       if (o.ok) await altDone(); else await altWrong(`<h2 class="modal-title">${esc(a.title)}</h2><p class="soldout-msg">${esc(o.why)}</p>`);
     }));
@@ -970,6 +970,19 @@
           ? `<p class="clock" id="clock">${mmss(left)}</p><p class="clock-sub">${c.clockSub || "No talking. No phone. Just vibes."}</p>`
           : `<p class="clock done">0:00</p><button class="btn primary big" id="confirm">${c.doneLabel || "Time's up — collect your likes"}</button>`;
       }
+    } else if (c.type === "tap") {
+      const over = ch.endsAt && Date.now() >= ch.endsAt;
+      if (ch.result === "win") {
+        body = `<p class="tap-lose">🚴 ${ch.taps} taps. The Zamboni lost!</p><button class="btn primary big" id="confirm">${c.doneLabel}</button>`;
+      } else if (ch.result === "lose" || over) {
+        body = `<p class="tap-lose">🧊 The Zamboni won (${ch.taps || 0} of ${c.goal} taps). Everybody at the table drinks a sip. Then try again.</p><button class="btn primary big" id="tapretry">🔄 Try again</button>`;
+      } else if (!ch.endsAt) {
+        body = `<button class="btn primary big" id="tapstart">🏁 Ready? Start the race · ${c.seconds} s</button>`;
+      } else {
+        body = `<div class="tap-track"><div class="tap-lane"><span id="tap-bike" class="tap-rider" style="left:0%">🚴</span></div><div class="tap-lane"><span id="tap-zam" class="tap-rider" style="left:0%">🚜</span></div></div>
+          <p class="tap-count"><b id="tap-n">0</b> / ${c.goal} taps</p>
+          <button class="btn primary big tap-btn" id="tapbtn">🚴 PEDAL!</button>`;
+      }
     } else if (c.type === "write") {
       const started = !!ch.endsAt;
       const left = started ? ch.endsAt - Date.now() : c.seconds * 1000;
@@ -1060,6 +1073,27 @@
       complete(c, mode);
     });
 
+    // bike vs Zamboni: taps are counted locally (no re-render per tap)
+    $("#tapstart")?.addEventListener("click", () => setCh({ endsAt: Date.now() + c.seconds * 1000, taps: 0, result: null }));
+    $("#tapretry")?.addEventListener("click", () => setCh({ endsAt: 0, taps: 0, result: null }));
+    if (c.type === "tap" && ch.endsAt && !ch.result && ch.endsAt > Date.now()) {
+      let taps = 0;
+      const t0 = ch.endsAt - c.seconds * 1000;
+      const finish = (win) => { clearInterval(tick); tick = null; buzz(win ? [30, 40, 30, 40, 30] : [200, 100, 200]); setCh({ result: win ? "win" : "lose", taps }); };
+      $("#tapbtn").addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        taps++;
+        buzz(8);
+        $("#tap-n").textContent = taps;
+        $("#tap-bike").style.left = Math.min(taps / c.goal, 1) * 82 + "%";
+        if (taps >= c.goal) finish(true);
+      });
+      tick = setInterval(() => {
+        const frac = Math.min((Date.now() - t0) / (c.seconds * 1000), 1);
+        const z = $("#tap-zam"); if (z) z.style.left = frac * 82 + "%";
+        if (frac >= 1) finish(false);
+      }, 80);
+    }
     // live clock (only while time is left — once it's up, the page shows the "done" state)
     if ((c.type === "timer" || c.type === "write") && ch.endsAt && ch.endsAt > Date.now()) {
       tick = setInterval(() => {

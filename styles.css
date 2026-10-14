@@ -759,3 +759,11 @@ body[data-theme="paper"] .intro .first-clue p { font-size: 15.5px; }
 .cover-mock b { font-size: 20px; }
 .cover-mock i { opacity: .85; }
 .cover-mock span { font-size: 13px; opacity: .9; }
+
+.herbert-tip { margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,.05); font-size: 14.5px; line-height: 1.4; }
+.tap-track { display: grid; gap: 6px; }
+.tap-lane { position: relative; height: 40px; border-radius: 20px; background: rgba(0,0,0,.07); }
+.tap-rider { position: absolute; top: 3px; font-size: 28px; transition: left .08s linear; }
+.tap-count { margin: 4px 0; text-align: center; font-size: 18px; }
+.tap-btn { height: 120px; font-size: 26px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.tap-lose { margin: 0; padding: 12px; border-radius: 12px; background: rgba(0,0,0,.06); line-height: 1.45; }

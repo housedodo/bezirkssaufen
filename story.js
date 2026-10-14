@@ -773,6 +773,12 @@ Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].i
 // Only sent by the host from admin.html ("Both" tab), never attached to a stop. Theme-neutral wording because the
 // same text shows up on Sarah's and on Sara's phone; both do it at the same time, together.
 Object.assign(CHALLENGES, {
+  d_race: {
+    type: "tap", icon: "🚴", reward: 2, shared: true, goal: 40, seconds: 10,
+    title: "Bike vs Zamboni",
+    story: "A race! Your bicycle against the Zamboni. Tap the pedal button as fast as you can for 10 seconds. You need 40 taps before the Zamboni crosses the line. If the Zamboni wins, everybody at the table drinks a sip and you try again. Both of you do it at the same time. Whoever needs more tries buys the next round.",
+    doneLabel: "🏁 Beat the Zamboni — collect your reward",
+  },
   d_toast: {
     type: "confirm", icon: "🥂", reward: 2, shared: true,
     title: "Adventure clink",
@@ -1059,17 +1065,22 @@ Object.entries(SARAH_HI).forEach(([d, h]) => { const c = STORIES.sarah.stops[d].
 
 // ─────────────────────── SARA: six stops without the Bookbazaar ───────────────────────
 // At these districts the shop is replaced by a different small game (district id → game). Solving it unlocks the riddle exactly
-// like buying the right book does. `kind`: pages (put torn pages in order), judge (Herbert or Kafka), postcards, cover
+// like buying the right book does. `kind`: science (a 3-question exam, Herbert is always wrong), judge (Herbert or Kafka), postcards, cover
 // (design a cover), stranger (collect words), hunt (find a bookmark in the bar). The encounter is shown above the game.
 const SARA_ALT = {
-  7: { kind: "pages", icon: "📜", title: "Torn pages",
-    intro: "Kafka tore the page into four strips. Put them back in the order the Zamboni driver told it. Tap the strips one by one.",
-    done: "The page is whole again.",
-    pieces: [
-      { pos: 2, t: "He bought two." },
-      { pos: 3, t: "Then she said even the gatekeeper of heaven needs something to read." },
-      { pos: 0, t: "A Zamboni driver chuckled and told Sara a story." },
-      { pos: 1, t: "The book lady sold a hockey player a book called How to Talk to Women." }
+  7: { kind: "science", icon: "🧪", title: "Zamboni physics",
+    intro: "The Zamboni driver is also a part-time scientist. Pass his three-question ice exam. Herbert has opinions on every question, and Herbert is never right.",
+    done: "Exam passed. Herbert demands a retake.",
+    qs: [
+      { q: "Why is ice slippery?", herbert: "Oil. Obviously. I lick my paws, I know about oil.",
+        opts: ["A thin layer of water on its surface lets skates glide", "Ice is always covered in a thin layer of oil", "Because hockey players are slippery"], ok: 0,
+        why: "Herbert's oil theory is wrong. The surface of ice has a thin film of water." },
+      { q: "What does a Zamboni do after it scrapes the ice?", herbert: "Glitter. It's a party machine.",
+        opts: ["It lays down a thin layer of warm water that freezes smooth", "It sprinkles glitter for the fans", "It blows hot air until the ice melts"], ok: 0,
+        why: "No glitter, sorry Herbert. The water fills the scratches and freezes smooth." },
+      { q: "What happens when you put salt on ice?", herbert: "It becomes a snack. Tuna with salt, my favourite.",
+        opts: ["It melts at a lower temperature, which is why roads get salted", "The ice gets colder and stays solid forever", "It turns into a snack for the Zamboni"], ok: 0,
+        why: "Salt is not a snack for the Zamboni. It lowers the melting point of ice." }
     ] },
   10: { kind: "judge", icon: "⚖️", title: "Herbert and Kafka judge",
     intro: "Both cats listened to the cyclist. Now they argue about it, and exactly one of them tells the truth.",
