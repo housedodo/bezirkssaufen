@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v31) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v33) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Fix: Sarah's chat flickers (all bubbles fade in again on every new message) | `styles.css`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -277,6 +277,7 @@ reopen it online; as a last resort remove the home-screen icon and add it again.
 v29 only gets this self-update after one manual full restart.
 
 ### Gotchas we already hit
+- `.screen` has a fade-in animation; a redraw of the same screen must not replay it (flicker) → `markRedraw()` adds `.no-anim` when phase/step/screen class are unchanged.
 - Anything that slides off-screen widened the page and broke centred overlays → `html`/`body`/`main` use
   `overflow-x: hidden/clip`. Keep `clip` on `body` (not `hidden`), or the sticky like/pass buttons stop working.
 - A timer that keeps re-rendering after hitting 0 makes buttons untappable → live clock interval only runs while
@@ -364,7 +365,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Sarah's chat: after hi every guy first asks her a genuine-but-weird question (10 of them, e.g. "do you also feel sorry for the last olive at the bottom of the glass?") and only after her answer comes the red flags, then the hockey question; cache v31.
+- 2026-10-14 · this commit · Dominik (Claude) · Fix: Sarah's chat flickered (the whole screen re-faded on every redraw, also in Sara's shop reading and quiz answers). Now only the newest bubble animates, chat scroll is instant, `markRedraw()` in `app.js` adds `.no-anim` when the same screen is redrawn; cache v33.
+- 2026-10-14 · `previous` · Dominik (Claude) · Sarah's chat: after hi every guy first asks her a genuine-but-weird question (10 of them, e.g. "do you also feel sorry for the last olive at the bottom of the glass?") and only after her answer comes the red flags, then the hockey question; cache v31.
 - 2026-10-14 · `9b4dc3c` · Dominik (Claude) · Sara's shop: the descriptions are now short spicy excerpts (30 decoy pages + 16 for the real books, each echoing its stop's encounter, same length as the decoys) that she reads out loud one by one ("Read this page out loud", Buy locked until all four are read); a wrong order is now "Delivered" (courier line) or "sold out" without repeating a text. Cache v30.
 - 2026-10-14 · `7462a8d` · Dominik (Claude) · Updates reach the phones reliably: the service worker revalidates every file (GitHub Pages' 10-minute cache made phones show the old shop after a merge), the app checks for updates on start/focus and reloads itself when a new service worker takes over (not while typing, max once a minute), and the ☰ menu shows "App version vNN"; cache v29.
 - 2026-10-14 · `8f19018` · Dominik (Claude) · Sara has to read every shop blurb out loud before she can order (blurbs hidden behind "Read the blurb out loud", progress `n/4`, Buy locked until all four opened, read blurbs stay visible; delivered passages say "read it out loud"). Sarah's chat: two 🚩 RED FLAG bubbles per guy (10 guys × 2, funny, to read aloud) after her first answer, "read the messages out loud" hint. Playthrough tool reads the blurbs; cache v28.

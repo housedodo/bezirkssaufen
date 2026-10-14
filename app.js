@@ -795,7 +795,8 @@
       </section>`;
 
     const last = app.querySelector(".chat-msgs .last");
-    if (last && msgs.length) last.scrollIntoView({ block: "center", behavior: "smooth" });
+    // instant, not smooth: a smooth scroll that is still running while the next message re-renders the page flashes an empty screen
+    if (last && msgs.length) last.scrollIntoView({ block: "center" });
 
     if (typing) {
       chatT = setTimeout(() => {
@@ -1193,6 +1194,17 @@
     }
   });
 
+  // The screen fades in when it first appears. Redrawing the SAME screen (a new chat message, a blurb read in the shop,
+  // the next quiz question) must not replay the fade, otherwise the whole page flashes on every update.
+  let lastScreenKey = "";
+  function markRedraw() {
+    const sec = app.querySelector(".screen");
+    if (!sec) { lastScreenKey = ""; return; }
+    const key = [state.phase, state.step, sec.className.replace(/\b(chat-done|no-anim)\b/g, "").replace(/\s+/g, " ").trim()].join("|");
+    if (key === lastScreenKey) sec.classList.add("no-anim");
+    lastScreenKey = key;
+  }
+
   // ── Render ─────────────────────────────────────────────────
   function render() {
     if (tick) { clearInterval(tick); tick = null; }
@@ -1207,9 +1219,11 @@
     if (b && !b.paused && state.char && state.phase !== "pick" && typeof CHALLENGES !== "undefined" && CHALLENGES[b.key]) {
       renderChallenge(b.key, "surprise");
       if (state.phase === "lobby" && lobbyOn()) startLobbyPoll(); // the game may start while the mission is open
+      markRedraw();
       return;
     }
     ({ pick: renderPick, lobby: renderLobby, intro: renderIntro, clue: renderClue, travel: renderTravel, done: renderDone }[state.phase] || renderPick)();
+    markRedraw();
   }
 
   render();
