@@ -464,11 +464,11 @@
     const N = SARA_SHOP.decoys.length;
     const generic = [0, 1].map((k) => {
       const i = (state.step * 2 + k) % N;
-      return { id: `d${i}`, key: i, kind: "decoy", passage: SARA_SHOP.passages[i] || null, ...SARA_SHOP.decoys[i] };
+      return { id: `d${i}`, key: i, kind: "decoy", delivers: !SARA_SHOP.soldDecoys.includes(i), ...SARA_SHOP.decoys[i] };
     });
     const others = ROUTE.slice(0, -1).filter((dd) => dd !== here() && SARA_SHOP.real[dd]);
     const od = others[(state.step * 5 + 3) % others.length];
-    const cross = { id: `x${od}`, key: 100 + od, kind: "cross", passage: null, ...SARA_SHOP.real[od] };
+    const cross = { id: `x${od}`, key: 100 + od, kind: "cross", delivers: false, ...SARA_SHOP.real[od] };
     const real = { id: "real", key: 200 + here(), kind: "real", ...SARA_SHOP.real[here()] };
     const offers = [...generic, cross];
     offers.splice(REAL_SLOT[state.step % REAL_SLOT.length], 0, real); // irregular on purpose: no pattern to learn
@@ -483,7 +483,7 @@
     const hue = (o.key * 47) % 360;
     const badges = `${o.key % 3 === 0 ? `<span class="obadge spons">Sponsored</span>` : ""}${o.key % 4 === 1 ? `<span class="obadge best">Bestseller</span>` : ""}
       <span class="obadge spice">${"🌶️".repeat(o.s)}</span>${o.kind === "real" && state.revealed ? `<span class="obadge best">⭐ The one</span>` : ""}`;
-    const label = owned ? (o.passage ? "📦 Owned" : "🚫 Sold out") : allRead ? "🛒 Buy now" : "🔒 Read all blurbs";
+    const label = owned ? (o.delivers ? "📦 Owned" : "🚫 Sold out") : allRead ? "🛒 Buy now" : "🔒 Read all pages";
     return `
       <article class="offer ${o.kind === "real" && state.revealed ? "revealed" : ""} ${owned ? "owned" : ""}">
         <div class="cover" style="background:linear-gradient(160deg,hsl(${hue} 55% 24%),hsl(${(hue + 40) % 360} 60% 10%))" aria-hidden="true"><span>${COVER_ICONS[o.key % COVER_ICONS.length]}</span></div>
@@ -493,7 +493,7 @@
           <p class="offer-by">by ${esc(o.a)} · ${PUBLISHERS[o.key % PUBLISHERS.length]}</p>
           ${isRead
             ? `<p class="offer-desc"><i>${esc(o.d)}</i></p>`
-            : `<button class="btn ghost readbtn" data-read="${o.id}">📖 Read the blurb out loud</button>`}
+            : `<button class="btn ghost readbtn" data-read="${o.id}">📖 Read this page out loud</button>`}
           <div class="offer-meta"><span class="stars">${starsOf(4)}</span> <span class="rv">4.${(o.key * 3) % 6 + 3} (${(1000 + o.key * 371).toLocaleString("en")})</span></div>
           <div class="offer-buy">
             <span class="price">${o.p}</span>
@@ -528,7 +528,7 @@
           <p class="shop-count">1 match · 3 “recommended for you”</p>
         </div>
         <p class="shop-tip">💡 ${SARA_SHOP.tip}</p>
-        <p class="read-progress ${allRead ? "done" : ""}">${allRead ? "✅ All blurbs read. You may order." : `📖 Blurbs read: <b>${readCount}/${offers.length}</b> — read each one out loud to the table to unlock ordering`}</p>
+        <p class="read-progress ${allRead ? "done" : ""}">${allRead ? "✅ All pages read. You may order." : `📖 Pages read: <b>${readCount}/${offers.length}</b> — read each page out loud to the table to unlock ordering`}</p>
         ${n ? `<p class="pass-line">🍺 Penalty: <b>${n} ${n === 1 ? "sip" : "sips"}</b> for the last wrong order. Read the listings properly.</p>` : ""}
         ${cancelBtn()}
         ${state.revealed ? "" : `<button class="btn ghost" id="reveal" ${can(COSTS.reveal) ? "" : "disabled"}>🔍 Reveal the real listing · ${COSTS.reveal} ${unit()}</button>`}
@@ -557,15 +557,15 @@
     });
   }
 
-  // The blurb opens in a big card with "read this out loud"; only after it is closed the listing counts as read.
+  // The spicy page opens in a big card with "read this out loud"; only after it is closed the listing counts as read.
   async function readBlurb(id) {
     const o = shopOffers().find((x) => x.id === id);
     if (!o || state.read.includes(id)) return;
     await modal(`
-      <p class="modal-kicker">📣 Read this out loud to the table</p>
+      <p class="modal-kicker">📣 Read this page out loud to the table</p>
       <h2 class="modal-title">${esc(o.t)}</h2>
       <p class="modal-by">by ${esc(o.a)}</p>
-      <blockquote class="passage">${esc(o.d)}</blockquote>`, "Done reading");
+      <blockquote class="passage">${esc(o.d)}</blockquote>`, "Done reading 🔥");
     set({ read: [...state.read, id] });
   }
 
@@ -573,7 +573,7 @@
   async function buy(id) {
     const o = shopOffers().find((x) => x.id === id);
     if (!o || state.bought || buying) return;
-    if (!shopOffers().every((x) => state.read.includes(x.id))) return; // all blurbs must be read first
+    if (!shopOffers().every((x) => state.read.includes(x.id))) return; // all pages must be read first
     buying = true;
     try {
       buzz([30, 40, 30]);
@@ -590,12 +590,12 @@
       const n = state.shopWrong.length + 1;
       const sips = `🍺 Wrong order: ${n} ${n === 1 ? "sip" : "sips"}`;
       buzz(150);
-      if (o.passage) {
+      if (o.delivers) {
         await modal(`
-          <p class="modal-kicker">📦 Delivered · read it out loud 📣</p>
+          <p class="modal-kicker">📦 Delivered</p>
           <h2 class="modal-title">${esc(o.t)}</h2>
           <p class="modal-by">by ${esc(o.a)}</p>
-          <blockquote class="passage">${esc(o.passage)}</blockquote>
+          <p class="soldout-msg">${esc(SARA_SHOP.deliveredLines[(state.step + state.shopWrong.length * 2 + o.key) % SARA_SHOP.deliveredLines.length])}</p>
           <p class="modal-sips">Lovely. Not what you needed. ${sips}</p>`, "Close the book");
       } else {
         await modal(`
@@ -604,7 +604,7 @@
           <p class="soldout-msg">${esc(soldOutText(o))}</p>
           <p class="modal-sips">${sips}</p>`, "Back to the shop");
       }
-      set({ shopWrong: [...state.shopWrong, id], haul: o.passage ? [...state.haul, o.t] : state.haul, sips: state.sips + n, sipsStep: state.sipsStep + n });
+      set({ shopWrong: [...state.shopWrong, id], haul: o.delivers ? [...state.haul, o.t] : state.haul, sips: state.sips + n, sipsStep: state.sipsStep + n });
     } finally { buying = false; }
   }
 

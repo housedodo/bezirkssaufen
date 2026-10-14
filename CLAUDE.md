@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v29) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v30) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Sara's shop: every listing shows a short spicy excerpt instead of a blurb | `story.js` (`SARA_SHOP`), `app.js` (shop), `tools/playthrough.mjs`, `sw.js` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -75,9 +75,8 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   dark-romance-style title whose blurb only echoes what the local just said), 2 generic decoys and **one real listing of
   another stop** (always sold out), so the puzzle is matching a blurb to *this* stop's encounter. The slot of the real
   one follows an irregular fixed list (`REAL_SLOT`). Buying the real one → "Order confirmed", parcel = souvenir page +
-  riddle + guessing. **Every blurb has to be read out loud first:** the descriptions are hidden behind "📖 Read the blurb out loud" buttons (a big card, "Done reading"), a progress line shows `n/4`, and all Buy buttons stay locked ("🔒 Read all blurbs") until all four were opened (`state.read`, reset per stop); read blurbs stay visible so she can compare them. A wrong order costs penalty sips (1, 2, 3 … per stop, `sips`) and shows either a **weird
-  dark-romance passage** from that book (the book goes into her haul, 🌶️ counter, finale) or an **"unfortunately sold
-  out"** notice (no haul); that listing is then greyed out ("Owned" / "Sold out"). "Reveal the real listing" costs 2 🔖.
+  riddle + guessing. **Every listing shows a short spicy excerpt (a weird dark-romance page, ~25–30 words) instead of a blurb, and she has to read each one out loud first:** the text is hidden behind "📖 Read this page out loud" buttons (a big card, "Done reading 🔥"), a progress line shows `n/4`, and all Buy buttons stay locked ("🔒 Read all pages") until all four were opened (`state.read`, reset per stop); read pages stay visible so she can compare them. A wrong order costs penalty sips (1, 2, 3 … per stop, `sips`) and is either **delivered** (courier line, the book goes into her haul, 🌶️ counter, finale) or **"unfortunately sold
+  out"** (no haul); that listing is then greyed out ("Owned" / "Sold out"). "Reveal the real listing" costs 2 🔖.
   - **13 book-themed challenges** (same engine as Sarah's) earning bookmarks 🔖 (stored in `state.hearts`):
     8 "📖 Reading room" events (+2: pop quiz @IX, dramatic reading @II, name that first line @III, menu poetry @VIII,
     back-cover blurb @XI, title this bar @XIII, five-star reviews @XV, chapter toast @XVI) and 5 "⚡ Sudden plot twist"
@@ -218,13 +217,14 @@ See [Open items](#open-items).
   - `write` — `seconds` (optional clock), textarea → saved to `state.myBio`.
   - `notes` — `count` textareas → appended to `state.superLikes`.
 
-- `SARA_SHOP` — `{ name, tip, decoys[30], passages{decoyIndex}, soldOut[6], real{districtId} }`. `decoys[i] = {t, a, d,
-  s(spice 1–5), p}`; `passages[i]` = the weird excerpt shown when that decoy is delivered (a decoy without one is "sold
-  out"; `soldOut[]` are the notices, handed out in turn). `real[id] = {t, a, d, s, p}`: the *disguised* listing of that
-  stop; its blurb `d` must echo the stop's encounter without quoting it. At route index `step` the shop shows decoys
-  `(step*2+k) % 30` for k=0,1, one real listing of another stop (`others[(step*5+3) % …]`, always sold out) and the real one
-  at slot `REAL_SLOT[step]` (app.js). The souvenir is still the stop's `item`. Every Sara stop that has a riddle needs a
-  `real` entry (the last stop, Lend, has no shop).
+- `SARA_SHOP` — `{ name, tip, decoys[30], soldDecoys[10], deliveredLines[5], soldOut[6], real{districtId} }`. `decoys[i] = {t, a,
+  d, s(spice 1–5), p}` where **`d` is the spicy excerpt she reads out loud** (~21–34 words); `soldDecoys` lists the decoy
+  indices that are "sold out" when ordered (all others are delivered: courier line from `deliveredLines`, book into the haul);
+  `soldOut[]` are the notices, handed out in turn. `real[id] = {t, a, d, s, p}`: the *disguised* listing of that stop; its
+  excerpt `d` must echo the stop's encounter without quoting it and **stay about as long as the decoys' (24–32 words), a
+  longer text would give it away**. At route index `step` the shop shows decoys `(step*2+k) % 30` for k=0,1, one real listing
+  of another stop (`others[(step*5+3) % …]`, always sold out) and the real one at slot `REAL_SLOT[step]` (app.js). The
+  souvenir is still the stop's `item`. Every Sara stop that has a riddle needs a `real` entry (the last stop, Lend, has no shop).
 - `STORIES.sara.howTo` overrides the intro's "How it works".
 - `STORIES.<who>.intro` must stay short (it is read aloud before the game starts, 2 short paragraphs); long explanations belong in `howTo`, which is folded away in the intro.
 - `SARAH_FLIRT` (end of `story.js`) — per district id of a profile: `pass[3]` (timeout jokes), `hi`, `ask`, `reveal` (chat
@@ -364,7 +364,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Updates reach the phones reliably: the service worker revalidates every file (GitHub Pages' 10-minute cache made phones show the old shop after a merge), the app checks for updates on start/focus and reloads itself when a new service worker takes over (not while typing, max once a minute), and the ☰ menu shows "App version vNN"; cache v29.
+- 2026-10-14 · this commit · Dominik (Claude) · Sara's shop: the descriptions are now short spicy excerpts (30 decoy pages + 16 for the real books, each echoing its stop's encounter, same length as the decoys) that she reads out loud one by one ("Read this page out loud", Buy locked until all four are read); a wrong order is now "Delivered" (courier line) or "sold out" without repeating a text. Cache v30.
+- 2026-10-14 · `7462a8d` · Dominik (Claude) · Updates reach the phones reliably: the service worker revalidates every file (GitHub Pages' 10-minute cache made phones show the old shop after a merge), the app checks for updates on start/focus and reloads itself when a new service worker takes over (not while typing, max once a minute), and the ☰ menu shows "App version vNN"; cache v29.
 - 2026-10-14 · `8f19018` · Dominik (Claude) · Sara has to read every shop blurb out loud before she can order (blurbs hidden behind "Read the blurb out loud", progress `n/4`, Buy locked until all four opened, read blurbs stay visible; delivered passages say "read it out loud"). Sarah's chat: two 🚩 RED FLAG bubbles per guy (10 guys × 2, funny, to read aloud) after her first answer, "read the messages out loud" hint. Playthrough tool reads the blurbs; cache v28.
 - 2026-10-14 · `1635c4a` · Dominik (Claude) · "Adventure day" framing: both birthdays already happened, today they celebrate together (intros, finales "Happy adventure day", picker "Two belated birthdays… One adventure day", "Adventure day, <name>!", shared missions renamed Adventure clink / Dance-off / Adventure wishes, 🎉 instead of 🎂, store/manifest text; worker start notification "🎉 Adventure day has started!" → **redeploy `worker/worker.js`**). Fix found by a full playthrough: a phone that had already allowed notifications was never registered with the worker after choosing a name (Start would have notified 0 phones) → `pushSync()` after the name pick. New `tools/playthrough.mjs` (full two-player run, passes); cache v27.
 - 2026-10-14 · `ad22f38` · Dominik (Claude) · Much less text at the start: each intro is now a ~40-word story to read out loud ("📣 Read this out loud to the table"), a shorter first clue and the Start button on one screen; "How does it work?" folded away, notification card removed from the intro, shorter lobby card. Nico's chat opener now jokes about the ex-#99 crying on Insta ("so cringe"). Cache v25.
