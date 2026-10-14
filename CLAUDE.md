@@ -232,7 +232,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.
+- 2026-10-14 · this commit · Dominik (Claude) · `push-config.js` filled in (worker URL + VAPID public key) so mission alerts are active; cache v11.
+- 2026-10-14 · `d98eaf6` · Dominik (Claude) · Host panel `admin.html` + Cloudflare Worker (`worker/`) sending Web Push missions to Sarah/Sara/both; push card in intro + ☰ drawer; `push-config.js`; service worker push handler; cache v10.
 - 2026-10-14 · `9d1bfbb` · Dominik (Claude) · Sara: now 13 challenges (+ name that first line, menu poetry, Herb impression); re-slotted so Sara's challenges never overlap Sarah's intermissions (and her intermissions avoid Sarah's events); cache v9.
 - 2026-10-14 · `92f3b2a` · Dominik (Claude) · Sara: 10 book-themed challenges (6 reading-room events +3 🔖, 4 plot-twist intermissions +2 🔖), paper-theme styling, finale shows blurb + reviews + bookmarks; challenge engine generalised for both stories (unit icon, labels); cache v8.
 - 2026-10-14 · `e86a442` · Dominik (Claude) · Sara: Bookbazaar shop — buy the right listing among dark-romance decoys to unlock the riddle; wrong buys = penalty sips + haul; new finale stats; cache v7.
