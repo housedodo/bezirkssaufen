@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Intro-only first stop ("Start the quest"), no challenges at stop 1, rename cats to Herbert & Kafka | `story.js`, `app.js` (intro), `README.md`, `CLAUDE.md` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
