@@ -46,6 +46,7 @@
     bought: false,   // the right listing was bought (or the replacement game solved) at the current step
     alt: {},         // Sara: progress in the replacement game of this stop (SARA_ALT)
     words: [],       // Sara: words collected from strangers (finale)
+    simResult: "",   // Sarah: outcome of the dating-sim chat (finale)
     shopWrong: [],   // titles of dark romances bought by mistake at the current step
     haul: [],        // all dark romances bought by mistake (whole game)
   });
@@ -577,7 +578,7 @@
       const qi = alt.qi || 0;
       const q = a.qs[qi];
       body = `<p class="q-count">Question ${qi + 1} of ${a.qs.length}</p><p class="alt-q">${esc(q.q)}</p>
-        <p class="herbert-tip">🐈 Herbert says: “${esc(q.herbert)}” <i>(Herbert is never right)</i></p>
+        <p class="herbert-tip">🐈 <b>Herbert:</b> “${esc(q.herbert)}”${q.kafka ? `<br>🐈‍⬛ <b>Kafka:</b> “${esc(q.kafka)}”` : ""} <i>(Herbert is never right)</i></p>
         <div class="alt-pieces">${q.opts.map((o, i) => `<button class="q-opt" data-alt-opt="${i}" data-ok="${i === q.ok ? 1 : 0}">${esc(o)}</button>`).join("")}</div>`;
     } else if (a.kind === "judge") {
       body = `<p class="alt-q">${esc(a.q)}</p><div class="alt-pieces">${a.opts.map((o, i) => `<button class="q-opt" data-alt-opt="${i}" data-ok="${o.ok ? 1 : 0}"><b>${esc(o.who)}:</b> ${esc(o.t)}</button>`).join("")}</div>`;
@@ -851,6 +852,7 @@
   // He texts "hi" → she answers anything → he asks if she's looking for the ice hockey guy → she answers anything →
   // "doesn't matter, here's what I heard" + his bio text → only then the riddle and the district guess.
   function renderChat(p, d) {
+    if (p.sim) return renderSim(p, d);
     const s = story();
     const stop = s.stops[d];
     const c = p.chat || { hi: "hey", ask: "so… looking for the ice hockey guy?", reveal: "doesn't matter. here's what I heard:" };
@@ -925,6 +927,88 @@
     }
     if (complete) bindGuess();
   }
+
+
+  // ── Sarah: dating-sim chat (3 questions × 3 replies → one of 6 outcomes, see SARAH sim in story.js) ──
+  function simOutcome(tones) {
+    const n = (t) => tones.filter((x) => x === t).length;
+    if (n("good") === 3) return "perfect";
+    if (n("savage") && n("savage") + n("bad") >= 2) return "verybad";
+    for (const [t, o] of [["good", "good"], ["funny", "funny"], ["bad", "bad"], ["chaos", "chaotic"]]) if (n(t) >= 2) return o;
+    return "chaotic";
+  }
+  // his messages so far, given her picks (question 2 depends on the first answer)
+  function simScript(sim, picks, bio) {
+    const out = [{ t: sim.opener }, { t: sim.q1.q, choice: sim.q1 }];
+    if (picks.length < 1) return out;
+    const q2 = sim.q2[picks[0]];
+    out.push({ t: sim.q1.replies[picks[0]].react }, { t: q2.q, choice: q2 });
+    if (picks.length < 2) return out;
+    out.push({ t: q2.replies[picks[1]].react }, { t: sim.q3.q, choice: sim.q3 });
+    if (picks.length < 3) return out;
+    const tones = [sim.q1.replies[picks[0]].tone, q2.replies[picks[1]].tone, sim.q3.replies[picks[2]].tone];
+    const o = simOutcome(tones);
+    out.push({ t: sim.q3.replies[picks[2]].react }, { t: sim.endings[o].t, outcome: o }, { t: bio });
+    return out;
+  }
+  function renderSim(p, d) {
+    const s = story();
+    const stop = s.stops[d];
+    const sim = p.sim;
+    const msgs = state.chat;
+    const picks = msgs.filter((m) => m.from === "her").map((m) => m.pick);
+    const noEmoji = (t) => String(t).replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, "").replace(/ {2,}/g, " ").replace(/\s+([?.!,])/g, "$1").trim();
+    const script = simScript(sim, picks, p.bio);
+    const him = msgs.filter((m) => m.from === "him").length;
+    const lastQ = script.slice(0, him).filter((e) => e.choice).pop();
+    const asked = script.slice(0, him).filter((e) => e.choice).length;
+    const complete = picks.length === 3 && him >= script.length;
+    const myTurn = !complete && him >= script.length && asked > picks.length;
+    const typing = !complete && !myTurn;
+    app.innerHTML = `
+      <section class="screen clue dating chatpage ${complete ? "chat-done" : ""}">
+        <header class="chat-head">
+          <img class="chat-ava" src="${p.face || p.photo}" alt="">
+          <div class="chat-who">
+            <span class="chat-name">${esc(p.name)} <span class="verified" aria-hidden="true">✔</span></span>
+            <span class="chat-online"><i></i> Online now · #${p.number} · ${DISTRICTS[d].name}</span>
+          </div>
+          <span class="badge">Matched</span>
+        </header>
+        <div class="chat-msgs" id="chat-msgs">
+          <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other<br>🎮 Dating sim: pick your answers. Every answer counts.<br>📣 Read the messages out loud to the table</p>
+          ${msgs.map((m, i) => `<div class="msg ${m.from}${i === msgs.length - 1 ? " last" : ""}"><span>${m.from === "her" ? esc(m.text) : m.text}</span></div>${m.outcome ? `<p class="chat-sys sim-out">${sim.endings[m.outcome].badge}${sim.endings[m.outcome].hearts ? ` · +${sim.endings[m.outcome].hearts} ❤️` : ""}${sim.endings[m.outcome].sips ? ` · 🍺 ${sim.endings[m.outcome].sips} ${sim.endings[m.outcome].sips === 1 ? "sip" : "sips"}` : ""}</p>` : ""}`).join("")}
+          ${typing ? `<div class="msg him typing last" aria-label="${esc(p.name)} is typing"><span><i></i><i></i><i></i></span></div>` : ""}
+        </div>
+        ${myTurn ? `<div class="sim-replies">${lastQ.choice.replies.map((r, i) => `<button class="sim-reply" data-sim="${i}">${esc(r.t)}</button>`).join("")}</div>` : ""}
+        ${complete ? `
+        <p class="item"><span class="item-icon">${stop.item.icon}</span> ${stop.item.name}</p>
+        ${riddleCard(s, stop)}
+        ${guessBlock()}` : ""}
+      </section>`;
+    const last = app.querySelector(".chat-msgs .last");
+    if (last && msgs.length) last.scrollIntoView({ block: "center" });
+    if (typing) {
+      chatT = setTimeout(() => {
+        chatT = null;
+        buzz(30);
+        const e = script[him];
+        const patch = { chat: [...state.chat, { from: "him", text: noEmoji(e.t), ...(e.outcome ? { outcome: e.outcome } : {}) }] };
+        if (e.outcome) { // the date is over: apply its result once
+          const en = sim.endings[e.outcome];
+          Object.assign(patch, { simResult: `${p.name}: ${en.badge}`, hearts: state.hearts + (en.hearts || 0), earned: state.earned + (en.hearts || 0), sips: state.sips + (en.sips || 0) });
+        }
+        set(patch);
+      }, him === 0 ? 1300 : e2delay(script[him]));
+    }
+    app.querySelectorAll("[data-sim]").forEach((b) => b.addEventListener("click", () => {
+      const i = Number(b.dataset.sim);
+      buzz(20);
+      set({ chat: [...state.chat, { from: "her", text: lastQ.choice.replies[i].t, pick: i }] });
+    }));
+    if (complete) bindGuess();
+  }
+  const e2delay = (e) => (e.outcome ? 2300 : e.choice ? 1500 : 1700);
 
   // ── Sarah: challenges ──────────────────────────────────────
   function renderChallenge(key, mode) {
@@ -1243,6 +1327,7 @@
         <ul class="memento-list">${haulTitles.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></article>` : ""}`
       : `
       ${state.myBio ? `<article class="card memento"><p class="card-label">Your profile, written by your crew</p><p class="memento-text">${esc(state.myBio)}</p></article>` : ""}
+      ${state.simResult ? `<article class="card memento"><p class="card-label">Your dating-sim date 🎮</p><p class="memento-text">${esc(state.simResult)}</p></article>` : ""}
       ${state.superLikes.filter(Boolean).length ? `<article class="card memento"><p class="card-label">Your super likes ⭐</p>
         <ul class="memento-list">${state.superLikes.filter(Boolean).map((n) => `<li>${esc(n)}</li>`).join("")}</ul></article>` : ""}`;
     app.innerHTML = `

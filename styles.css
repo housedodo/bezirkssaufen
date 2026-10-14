@@ -767,3 +767,9 @@ body[data-theme="paper"] .intro .first-clue p { font-size: 15.5px; }
 .tap-count { margin: 4px 0; text-align: center; font-size: 18px; }
 .tap-btn { height: 120px; font-size: 26px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .tap-lose { margin: 0; padding: 12px; border-radius: 12px; background: rgba(0,0,0,.06); line-height: 1.45; }
+
+/* Sarah: dating-sim reply buttons */
+.sim-replies { display: grid; gap: 8px; padding: 10px 12px 14px; position: sticky; bottom: 0; background: inherit; }
+.sim-reply { text-align: left; padding: 12px 16px; border-radius: 20px; border: 2px solid #ff4f7b; background: #fff; color: #c2185b; font: inherit; font-weight: 600; cursor: pointer; }
+.sim-reply:active { background: #ffe3ec; }
+.chat-sys.sim-out { font-weight: 700; font-size: 15px; }

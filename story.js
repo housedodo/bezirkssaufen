@@ -1069,18 +1069,21 @@ Object.entries(SARAH_HI).forEach(([d, h]) => { const c = STORIES.sarah.stops[d].
 // (design a cover), stranger (collect words), hunt (find a bookmark in the bar). The encounter is shown above the game.
 const SARA_ALT = {
   7: { kind: "science", icon: "🧪", title: "Zamboni physics",
-    intro: "The Zamboni driver is also a part-time scientist. Pass his three-question ice exam. Herbert has opinions on every question, and Herbert is never right.",
+    intro: "The Zamboni driver is also a part-time scientist. Pass his three-question ice exam. Herbert has opinions on every question. Herbert is never right. Kafka has opinions about Herbert.",
     done: "Exam passed. Herbert demands a retake.",
     qs: [
-      { q: "Why is ice slippery?", herbert: "Oil. Obviously. I lick my paws, I know about oil.",
-        opts: ["A thin layer of water on its surface lets skates glide", "Ice is always covered in a thin layer of oil", "Because hockey players are slippery"], ok: 0,
-        why: "Herbert's oil theory is wrong. The surface of ice has a thin film of water." },
-      { q: "What does a Zamboni do after it scrapes the ice?", herbert: "Glitter. It's a party machine.",
-        opts: ["It lays down a thin layer of warm water that freezes smooth", "It sprinkles glitter for the fans", "It blows hot air until the ice melts"], ok: 0,
-        why: "No glitter, sorry Herbert. The water fills the scratches and freezes smooth." },
-      { q: "What happens when you put salt on ice?", herbert: "It becomes a snack. Tuna with salt, my favourite.",
-        opts: ["It melts at a lower temperature, which is why roads get salted", "The ice gets colder and stays solid forever", "It turns into a snack for the Zamboni"], ok: 0,
-        why: "Salt is not a snack for the Zamboni. It lowers the melting point of ice." }
+      { q: "Why is ice slippery?", herbert: "Ice is slippery because it is embarrassed. It is frozen shame. I have licked it, I would know.",
+        kafka: "He licked the rink. Twice. He is no longer allowed near science.",
+        opts: ["A thin layer of water on its surface lets skates glide", "Ice is embarrassed and wants you to leave", "Because hockey players are slippery"], ok: 0,
+        why: "Ice has no feelings, Herbert. Its surface has a thin film of water." },
+      { q: "What does a Zamboni do after it scrapes the ice?", herbert: "The Zamboni is a giant cat. It eats the snow, purrs, and sleeps 19 hours in a garage. I bowed to it.",
+        kafka: "It is a tractor, Herbert. You bowed to a tractor. In public.",
+        opts: ["It lays down a thin layer of warm water that freezes smooth", "It purrs, eats the snow and takes a nap", "It blows hot air until the ice melts"], ok: 0,
+        why: "Not a cat. The Zamboni puts down warm water that fills the scratches and freezes smooth." },
+      { q: "What happens when you put salt on ice?", herbert: "Salt turns ice into soup. Ice soup. I ordered it three times. The waiter cried.",
+        kafka: "Nobody cried. The waiter banned him. Then he cried.",
+        opts: ["It melts at a lower temperature, which is why roads get salted", "It becomes ice soup, served cold", "The ice gets colder and stays solid forever"], ok: 0,
+        why: "No ice soup. Salt lowers the melting point of ice." }
     ] },
   10: { kind: "judge", icon: "⚖️", title: "Herbert and Kafka judge",
     intro: "Both cats listened to the cyclist. Now they argue about it, and exactly one of them tells the truth.",
@@ -1130,3 +1133,46 @@ const SARA_ALT = {
   });
   STORIES[who].missions = m;
 });
+
+// ─────────────────────── SARAH: dating-sim chat (the 3rd guy, Tomasz #31 @VII Liebenau) ───────────────────────
+// Instead of the normal chat he asks 3 questions, each with 3 reply buttons. Every reply has a tone (good, funny, bad,
+// savage, chaos) and its own reaction; question 2 depends on the first answer. The tones decide one of 6 outcomes
+// (perfect, good, funny, bad, verybad, chaotic → simOutcome() in app.js); the ending line leads into his tip as usual.
+STORIES.sarah.stops[7].profile.sim = {
+  opener: "Hi. Warning: I'm a goalie. I don't chat, I interview. Three questions. No rebounds.",
+  q1: { q: "First question. Someone shoots a puck at you. What do you do?", replies: [
+    { t: "I catch it and say thank you", tone: "good", react: "Polite AND good reflexes. Careful, I might feel something." },
+    { t: "I duck and let my friend take it", tone: "funny", react: "Honestly, that's exactly what my defence does. You'd fit right in." },
+    { t: "I shoot back. Harder. At your face.", tone: "savage", react: "Ok. Noted. Moving my gloves a bit further away from you." },
+  ] },
+  q2: [
+    { q: "Would you come to one of my games? I play every Sunday. Even on Christmas.", replies: [
+      { t: "Front row, with a sign that says THE WALL", tone: "good", react: "I'd frame that sign. Next to my gloves. Highest honour I have." },
+      { t: "Only if there's a bar in the stadium", tone: "funny", react: "There is. It's where I go after I let one in. So, rarely." },
+      { t: "Hockey is just football for people who can't run", tone: "bad", react: "I'm going to pretend I didn't read that. My gloves read it though." },
+    ] },
+    { q: "Would you at least bring me a drink when I'm crying in the penalty box?", replies: [
+      { t: "I'd bring two and drink one myself", tone: "funny", react: "Fair. Emotional support is expensive." },
+      { t: "Of course. And a hug.", tone: "good", react: "A hug. Stop. I have a helmet on, it doesn't count, but still." },
+      { t: "Goalies don't go to the penalty box, liar", tone: "chaos", react: "…how do you know that. Who sent you." },
+    ] },
+    { q: "Ok be honest. Are you dangerous?", replies: [
+      { t: "Only on Tuesdays", tone: "funny", react: "It's Tuesday somewhere. I'm nervous." },
+      { t: "I'm the reason your last date deleted her account", tone: "savage", react: "That was YOU? I sent flowers. To the wrong person, apparently." },
+      { t: "I collect goalie masks. With the goalies still in them.", tone: "chaos", react: "I need you to stay exactly where you are. Do not come closer." },
+    ] },
+  ],
+  q3: { q: "Last one. What am I to you, after three questions?", replies: [
+    { t: "The safest pair of hands in Graz", tone: "good", react: "…I need to sit down in my crease for a second." },
+    { t: "The warm-up act", tone: "bad", react: "The warm-up act. Wow. Jakob gets the main show again." },
+    { t: "My emotional support goalie. No refunds.", tone: "chaos", react: "I accept. Nobody has ever adopted me before." },
+  ] },
+  endings: {
+    perfect: { badge: "💘 Perfect match", hearts: 1, t: "Three for three. Clean sheet. I'd ask you out, but you're looking for Jakob, aren't you. Fine. Here's what happened:" },
+    good: { badge: "😊 Good date", hearts: 1, t: "You passed. Not a shutout, but close. You want Jakob, I know. Here's what happened:" },
+    funny: { badge: "😂 Funny date", t: "I laughed. I never laugh. My gloves are worried. Anyway, you're after Jakob. Here's what happened:" },
+    bad: { badge: "😬 Bad date", sips: 1, t: "That went about as well as my last playoff game. You want Jakob anyway. Here's what happened:" },
+    verybad: { badge: "💀 Very bad date", sips: 2, t: "I'm blocking you right after this message. Professionally, here's what happened with Jakob:" },
+    chaotic: { badge: "🌪️ Chaotic date", t: "I have no idea what just happened, but I think I liked it? Jakob, right? Here's what happened:" },
+  },
+};

@@ -77,6 +77,14 @@ for (const [f, name] of [['sw.js', 'CORE'], ['admin-sw.js', 'ADMIN_CORE']]) {
 for (const m of ['manifest.webmanifest', 'admin.webmanifest']) for (const ic of JSON.parse(fs.readFileSync(path.join(ROOT, m), 'utf8')).icons) if (!fs.existsSync(path.join(ROOT, ic.src))) issue('lint', `${m}: icon ${ic.src} missing`);
 if ((await workerCall('/send', 'POST', { to: 'both', title: 'x' }, '0000')).status !== 401) issue('worker', '/send accepts a wrong PIN');
 if ((await workerCall('/status', 'GET', null, '0000')).status !== 401) issue('worker', '/status accepts a wrong PIN');
+const simOutcome = (tones) => { const n = (t) => tones.filter((x) => x === t).length; if (n('good') === 3) return 'perfect'; if (n('savage') && n('savage') + n('bad') >= 2) return 'verybad'; for (const [t, o] of [['good', 'good'], ['funny', 'funny'], ['bad', 'bad'], ['chaos', 'chaotic']]) if (n(t) >= 2) return o; return 'chaotic'; };
+const SIM_D = ROUTE.find((d) => STORIES.sarah.stops[d].profile && STORIES.sarah.stops[d].profile.sim);
+if (SIM_D) {
+  const sim = STORIES.sarah.stops[SIM_D].profile.sim, count = {};
+  for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) for (let c = 0; c < 3; c++) { const o = simOutcome([sim.q1.replies[a].tone, sim.q2[a].replies[b].tone, sim.q3.replies[c].tone]); count[o] = (count[o] || 0) + 1; }
+  note('lint', `dating sim (${STORIES.sarah.stops[SIM_D].profile.name}, stop ${ROUTE.indexOf(SIM_D) + 1}): 27 paths → ${JSON.stringify(count)}`);
+  for (const o of ['perfect', 'good', 'funny', 'bad', 'verybad', 'chaotic']) { if (!count[o]) issue('lint', `dating sim outcome "${o}" is unreachable`); if (!sim.endings[o]) issue('lint', `dating sim has no ending "${o}"`); }
+} else issue('lint', 'no dating-sim chat found');
 note('lint', 'static checks done');
 
 // ── browsers ───────────────────────────────────────────────────────────────
@@ -96,6 +104,7 @@ async function phone(who) {
   }, who);
   await routeWorker(ctx);
   const p = await ctx.newPage();
+  p.setDefaultTimeout(6000);
   p.on('pageerror', (e) => issue(who, 'JS error: ' + e.message));
   p.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|fonts/.test(m.text())) issue(who, 'console error: ' + m.text().slice(0, 140)); });
   p.on('dialog', (d) => d.accept());
@@ -217,72 +226,83 @@ async function play(who, p) {
     const t0 = Date.now();
     let checkedScreen = false, chatChecked = false;
     for (let it = 0; it < 400; it++) {
-      await p.waitForTimeout(150);
-      if (it % 4 === 0) await pump(p);
-      if (await service(p, who)) continue;
-      const st = await stateOf(p);
-      if (!sara) {
-        if (await p.$('.timeout')) { note(who, 'pass → 10 s timeout: ' + (await p.innerText('.timeout-line')).slice(0, 60)); await p.waitForTimeout(10600); continue; }
-        if (await p.$('#like')) {
-          if (i === 0 && !used.pass) { used.pass = true; await p.click('#pass'); await p.waitForTimeout(800); continue; }
-          await p.click('#like'); await p.waitForTimeout(2300); continue; }
-        if (await p.$('#msg')) {
-          // reload in the middle of a chat once: it must continue where it was
-          if (i === 3 && !used.reloaded) { used.reloaded = true; const before = await p.locator('.msg').count(); await p.reload(); await shortTimers(p); await p.waitForTimeout(900); const after = await p.locator('.msg').count(); if (after < before - 1) issue(who, `reload lost chat messages (${before} → ${after})`); else note(who, `reloaded mid-chat, ${after} messages kept ✓`); continue; }
-          await p.fill('#msg', 'hello, it is me ' + i); await p.press('#msg', 'Enter'); await p.waitForTimeout(700); continue; }
-        if (await p.$('.chatpage') && !await p.$('[data-guess]')) continue; // he is typing
-        if (await p.$('.chatpage') && !chatChecked && STORIES.sarah.stops[d].profile) { // chat complete: check the order of his messages
-          chatChecked = true;
-          const prof = STORIES.sarah.stops[d].profile, c = prof.chat;
-          const his = (await p.$$eval('.msg.him:not(.typing) span', (els) => els.map((e) => e.innerText))).map((t) => t.replace(/\s+/g, ' ').trim());
-          const hers = await p.locator('.msg.her').count();
-          const exp = [c.his.map(noEmoji), c.flags.map(noEmoji), [noEmoji(c.ask)], [noEmoji(c.reveal)], [noEmoji(prof.bio)]];
-          const ok = his.length === 5 && hers === 3 && his.every((t, k) => exp[k].includes(t));
-          if (!ok) issue(who, `chat with ${prof.name}: unexpected messages (${his.length} his, ${hers} hers): ${JSON.stringify(his).slice(0, 200)}`);
-          else note(who, `chat with ${prof.name}: hi → red flag → hockey question → reveal → tip ✓ (“${his[0].slice(0, 40)}” / “${his[1].slice(0, 50)}”)`);
-          if (his.some((t) => /\p{Extended_Pictographic}/u.test(t))) issue(who, `chat with ${prof.name} contains emoji`);
-        }
-      } else {
-        if (!checkedScreen && (await p.$('.alt-card') || await p.$('.offer'))) {
-          checkedScreen = true;
-          if (SARA_ALT[d] && !await p.$('.alt-card')) issue(who, `stop ${i + 1}: expected the ${SARA_ALT[d].title} game, got the shop`);
-          if (!SARA_ALT[d] && await p.$('.alt-card')) issue(who, `stop ${i + 1}: unexpected replacement game`);
-          if (!SARA_ALT[d]) { const n = await p.locator('.offer').count(); if (n !== 3) issue(who, `shop at stop ${i + 1} shows ${n} listings, expected 3`); if (!await p.$('[data-buy=real][disabled]')) issue(who, `shop at stop ${i + 1}: buy is not locked before reading`); }
-          note(who, `stop ${i + 1}: ${SARA_ALT[d] ? 'game ' + SARA_ALT[d].icon + ' ' + SARA_ALT[d].title : 'Bookbazaar, 3 listings, buying locked until read'} ✓`);
-        }
-        if (await p.$('.alt-card') && !await p.$('[data-guess]')) {
-          if (await p.$('.match-overlay')) { await p.waitForTimeout(700); continue; }
-          if (!used.cancel && st.sipsStep > 0 && st.hearts >= 2 && await p.$('#cancelsips:not([disabled])')) { used.cancel = true; await p.click('#cancelsips'); await p.waitForTimeout(500); note(who, 'cancelled the sips (2 🔖) ✓'); continue; }
-          if (await p.$('[data-alt-opt]')) {
-            if (!used.altWrong.has(d)) {
-              used.altWrong.add(d);
-              await p.click('[data-alt-opt][data-ok="0"]'); await p.waitForTimeout(600);
-              const msg = await p.$('.modal-overlay') ? (await p.innerText('.soldout-msg')).slice(0, 70) : '';
-              note(who, `${SARA_ALT[d].title}: wrong answer → “${msg}”`);
-              if (d === 12) { await p.click('#modal-ok'); await p.waitForTimeout(400); await p.reload(); await shortTimers(p); await p.waitForTimeout(900); if (!await p.$('.alt-card') && !await p.$('.ch-banner.sur')) issue(who, 'reload lost the replacement game'); else note(who, 'reloaded mid-game, still at the postcards ✓'); }
+      try {
+        await p.waitForTimeout(150);
+        if (it % 4 === 0) await pump(p);
+        if (await service(p, who)) continue;
+        const st = await stateOf(p);
+        if (!sara) {
+          if (await p.$('.timeout')) { note(who, 'pass → 10 s timeout: ' + (await p.innerText('.timeout-line')).slice(0, 60)); await p.waitForTimeout(10600); continue; }
+          if (await p.$('#like')) {
+            if (i === 0 && !used.pass) { used.pass = true; await p.click('#pass'); await p.waitForTimeout(800); continue; }
+            await p.click('#like'); await p.waitForTimeout(2300); continue; }
+          if (await p.$('[data-sim]')) { const n = await p.locator('.msg.her').count(); const pick = [2, 1, 1][n]; await p.click(`[data-sim="${pick}"]`); await p.waitForTimeout(500); continue; }
+          if (await p.$('#msg')) {
+            // reload in the middle of a chat once: it must continue where it was
+            if (i === 3 && !used.reloaded) { used.reloaded = true; const before = await p.locator('.msg').count(); await p.reload(); await shortTimers(p); await p.waitForTimeout(900); const after = await p.locator('.msg').count(); if (after < before - 1) issue(who, `reload lost chat messages (${before} → ${after})`); else note(who, `reloaded mid-chat, ${after} messages kept ✓`); continue; }
+            await p.fill('#msg', 'hello, it is me ' + i); await p.press('#msg', 'Enter'); await p.waitForTimeout(700); continue; }
+          if (await p.$('.chatpage') && !await p.$('[data-guess]')) continue; // he is typing
+          if (await p.$('.chatpage') && !chatChecked && STORIES.sarah.stops[d].profile?.sim) {
+            chatChecked = true;
+            const his = await p.locator('.msg.him:not(.typing)').count(), hers = await p.locator('.msg.her').count();
+            const badge = (await p.innerText('.sim-out').catch(() => '')).trim();
+            const s2 = await stateOf(p);
+            if (his !== 9 || hers !== 3 || !/Very bad date/.test(badge) || s2.simResult !== STORIES.sarah.stops[d].profile.name + ': 💀 Very bad date') issue(who, `dating sim: ${his} his / ${hers} hers, badge "${badge}", result "${s2.simResult}"`);
+            else note(who, `dating sim with ${STORIES.sarah.stops[d].profile.name}: 3 questions answered (savage, savage, bad) → "${badge}" ✓`);
+          }
+          if (await p.$('.chatpage') && !chatChecked && STORIES.sarah.stops[d].profile) { // chat complete: check the order of his messages
+            chatChecked = true;
+            const prof = STORIES.sarah.stops[d].profile, c = prof.chat;
+            const his = (await p.$$eval('.msg.him:not(.typing) span', (els) => els.map((e) => e.innerText))).map((t) => t.replace(/\s+/g, ' ').trim());
+            const hers = await p.locator('.msg.her').count();
+            const exp = [c.his.map(noEmoji), c.flags.map(noEmoji), [noEmoji(c.ask)], [noEmoji(c.reveal)], [noEmoji(prof.bio)]];
+            const ok = his.length === 5 && hers === 3 && his.every((t, k) => exp[k].includes(t));
+            if (!ok) issue(who, `chat with ${prof.name}: unexpected messages (${his.length} his, ${hers} hers): ${JSON.stringify(his).slice(0, 200)}`);
+            else note(who, `chat with ${prof.name}: hi → red flag → hockey question → reveal → tip ✓ (“${his[0].slice(0, 40)}” / “${his[1].slice(0, 50)}”)`);
+            if (his.some((t) => /\p{Extended_Pictographic}/u.test(t))) issue(who, `chat with ${prof.name} contains emoji`);
+          }
+        } else {
+          if (!checkedScreen && (await p.$('.alt-card') || await p.$('.offer'))) {
+            checkedScreen = true;
+            if (SARA_ALT[d] && !await p.$('.alt-card')) issue(who, `stop ${i + 1}: expected the ${SARA_ALT[d].title} game, got the shop`);
+            if (!SARA_ALT[d] && await p.$('.alt-card')) issue(who, `stop ${i + 1}: unexpected replacement game`);
+            if (!SARA_ALT[d]) { const n = await p.locator('.offer').count(); if (n !== 3) issue(who, `shop at stop ${i + 1} shows ${n} listings, expected 3`); if (!await p.$('[data-buy=real][disabled]')) issue(who, `shop at stop ${i + 1}: buy is not locked before reading`); }
+            note(who, `stop ${i + 1}: ${SARA_ALT[d] ? 'game ' + SARA_ALT[d].icon + ' ' + SARA_ALT[d].title : 'Bookbazaar, 3 listings, buying locked until read'} ✓`);
+          }
+          if (await p.$('.alt-card') && !await p.$('[data-guess]')) {
+            if (await p.$('.match-overlay')) { await p.waitForTimeout(700); continue; }
+            if (!used.cancel && st.sipsStep > 0 && st.hearts >= 2 && await p.$('#cancelsips:not([disabled])')) { used.cancel = true; await p.click('#cancelsips'); await p.waitForTimeout(500); note(who, 'cancelled the sips (2 🔖) ✓'); continue; }
+            if (await p.$('[data-alt-opt]')) {
+              if (!used.altWrong.has(d)) {
+                used.altWrong.add(d);
+                await p.click('[data-alt-opt][data-ok="0"]'); await p.waitForTimeout(600);
+                const msg = await p.$('.modal-overlay') ? (await p.innerText('.soldout-msg')).slice(0, 70) : '';
+                note(who, `${SARA_ALT[d].title}: wrong answer → “${msg}”`);
+                if (d === 12) { await p.click('#modal-ok'); await p.waitForTimeout(400); await p.reload(); await shortTimers(p); await p.waitForTimeout(900); if (!await p.$('.alt-card') && !await p.$('.ch-banner.sur')) issue(who, 'reload lost the replacement game'); else note(who, 'reloaded mid-game, still at the postcards ✓'); }
+                continue; }
+              await p.click('[data-alt-opt][data-ok="1"]'); await p.waitForTimeout(900); continue; }
+            if (await p.$('[data-pick]')) {
+              if (await p.$('.cover-mock')) { await p.waitForTimeout(500); await p.click('#alt-done'); await p.waitForTimeout(800); continue; }
+              for (const g of ['t', 'a', 'g']) if (!await p.$(`[data-pick^="${g}:"].picked`)) { await p.click(`[data-pick="${g}:1"]`); await p.waitForTimeout(400); break; }
               continue; }
-            await p.click('[data-alt-opt][data-ok="1"]'); await p.waitForTimeout(900); continue; }
-          if (await p.$('[data-pick]')) {
-            if (await p.$('.cover-mock')) { await p.waitForTimeout(500); await p.click('#alt-done'); await p.waitForTimeout(800); continue; }
-            for (const g of ['t', 'a', 'g']) if (!await p.$(`[data-pick^="${g}:"].picked`)) { await p.click(`[data-pick="${g}:1"]`); await p.waitForTimeout(400); break; }
-            continue; }
-          if (await p.$('[data-word]')) {
-            await p.click('#alt-done'); await p.waitForTimeout(400); // empty: must refuse
-            if (!await p.$('[data-word]')) issue(who, 'ask a stranger accepted empty words');
-            const ws = await p.$$('[data-word]'); for (const [k, w] of ws.entries()) await w.fill('word' + k); await p.click('#alt-done'); await p.waitForTimeout(900); continue; }
-          if (await p.$('#alt-done')) { await p.click('#alt-done'); await p.waitForTimeout(900); continue; }
+            if (await p.$('[data-word]')) {
+              await p.click('#alt-done'); await p.waitForTimeout(400); // empty: must refuse
+              if (!await p.$('[data-word]')) issue(who, 'ask a stranger accepted empty words');
+              const ws = await p.$$('[data-word]'); for (const [k, w] of ws.entries()) await w.fill('word' + k); await p.click('#alt-done'); await p.waitForTimeout(900); continue; }
+            if (await p.$('#alt-done')) { await p.click('#alt-done'); await p.waitForTimeout(900); continue; }
+          }
+          if (await p.$('[data-buy]') && !await p.$('[data-guess]')) {
+            if (await p.$('[data-read]')) { await p.locator('[data-read]').first().click(); await p.waitForTimeout(450); continue; }
+            if (!used.reveal && st.hearts >= 2 && await p.$('#reveal:not([disabled])')) { used.reveal = true; await p.click('#reveal'); await p.waitForTimeout(500); if (!await p.$('.offer.revealed')) issue(who, 'reveal did not mark a listing'); else note(who, 'revealed the real listing (2 🔖) ✓'); continue; }
+            if (i % 3 === 0 && used.wrongBuy < 4 && !st.shopWrong.length) { used.wrongBuy++; const id = await p.evaluate(() => [...document.querySelectorAll('[data-buy]:not([disabled])')].map((b) => b.dataset.buy).find((x) => x !== 'real')); await p.click(`[data-buy=${id}]`); await p.waitForTimeout(700); note(who, `wrong order (${id}): ` + (await p.innerText('.modal-kicker')).trim()); continue; }
+            if (!used.cancel && st.sipsStep > 0 && st.hearts >= 2 && await p.$('#cancelsips:not([disabled])')) { used.cancel = true; await p.click('#cancelsips'); await p.waitForTimeout(500); note(who, 'cancelled the sips (2 🔖) ✓'); continue; }
+            await p.click('[data-buy=real]'); await p.waitForTimeout(2000); continue; }
         }
-        if (await p.$('[data-buy]') && !await p.$('[data-guess]')) {
-          if (await p.$('[data-read]')) { await p.locator('[data-read]').first().click(); await p.waitForTimeout(450); continue; }
-          if (!used.reveal && st.hearts >= 2 && await p.$('#reveal:not([disabled])')) { used.reveal = true; await p.click('#reveal'); await p.waitForTimeout(500); if (!await p.$('.offer.revealed')) issue(who, 'reveal did not mark a listing'); else note(who, 'revealed the real listing (2 🔖) ✓'); continue; }
-          if (i % 3 === 0 && used.wrongBuy < 4 && !st.shopWrong.length) { used.wrongBuy++; const id = await p.evaluate(() => [...document.querySelectorAll('[data-buy]:not([disabled])')].map((b) => b.dataset.buy).find((x) => x !== 'real')); await p.click(`[data-buy=${id}]`); await p.waitForTimeout(700); note(who, `wrong order (${id}): ` + (await p.innerText('.modal-kicker')).trim()); continue; }
-          if (!used.cancel && st.sipsStep > 0 && st.hearts >= 2 && await p.$('#cancelsips:not([disabled])')) { used.cancel = true; await p.click('#cancelsips'); await p.waitForTimeout(500); note(who, 'cancelled the sips (2 🔖) ✓'); continue; }
-          await p.click('[data-buy=real]'); await p.waitForTimeout(2000); continue; }
-      }
-      if (await p.$('[data-guess]')) {
-        if (i % 4 === 1 && used.wrongGuess < 4 && !st.wrong.length) { used.wrongGuess++; const wrong = await p.evaluate((n) => [...document.querySelectorAll('[data-guess]:not([disabled])')].map((b) => b.dataset.guess).find((x) => Number(x) !== n), next); await p.click(`[data-guess='${wrong}']`); await p.waitForTimeout(900); continue; }
-        if (!used.hint && i >= 2 && st.hearts >= 1 && await p.$('#buyhint:not([disabled])')) { used.hint = true; await p.click('#buyhint'); await p.waitForTimeout(500); note(who, 'bought a hint ✓'); continue; }
-        break; }
+        if (await p.$('[data-guess]')) {
+          if (i % 4 === 1 && used.wrongGuess < 4 && !st.wrong.length) { used.wrongGuess++; const wrong = await p.evaluate((n) => [...document.querySelectorAll('[data-guess]:not([disabled])')].map((b) => b.dataset.guess).find((x) => Number(x) !== n), next); await p.click(`[data-guess='${wrong}']`); await p.waitForTimeout(900); continue; }
+          if (!used.hint && i >= 2 && st.hearts >= 1 && await p.$('#buyhint:not([disabled])')) { used.hint = true; await p.click('#buyhint'); await p.waitForTimeout(500); note(who, 'bought a hint ✓'); continue; }
+          break; }
+      } catch (e) { if (e.name !== 'TimeoutError') throw e; note(who, 'a click lost its target (something popped up), retrying'); continue; }
     }
     if (!await p.$('[data-guess]')) { issue(who, `stuck before the guess at stop ${i + 1} (${DISTRICTS[d].name})`); await p.screenshot({ path: `${OUT}/stuck-${who}.png` }); return; }
     await p.click(`[data-guess='${next}']`); await p.waitForTimeout(500);
@@ -305,6 +325,7 @@ async function play(who, p) {
   note(who, 'FINALE · ' + stats);
   if (sara && !/word0 · word1 · word2/.test(endText)) issue(who, 'finale does not show the stranger words');
   if (!sara && !/was here, lovely evening/.test(endText)) issue(who, 'finale does not show the crew-written bio');
+  if (!sara && !/Very bad date/.test(endText)) issue(who, 'finale does not show the dating-sim result');
   fs.writeFileSync(`${OUT}/ending-${who}.txt`, endText + '\n\nSTATS: ' + stats + '\n');
   await p.screenshot({ path: `${OUT}/finale-${who}.png`, fullPage: true });
   const s = await stateOf(p);

@@ -81,6 +81,7 @@ Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sip
 ## Sarah's dating app ("Icebreaker")
 
 - **Player stops** show a teammate's profile. **Like** → "It's a match!" → a Tinder-style chat: he says hi (a random cool or cringe opener), she answers, he sends one red-flag text (a normal message, no label), she answers, he asks whether she's looking for the ice hockey guy, she replies (anything works), "doesn't matter actually, here's what I heard" + his tip, and only then the riddle (written to be read out loud). **Pass** → Sarah owes penalty sips (1st pass 1 sip, 2nd 2 sips, …), gets a 10-second timeout with a joke (different for every guy) and he swipes back in. She can't skip him — he's her only lead.
+- **Tomasz #31 (Liebenau, the 3rd guy) is a dating sim:** 3 questions, 3 reply buttons each, his reaction to every answer, and one of 6 outcomes: 💘 perfect match (+1 ❤️), 😊 good (+1 ❤️), 😂 funny, 😬 bad (1 sip), 💀 very bad (2 sips), 🌪️ chaotic. Then his tip and the riddle as usual.
 - **Challenges** (💔 events +2 ❤️, quizzes −1 per wrong answer; ⚡ intermissions +1 ❤️) are sent by the host from `admin.html` whenever it fits. The table below is the suggested timing.
 - The top bar counts drinks and ❤️. The finale shows matches, likes earned, penalty sips, the bio her crew wrote and the super likes.
 
