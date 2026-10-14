@@ -343,7 +343,7 @@ Your crew has a drink for you. Prost! 🎂`,
     clueLabel: "A note from O.P.",
     intro: `There is exactly one copy left in the world of <b>"The Library of Herbert and Kafka"</b> — the definitive book about cats, out of print since forever.
 
-It belongs to <b>Ottilie Pfotenhauer</b>, a travelling bookseller with a squeaky book cart and two cats: <b>Herbert</b>, who is fat and grey, and <b>Kafka</b>, who is always up to something. She'll sell it to the right person. But she never stays anywhere long, and she leaves notes instead of waiting.
+It belongs to <b>Ottilie Pfotenhauer</b>, a travelling bookseller with a squeaky book cart and two cats: <b>Herbert the Gracious</b> and <b>Kafka the Schlimm</b> (that's German for naughty, and the name fits). She'll sell it to the right person. But she never stays anywhere long, and she leaves notes instead of waiting.
 
 Her cart has an online shop that follows her around: <b>Bookbazaar</b>. It is full of "recommendations for you" — mostly dark romance. Ignore them.
 
@@ -357,7 +357,7 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
     ],
     stops: {
       1: {
-        encounter: `The woman behind the bakery counter points at the door. "The old lady with the book cart and the fat cat? Sold me a cookbook ten minutes ago, paid for her coffee in bookmarks. She said someone would come asking. She left this for you."`,
+        encounter: `The woman behind the bakery counter points at the door. "The old lady with the book cart and the two cats? Sold me a cookbook ten minutes ago, paid for her coffee in bookmarks. She said someone would come asking. She left this for you."`,
         item: { icon: "🔖", name: "A bookmark with cat hair on it" },
         riddle: `<i>"Chapter Two: travel literature. South of here is the great square where every tram line in Graz meets, named after a merchant who built himself a whole neighbourhood. Nearby, a riverside garden with 'Au' in its name. I sell maps there. Don't dawdle."</i>`,
         hint: "The city's main tram hub, plus the Augarten park.",
@@ -393,7 +393,7 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
         hint: "A district named after a ridge, with the Stiftingtal and Ragnitz valleys.",
       },
       10: {
-        encounter: `A cyclist resting at the top of the road. "An old lady pushing a book cart uphill. Faster than me. Her cat was riding on top of the books like a figurehead. Then she turned around and rolled all the way back down. Something about textbooks."`,
+        encounter: `A cyclist resting at the top of the road. "An old lady pushing a book cart uphill. Faster than me. One of her cats was riding on top of the books like a figurehead. Then she turned around and rolled all the way back down. Something about textbooks."`,
         item: { icon: "📄", name: "Page 44: “Herbert, Captain of the Cart”" },
         riddle: `<i>"The scholars' chapter. Back west toward town: the university's grand main building with its old reading hall, the glasshouses of the botanical garden, and the big hospital where Herbert once needed stitches. Don't ask."</i>`,
         hint: "The university district — main campus, botanical garden, the LKH hospital.",
@@ -423,7 +423,7 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
         hint: "A UNESCO-listed baroque palace in the west of Graz, with peacocks.",
       },
       14: {
-        encounter: `A gardener in the palace park. "Her cat chased a peacock. The peacock won. Then a traffic warden gave her a ticket for parking the book cart on the lawn. She said she'd go and contest it."`,
+        encounter: `A gardener in the palace park. "One of her cats chased a peacock. The peacock won. Then a traffic warden gave her a ticket for parking the book cart on the lawn. She said she'd go and contest it."`,
         item: { icon: "📄", name: "Page 92: “The Peacock War”" },
         riddle: `<i>"Crime fiction! South of here sits the province's police headquarters, below a forested hill that shares its name with the Mount of Olives. A motorway tunnel runs deep underneath. The tram line ends at its edge."</i>`,
         hint: "The Ölberg, the Plabutschtunnel, and the tram's western terminus.",
@@ -441,7 +441,7 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
         hint: "The brewery that gives Graz its beer — and its name to the 17th district.",
       },
       17: {
-        encounter: `A guy chalking his cue. "The book lady won four games of pool. Her cat sat on the table and nudged my balls into the wrong pockets. Then she said she needs dictionaries for the last chapter — and a falafel."`,
+        encounter: `A guy chalking his cue. "The book lady won four games of pool. One of her cats sat on the table and nudged my balls into the wrong pockets. Then she said she needs dictionaries for the last chapter — and a falafel."`,
         item: { icon: "📄", name: "Page 128: “Herbert cheats at billiards”" },
         riddle: `<i>"North, to the district named after the gravel and sand the river left behind. A big square, many languages, strong coffee and kebab until late — I sell dictionaries there. The long wall with barbed wire? That library has very long loan periods."</i>`,
         hint: "The district's name is old German for coarse sand. The square has the same name.",
@@ -457,7 +457,7 @@ It's your birthday, Sara. Today you get that book. You just have to be on time f
 
 Ottilie is sitting on a beer crate. Herbert is asleep on top of the cart. She hands you a heavy, slightly dusty book: <b>The Library of Herbert and Kafka</b>.
 
-<i>"I was never going to sell it to just anyone. Only to someone who'd chase it across a whole city with her friends. Happy birthday, Sara. Look after it. Herbert approves."</i>
+<i>"I was never going to sell it to just anyone. Only to someone who'd chase it across a whole city with her friends. Happy birthday, Sara. Look after it. Herbert the Gracious approves. Kafka the Schlimm does not, but that is normal."</i>
 
 Your crew has a drink for you. Prost! 🎂`,
         item: { icon: "📕", name: "The Library of Herbert and Kafka" },

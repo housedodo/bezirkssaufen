@@ -49,7 +49,7 @@ per district. Two birthday girls each play their own story on their own phone:
 
 - **Sarah — "The Hunt for #99"**, built as a fake dating app called **Icebreaker**. She chases
   Jakob "Iceman" Eisner (#99), a hockey player who is always one bar ahead. His teammates are dating profiles.
-- **Sara — "The Last Copy"**: chases travelling bookseller Ottilie Pfotenhauer (cats: Herbert and Kafka), who has the last copy
+- **Sara — "The Last Copy"**: chases travelling bookseller Ottilie Pfotenhauer (cats: **Herbert the Gracious** and **Kafka the Schlimm**, neither is fat), who has the last copy
   of *The Library of Herbert and Kafka*. Old-bookshop paper look.
 
 In each district: read what happened → get a riddle describing the area around the **next** district (never its
@@ -268,7 +268,8 @@ There are no automated tests in the repo. Before pushing:
 
 Newest first. One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Lobby: after choosing a name the app shows "Under construction" until the host presses Start game in admin.html (notification to both, lobbies unlock by themselves); intro now has a first clue to Auer (hint + Maps); worker `/game`, `/start`, `/reset` clears game; **redeploy `worker/worker.js`**; cache v18.
+- 2026-10-14 · this commit · Dominik (Claude) · Cats are now "Herbert the Gracious" and "Kafka the Schlimm" (intro + finale); removed "fat" everywhere; cache v19.
+- 2026-10-14 · `8d9bb20` · Dominik (Claude) · Lobby: after choosing a name the app shows "Under construction" until the host presses Start game in admin.html (notification to both, lobbies unlock by themselves); intro now has a first clue to Auer (hint + Maps); worker `/game`, `/start`, `/reset` clears game; **redeploy `worker/worker.js`**; cache v18.
 - 2026-10-14 · `5f35368` · Dominik (Claude) · First stop is introduction only: intro button is now "Start the quest" (sit down at Auer, press it, then the shop / dating app starts); no challenges at stop I (Sara's menu poetry became a +2 event @VIII); cats renamed to Herbert and Kafka everywhere (book: "The Library of Herbert and Kafka", intro mentions both cats); cache v17.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Install card with real "Install" button for Android (+ hints for other browsers/iPhone); manifest `id`; cache v16.
 - 2026-10-14 · earlier commit · Dominik (Claude) · Removed "Just tell us" (districts can never be skipped); "skip challenge" became "make someone else do it" (3 ❤️/🔖, victim screen, no reward); cache v15. (Admin per-player mission filter from the previous commit is unchanged.)
