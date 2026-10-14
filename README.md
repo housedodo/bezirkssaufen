@@ -59,16 +59,20 @@ The riddle you read in a district points to the **next** row.
 
 ## Sara's Bookbazaar
 
-At every stop Sara lands on a fake book marketplace with 4 listings that all look alike: Ottilie's *disguised* real book (its blurb only echoes what the local just said) and 3 decoys, one of which is a real page from another stop (always sold out). Every blurb has to be read out loud before she can order anything (every listing is a short spicy excerpt, hidden behind a "Read this page out loud" button; the real book's page echoes the local's story), and only the right purchase delivers Ottilie's note (the riddle). A wrong order = penalty sips (1, 2, 3 … per stop) and either delivered (a courier line, the book joins her haul) or an "unfortunately sold out" notice. The finale shows her accidental library.
+At ten stops Sara lands on a fake book marketplace with 3 listings that all look alike: Ottilie's *disguised* real book (its blurb only echoes what the local just said) and 2 decoys, one of which is a real page from another stop (always sold out). Every blurb has to be read out loud before she can order anything (every listing is a short spicy excerpt, hidden behind a "Read this page out loud" button; the real book's page echoes the local's story), and only the right purchase delivers Ottilie's note (the riddle). A wrong order = penalty sips (1, 2, 3 … per stop) and either delivered (a courier line, the book joins her haul) or an "unfortunately sold out" notice. The finale shows her accidental library.
 
-**Sara's challenges** (earn 🔖 bookmarks, done before the shop; none at stop I, the intro): events — pop quiz @IX · dramatic reading @II · name that first line @III · menu poetry @VIII · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — Herbert impression @VI · one word each @VIII · Herbert's nap @III · silence in the library @XIV · book swap @V. Sara's stops never coincide with Sarah's intermissions.
+At six stops the shop is replaced by a different game (wrong answers cost sips too): VII Liebenau **Zamboni physics** (3 science questions, Herbert's tip is always wrong) · X Ries **Herbert and Kafka judge** · XII Andritz **Ottilie's postcards** (which one was written here?) · XIV Eggenberg **Cover designer** · XVII Puntigam **Ask a stranger** (3 words, shown in the finale) · V Gries **Bookmark hunt** (the table approves).
+
+**Sara's challenges** (earn 🔖 bookmarks). The host sends them from `admin.html` whenever it fits; the stops below are only the suggested timing: events — pop quiz @IX · dramatic reading @II · name that first line @III · menu poetry @VIII · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — Herbert impression @VI · one word each @VIII · Herbert's nap @III · silence in the library @XIV · book swap @V · locker room speech @X · one-line fanfic @XVII.
+
+**Shared missions** (host → Both): Adventure clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, adventure wishes, **Bike vs Zamboni** (tap race: 40 taps in 10 s).
 
 ## Game day (host)
 
 0. Install the host app once: open `admin.html` in Chrome/Safari and tap Install (or Add to Home Screen). It has its own teal icon ("Heated Host").
 1. Both girls install the app and choose their name. They only see "Under construction" until you start.
 2. In `admin.html`: enter the PIN, check both phones are registered, press **Reset all progress + back to the lobby**.
-3. When everyone is ready, press **🚀 Start the game**. Both phones get a notification; each girl reads her story and a first clue to the meeting point (Auer, Schmidtgasse, Innere Stadt). At Auer they press **Start the quest**.
+3. When everyone is ready, press **🚀 Start the game**. During the game, send the challenges from the mission list whenever it fits (pick Sarah / Sara / Both first). A sent mission is marked **✓ Done** in the list. Both phones get a notification; each girl reads her story and a first clue to the meeting point (Auer, Schmidtgasse, Innere Stadt). At Auer they press **Start the quest**.
 
 ## Spending points, and moving on together
 
@@ -76,9 +80,8 @@ Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sip
 
 ## Sarah's dating app ("Icebreaker")
 
-- **Player stops** show a teammate's profile. **Like** → "It's a match!" → a Tinder-style chat: he says hi and asks her a warm-but-weird question, she answers, he drops two 🚩 red flags, he asks whether she's looking for the ice hockey guy, she replies (anything works), "doesn't matter actually, here's what I heard" and only then the riddle (written to be read out loud). **Pass** → Sarah owes penalty sips (1st pass 1 sip, 2nd 2 sips, …), gets a 10-second timeout with a joke (different for every guy) and he swipes back in. She can't skip him — he's her only lead.
-- **Event stops** ("💔 No matches nearby") have a challenge before the message and riddle: +2 ❤️ (quizzes: −1 per wrong answer, at least +1).
-- **Sudden intermissions** interrupt some player stops before the profile shows: +1 ❤️.
+- **Player stops** show a teammate's profile. **Like** → "It's a match!" → a Tinder-style chat: he says hi (a random cool or cringe opener), she answers, he sends one red-flag text (a normal message, no label), she answers, he asks whether she's looking for the ice hockey guy, she replies (anything works), "doesn't matter actually, here's what I heard" + his tip, and only then the riddle (written to be read out loud). **Pass** → Sarah owes penalty sips (1st pass 1 sip, 2nd 2 sips, …), gets a 10-second timeout with a joke (different for every guy) and he swipes back in. She can't skip him — he's her only lead.
+- **Challenges** (💔 events +2 ❤️, quizzes −1 per wrong answer; ⚡ intermissions +1 ❤️) are sent by the host from `admin.html` whenever it fits. The table below is the suggested timing.
 - The top bar counts drinks and ❤️. The finale shows matches, likes earned, penalty sips, the bio her crew wrote and the super likes.
 
 | District | What happens |
@@ -101,7 +104,7 @@ Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sip
 | V Gries | Dragan #55 |
 | IV Lend | Finale |
 
-Challenges live in `CHALLENGES` in `story.js`; a stop uses one via `event: "key"` or `intermission: "key"`.
+Challenges live in `CHALLENGES` in `story.js`; the host panel lists them from `STORIES.<who>.missions` (built at the end of `story.js`).
 
 ## Editing the story
 

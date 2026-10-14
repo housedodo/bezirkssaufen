@@ -1,6 +1,6 @@
 // Bezirkssaufen mission pusher — Cloudflare Worker.
 //   POST /subscribe  {who, sub}            phone registers its push subscription (who = "sarah" | "sara")
-//   POST /inbox      {endpoint}            service worker asks "what is my mission?" after an (empty) push
+//   POST /inbox      {endpoint}            service worker asks "what is my mission?" after an (empty) push (+ `recent`: last 8 missions)
 //   POST /send       {to, title, body, ch?} admin only (Authorization: Bearer <ADMIN_PIN>); to = sarah | sara | both
 //   GET  /status                           admin only: how many phones are registered
 //   POST /solved     {who, step}           step sync: "I solved stop <step>" → {both, released, other}; both phones poll this
@@ -55,7 +55,13 @@ async function vapidAuth(env, endpoint) {
 
 // ch = optional challenge key: tapping the notification opens that challenge in the app ("surprise mission")
 async function pushTo(env, who, title, body, ch) {
-  await env.KV.put(`msg:${who}`, JSON.stringify({ title, body, ch: ch || null, id: crypto.randomUUID(), t: Date.now() }));
+  const msg = { title, body, ch: ch || null, id: crypto.randomUUID(), t: Date.now() };
+  await env.KV.put(`msg:${who}`, JSON.stringify(msg));
+  // the last few missions too: if two arrive close together and only one notification is tapped, the app still finds both
+  if (ch) {
+    const recent = JSON.parse((await env.KV.get(`recent:${who}`)) || "[]");
+    await env.KV.put(`recent:${who}`, JSON.stringify([...recent, msg].slice(-8)), { expirationTtl: 172800 });
+  }
   const subs = await getSubs(env, who);
   const alive = [];
   let sent = 0, failed = 0;
@@ -98,7 +104,8 @@ export default {
         for (const who of WHO) {
           if ((await getSubs(env, who)).some((s) => s.endpoint === endpoint)) {
             const msg = JSON.parse((await env.KV.get(`msg:${who}`)) || "null");
-            return json(msg || { title: "New mission 🎯", body: "Open the app." });
+            const recent = JSON.parse((await env.KV.get(`recent:${who}`)) || "[]");
+            return json({ ...(msg || { title: "New mission 🎯", body: "Open the app." }), recent });
           }
         }
         return json({ title: "New mission 🎯", body: "Open the app." });
@@ -148,11 +155,16 @@ export default {
       if (path === "/reset" && req.method === "POST") {
         if (!(await isAdmin(req, env))) return json({ error: "wrong pin" }, 401);
         const list = await env.KV.list({ prefix: "prog:" });
-        await Promise.all([...list.keys.map((k) => env.KV.delete(k.name)), env.KV.delete("game")]);
+        // also forget the missions sent so far, so test missions don't pop up when the real game starts
+        await Promise.all([...list.keys.map((k) => env.KV.delete(k.name)), env.KV.delete("game"),
+          ...WHO.flatMap((who) => [env.KV.delete(`msg:${who}`), env.KV.delete(`recent:${who}`)])]);
         return json({ ok: true, cleared: list.keys.length });
       }
 
       // ── lobby: the game only starts when the host says so ──
+      // which code is deployed? (bump when worker.js changes; CLAUDE.md → Open items says what to expect)
+      if (path === "/version" && req.method === "GET") return json({ version: 3 });
+
       if (path === "/game" && req.method === "GET") {
         const g = JSON.parse((await env.KV.get("game")) || "null");
         return json({ started: !!g, startedAt: g ? g.startedAt : null });

@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v41) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v42) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -112,8 +112,8 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   service worker shows it, and tapping it opens the app with `?mission=<challengeKey>&mid=<id>` (or `postMessage` if
   the app is open). The service worker never hands a mission to the host app's window (`admin.html` is on the same
   origin): it picks the game window (focused, else visible, else first non-admin) or opens the game. **Safety net:**
-  `checkInbox()` (on start and whenever the app becomes visible) asks the worker `/inbox` for the latest message and
-  shows a mission sent in the last 45 minutes that wasn't done yet, so it works even if the tap handoff fails. `app.js` `receiveMission()` sets `state.bonus`; `render()` shows it via `renderChallenge(key,
+  `checkInbox()` (on start and whenever the app becomes visible) asks the worker `/inbox` for the recent missions and
+  shows every one sent in the last 45 minutes that wasn't done yet (a mission arriving while another is open is queued in `state.mq`), so it works even if the tap handoff fails. `app.js` `receiveMission()` sets `state.bonus`; `render()` shows it via `renderChallenge(key,
   "surprise")` before the normal screen in **every phase except `pick`** (so also in the lobby and the intro; a mission that
   arrives while choosing the name waits and appears right after; the lobby keeps polling for the game start underneath), progress in its own `state.bch`, reward goes to `hearts`, `state.missions`
   remembers finished ids (a tapped mission can't be redone). **Admin page safety:** pick the recipient first (Sarah /
@@ -126,7 +126,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   deliberately slow: events +2, intermissions +1, shared missions +2/+1, quizzes −1 per wrong answer (min +1). Spending
   (`COSTS` in `story.js`): 💡 buy a hint before a wrong guess unlocks it (1) · 🧾 cancel the penalty sips of the current
   stop (2, Sarah's passes / Sara's wrong orders, tracked in `state.sipsStep`) · 🎭 make someone else do an event/intermission challenge instead of you (3): they pick a victim from the crew, the group
-  confirms it, no reward for the payer · 🔍 Sara: mark the real Bookbazaar listing (2). Surprise missions can't be delegated, only paused.
+  confirms it, no reward for the payer · 🔍 Sara: mark the real Bookbazaar listing (2). Missions can be delegated (🎭, 3) or paused ("Not now").
 - **Step sync** ("only if both found the district, both continue"): after a correct guess,
   `solve()` sets `state.waiting`; `renderWaiting()` polls worker `POST /solved {who, step}` every 3 s until it answers
   `both` (or the host `released` the step) and only then shows the next-stop screen. Switch it off with
@@ -167,14 +167,15 @@ See [Open items](#open-items).
 | Endpoint | Who | What |
 |---|---|---|
 | `POST /subscribe {who, sub}` | phone | registers the push subscription of Sarah or Sara |
-| `POST /inbox {endpoint}` | service worker | returns the latest `{title, body, ch, id}` for that phone after an empty push |
+| `POST /inbox {endpoint}` | service worker / app | returns the latest `{title, body, ch, id}` for that phone after an empty push, plus `recent` (last 8 missions) so missions sent close together all arrive |
 | `POST /send {to, title, body, ch?}` | admin | notification to sarah / sara / both; `ch` = challenge key → surprise mission |
 | `GET /status` | admin | registered phones per player, game started? |
 | `POST /solved {who, step}` | phone | step sync: marks "solved" and answers `{both, released, other}` |
 | `GET /progress`, `POST /release {step}` | admin | who solved what; let both continue anyway |
 | `GET /game` | phone | `{started}` for the lobby |
 | `POST /start` | admin | starts the game, pushes "Adventure day has started!" to both |
-| `POST /reset` | admin | clears all progress and the started flag (KV data also expires after 48 h) |
+| `GET /version` | anyone | `{version}` of the deployed worker code (currently 3) |
+| `POST /reset` | admin | clears all progress, the started flag and the stored missions (KV data also expires after 48 h) |
 
 ---
 
@@ -247,7 +248,7 @@ See [Open items](#open-items).
 `char, phase (pick|lobby|intro|clue|travel|done), step, wrong[], hint, log[], liked, passes, evDone, imDone, ch{},
 hearts (wallet: ❤️ Sarah / 🔖 Sara, earned minus spent), earned (total ever earned), timeoutUntil (Sarah's 10 s timeout), chat[] (Sarah's chat messages), sips, sipsStep (sips added at this stop),
 revealed (Sara: real listing marked), waiting (solved, waiting for the other phone), bonus, bch, missions[] (surprise
-missions), myBio, superLikes[], bought, shopWrong[], haul[], solvedGaveUp (legacy, always false)`.
+missions), mq[] (missions that arrived while another was open, shown one after the other), myBio, superLikes[], bought, shopWrong[], haul[], solvedGaveUp (legacy, always false)`.
 Per-step fields are reset by `stepReset()` on arrival: `wrong, hint, liked, passes, evDone, imDone, ch, solvedGaveUp,
 bought, shopWrong, sipsStep, revealed, waiting, timeoutUntil, chat`. Cumulative: `hearts, earned, sips, haul, myBio, superLikes` and the
 surprise-mission keys `bonus, bch, missions`. Adding a new key: add it to `fresh()` so old saved games still load.
@@ -339,7 +340,7 @@ There is no automated test suite in the repo. Before pushing:
    the test with `CHALLENGES[k].seconds = 1`. This catches most regressions.
 6. Worker: import `worker/worker.js` in Node and call `worker.fetch(new Request(...), env)` with a Map-backed fake KV
    (`get/put/delete/list`) and a stubbed global `fetch` for the push endpoints.
-7. **Full playthrough** (run it before a release): `python3 -m http.server 8000`, then `NODE_PATH=$(npm root -g) node tools/playthrough.mjs /tmp/out`. Sarah and Sara play all 17 stops at once against `worker/worker.js` running in-process (lobby, Start, step sync, chats, shop, spending, a host mission, finales, journal) and `story.js` is linted for spoilers/leftovers. ~5 min; ends with `ISSUES: none`. Writes `play.log`, `ending-*.txt`, finale screenshots.
+7. **Full playthrough** (run it before a release): `python3 -m http.server 8000`, then `NODE_PATH=$(npm root -g) node tools/playthrough.mjs /tmp/out`. Sarah and Sara play all 17 stops at once against `worker/worker.js` running in-process, and the **real `admin.html`** is the host: PIN, Start, every mission of both girls + all shared ones sent from the list (✓ Done marks, also after a reload), a mission queued while another is paused, delegation, every challenge type incl. a lost tap race, Sarah's chat order, Sara's 3-listing shop and the six replacement games, reloads mid-chat and mid-game, all spending options, finales, journal, Reset. Static checks: story lint, every challenge reachable from the admin page, no challenge on a stop, every cached file exists, worker auth. ~5 min; ends with `ISSUES: none`. Writes `play.log`, `ending-*.txt`, finale screenshots.
 8. Installability: Chromium `Page.getInstallabilityErrors` via CDP should only report `in-incognito` in a test context.
 
 ---
@@ -351,7 +352,7 @@ There is no automated test suite in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **Real-device test** of mission alerts, step sync, lobby and Start game on the two iPhones (everything was only tested with mocks; Web Push can't run headless). Do it the evening before.
-- **Is the deployed Worker current?** Open `https://bezirkssaufen.domi-dominkovic.workers.dev/game`: `{"started":…}` = current version, `{"error":"not found"}` = an old one that still needs the paste-and-deploy from `worker/worker.js`.
+- **Is the deployed Worker current?** Open `https://bezirkssaufen.domi-dominkovic.workers.dev/version`: `{"version":3}` = current (missions sent close together all arrive, Reset clears missions); `{"error":"not found"}` = an old one that still needs the paste-and-deploy from `worker/worker.js`. Bump the number in `worker.js` with every worker change.
 - **Worker redeploy**: after any change to `worker/worker.js` paste it into the Cloudflare dashboard (Edit code → Deploy). If a Git repo is connected under Worker → Settings → Builds, disconnect it, otherwise a push to `main` could overwrite the pasted code.
 - **Secrets**: `ADMIN_PIN` and the VAPID private key live only in Cloudflare (never commit them). The VAPID private key was pasted once into a Claude chat; rotate it after the party if that matters (new keys: `node worker/gen-vapid.mjs`, update `VAPID_PUBLIC`, `VAPID_PRIVATE_JWK` and `push-config.js`).
 - **Game day order**: (0) install the host app once, (1) both girls install + choose their name, (2) press "Reset all progress + back to the lobby" in admin.html, (3) at the start press "Start the game". Android install only works from a normal Chrome tab (not private, not Edge/Samsung).
@@ -373,7 +374,8 @@ Newest first (the commits that only claim work in the table above are not listed
 
 - 2026-10-14 · this commit · Dominik (Claude) · Handbook: new "Coverage check" section (every district has a person/encounter, and a real book for Sara in all 16 riddle districts).
 - 2026-10-14 · `previous` · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
-- 2026-10-14 · this commit · Dominik (Claude) · Liebenau's torn pages replaced by "Zamboni physics" (3 science questions, Herbert's tip is always wrong); new shared mission "Bike vs Zamboni" (`d_race`, new challenge type `tap`: 40 taps in 10 s, host sends it to both from the admin page, +2); cache v41.
+- 2026-10-14 · this commit · Dominik (Claude) · Full check before the party (new `tools/playthrough.mjs` drives the real admin page and sends every mission). Fixes it found: two missions sent close together → only the newest arrived (worker `/inbox` now also returns the last 8 missions, app picks up all of them; **redeploy `worker/worker.js`**); a mission arriving while another was open or paused replaced it (now queued, `state.mq`); 🎭 delegate was impossible since all challenges became missions (now offered on missions); admin page refreshes "registered phones" every 5 s; Reset also clears stored missions. README updated (3 listings, six games, host-sent challenges, new chat). Cache v42.
+- 2026-10-14 · `51ff1e6` · Dominik (Claude) · Liebenau's torn pages replaced by "Zamboni physics" (3 science questions, Herbert's tip is always wrong); new shared mission "Bike vs Zamboni" (`d_race`, new challenge type `tap`: 40 taps in 10 s, host sends it to both from the admin page, +2); cache v41.
 - 2026-10-14 · `72abff0` · Dominik (Claude) · Intermissions and events no longer appear on the stops: the host triggers all of them from the admin page (list per player from `STORIES.<who>.missions`); a mission that was sent is marked "✓ Done · sent HH:MM" in the admin list (greyed, resend needs a confirmation, marks cleared by Reset); cache v40.
 - 2026-10-14 · `previous` · Dominik (Claude) · Sara: shop now 3 listings instead of 4; six stops (VII, X, XII, XIV, XVII, V) swap the shop for a different game (torn pages, cat judge, postcards, cover designer, ask a stranger, bookmark hunt); playthrough tool plays them; cache v39.
 - 2026-10-14 · `c9514e2` · Dominik (Claude) · Sara: two new ⚡ intermissions where she had nothing: "Locker room speech" @X Ries and "One-line fanfic" @XVII Puntigam (+1 🔖 each); stops VII and XII are still empty (host will add). Cache v37.

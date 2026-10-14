@@ -183,7 +183,7 @@
       } catch (e) { box.innerHTML = `<span class="err">${e.message}</span>`; }
     }
     refreshSync();
-    setInterval(refreshSync, 5000);
+    setInterval(() => { refreshSync(); refreshStatus(); }, 5000);
     $("#reset").addEventListener("click", async () => {
       if (!confirm("Forget ALL step progress and put the game back to 'not started'? Phones already inside the game keep their own progress. Only do this before the game starts.")) return;
       try { const r = await call("/reset", "POST"); try { localStorage.removeItem("heated.sent"); } catch (e) {} renderPresets(); alert(`Cleared (${r.cleared} steps).`); } catch (e) { alert(e.message); }
@@ -246,6 +246,7 @@
           const b = document.createElement("button");
           const sentAt = sentMarks()[to + ":" + key];
           b.className = "mission " + to + (sentAt ? " sent" : "");
+          b.dataset.key = key;
           b.innerHTML = `${sentAt ? `<small class="sent-tag">✓ Done · sent ${sentAt}</small>` : ""}<small>→ ${to === "both" ? "SARAH + SARA" : name[to].toUpperCase()} · ${c.type} · +${c.reward}</small><b>${c.icon} ${c.title}</b><span>${c.story.length > 110 ? c.story.slice(0, 107) + "…" : c.story}</span>`;
           b.addEventListener("click", async () => {
             const ok = await send(`${c.icon} Surprise mission: ${c.title}`,

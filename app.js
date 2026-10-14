@@ -40,6 +40,7 @@
     // surprise missions sent by the host (notification → challenge)
     bonus: null,     // { key, id, paused } mission waiting / in progress
     bch: {},         // progress inside the surprise mission (separate from `ch`)
+    mq: [],          // missions that arrived while another one was open (shown one after the other)
     missions: [],    // ids of surprise missions already done
     // book story (Sara)
     bought: false,   // the right listing was bought (or the replacement game solved) at the current step
@@ -281,7 +282,7 @@
     fillInstall(app.querySelector("[data-install-slot]"));
     app.querySelectorAll("[data-pick]").forEach((b) =>
       b.addEventListener("click", () => {
-        set({ ...fresh(), char: b.dataset.pick, phase: lobbyOn() ? "lobby" : "intro", bonus: state.bonus, missions: state.missions });
+        set({ ...fresh(), char: b.dataset.pick, phase: lobbyOn() ? "lobby" : "intro", bonus: state.bonus, mq: state.mq, missions: state.missions });
         pushSync(); // tell the worker which player this phone is (if notifications are already allowed)
       })
     );
@@ -1018,8 +1019,7 @@
           ${paras(c.story)}
           <p class="ch-reward">${ch.delegated ? "No reward — someone else is doing it" : `Reward: +${c.reward} ${unit()}${c.type === "quiz" && c.reward > 1 ? " (−1 per wrong answer, at least +1)" : ""}`}</p>
         </article>
-        <div class="ch-body">${body}${mode === "surprise" ? `<button class="btn ghost" id="later">⏸ Not now — remind me later</button>`
-          : ch.delegated ? "" : `<button class="btn ghost" id="delegate" ${can(COSTS.delegate) ? "" : "disabled"}>🎭 Make someone else do it · ${COSTS.delegate} ${unit()}</button>`}</div>
+        <div class="ch-body">${body}${ch.delegated ? "" : `<button class="btn ghost" id="delegate" ${can(COSTS.delegate) ? "" : "disabled"}>🎭 Make someone else do it · ${COSTS.delegate} ${unit()}</button>`}${mode === "surprise" ? `<button class="btn ghost" id="later">⏸ Not now — remind me later</button>` : ""}</div>
       </section>`;
     $("#later")?.addEventListener("click", () => set({ bonus: { ...state.bonus, paused: true } }));
     $("#delegate")?.addEventListener("click", () => {
@@ -1028,7 +1028,7 @@
       window.scrollTo({ top: 0 });
     });
     $("#delegdone")?.addEventListener("click", () => {
-      set({ [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {} });
+      set(mode === "surprise" ? bonusDone() : { [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {} });
       toast("🎭 Done — your hands stayed clean");
       window.scrollTo({ top: 0 });
     });
@@ -1109,6 +1109,9 @@
     }
   }
 
+  // The current surprise mission is finished (done or delegated): remember its id and open the next queued one.
+  const bonusDone = () => ({ bonus: state.mq[0] || null, mq: state.mq.slice(1), bch: {}, missions: [...state.missions, state.bonus && state.bonus.id] });
+
   async function complete(c, mode) {
     buzz([30, 40, 30, 40, 30]);
     const reward = c.type === "quiz" ? Math.max(1, c.reward - (chNow().misses || 0)) : c.reward;
@@ -1118,7 +1121,7 @@
         ? `${mode === "intermission" ? "Intermission survived." : "Profile boosted."} Your likes are back.`
         : `${mode === "intermission" ? "Plot twist survived." : "Chapter complete."} Ottilie's cart is open.`}</p>`, 1400, "boost");
     if (mode === "surprise") {
-      set({ hearts: state.hearts + reward, earned: state.earned + reward, bonus: null, bch: {}, missions: [...state.missions, state.bonus && state.bonus.id], myBio: state.myBio, superLikes: state.superLikes });
+      set({ hearts: state.hearts + reward, earned: state.earned + reward, ...bonusDone(), myBio: state.myBio, superLikes: state.superLikes });
     } else {
       set({ hearts: state.hearts + reward, earned: state.earned + reward, [mode === "intermission" ? "imDone" : "evDone"]: true, ch: {}, myBio: state.myBio, superLikes: state.superLikes });
     }
@@ -1374,7 +1377,8 @@
   // ── Surprise missions: the notification tap hands us a challenge key + id ──
   function receiveMission(key, id) {
     if (!key || !id || typeof CHALLENGES === "undefined" || !CHALLENGES[key]) return;
-    if (state.missions.includes(id) || (state.bonus && state.bonus.id === id)) return;
+    if (state.missions.includes(id) || (state.bonus && state.bonus.id === id) || state.mq.some((m) => m.id === id)) return;
+    if (state.bonus) { set({ mq: [...state.mq, { key, id, paused: false }] }); toast("🎯 Another mission is waiting after this one"); return; }
     set({ bonus: { key, id, paused: false }, bch: {} });
     window.scrollTo({ top: 0 });
   }
@@ -1391,7 +1395,9 @@
       });
       if (!r.ok) return;
       const m = await r.json();
-      if (m && m.ch && m.id && m.t && Date.now() - m.t < 45 * 60 * 1000) receiveMission(m.ch, m.id);
+      // every fresh mission the worker remembers (oldest first), so two sent close together both arrive
+      const list = m && Array.isArray(m.recent) && m.recent.length ? m.recent : [m];
+      for (const x of list) if (x && x.ch && x.id && x.t && Date.now() - x.t < 45 * 60 * 1000) receiveMission(x.ch, x.id);
     } catch (_) {}
   }
   checkInbox();
