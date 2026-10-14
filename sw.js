@@ -1,6 +1,6 @@
 // Offline cache: the whole game works without signal once opened once.
 // Bump VERSION whenever you change story.js or any other file.
-const VERSION = "bezirk-v22";
+const VERSION = "bezirk-v23";
 importScripts("push-config.js"); // self.PUSH = { workerUrl, vapidPublicKey }
 const CORE = [
   "./",
@@ -97,12 +97,17 @@ self.addEventListener("push", (e) => {
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   const { ch, id } = e.notification.data || {};
-  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-    if (list.length) {
-      if (ch && id) list[0].postMessage({ type: "mission", ch, id });
-      return list[0].focus();
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    // The host app (admin.html) lives on the same address: its window must never receive a player's mission.
+    const game = all.filter((c) => !/\/admin\.html$/.test(new URL(c.url).pathname));
+    const target = game.find((c) => c.focused) || game.find((c) => c.visibilityState === "visible") || game[0];
+    if (target) {
+      if (ch && id) target.postMessage({ type: "mission", ch, id });
+      return target.focus();
     }
-    // app is closed: open it with the mission in the URL, app.js picks it up
-    return self.clients.openWindow(ch && id ? `./?mission=${encodeURIComponent(ch)}&mid=${encodeURIComponent(id)}` : "./");
-  }));
+    // game is closed: open it with the mission in the URL, app.js picks it up
+    const base = new URL("./", self.registration.scope).href;
+    return self.clients.openWindow(ch && id ? `${base}?mission=${encodeURIComponent(ch)}&mid=${encodeURIComponent(id)}` : base);
+  })());
 });

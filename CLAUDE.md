@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v22) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v23) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -38,7 +38,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| Dominik (Claude) | Fix: tapping a mission notification does nothing (admin window steals the tap, missions hidden in lobby/intro) | `sw.js`, `app.js`, `styles.css` | 2026-10-14 |
+| — | *nothing claimed* | — | — |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
@@ -100,8 +100,12 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   admin page = **every intermission and event challenge** of both stories (grouped by player, sent to its owner),
   plus free text. A challenge notification is a **surprise mission**: the worker stores `{title, body, ch, id}`, the
   service worker shows it, and tapping it opens the app with `?mission=<challengeKey>&mid=<id>` (or `postMessage` if
-  the app is open). `app.js` `receiveMission()` sets `state.bonus`; `render()` shows it via `renderChallenge(key,
-  "surprise")` before the normal screen, progress in its own `state.bch`, reward goes to `hearts`, `state.missions`
+  the app is open). The service worker never hands a mission to the host app's window (`admin.html` is on the same
+  origin): it picks the game window (focused, else visible, else first non-admin) or opens the game. **Safety net:**
+  `checkInbox()` (on start and whenever the app becomes visible) asks the worker `/inbox` for the latest message and
+  shows a mission sent in the last 45 minutes that wasn't done yet, so it works even if the tap handoff fails. `app.js` `receiveMission()` sets `state.bonus`; `render()` shows it via `renderChallenge(key,
+  "surprise")` before the normal screen in **every phase except `pick`** (so also in the lobby and the intro; a mission that
+  arrives while choosing the name waits and appears right after; the lobby keeps polling for the game start underneath), progress in its own `state.bch`, reward goes to `hearts`, `state.missions`
   remembers finished ids (a tapped mission can't be redone). **Admin page safety:** pick the recipient first (Sarah /
   Sara / Both, colour-coded banner "Sending to: …"); the mission list then only shows what fits (Sarah's own, Sara's
   own, or the 8 **shared missions** for Both) and the confirm dialog repeats the recipient. Shared missions are
@@ -312,6 +316,7 @@ There is no automated test suite in the repo. Before pushing:
 - **Stop name**: bus 64 stop spelled "Morreehof" and "Morrehof" in the sheet; app uses "Morrehof". Confirm.
 - **Clocktower** (Straßgang) closes 23:00, arrival planned 22:00 — no slack.
 - **Real-device test** of mission alerts, step sync, lobby and Start game on the two iPhones (everything was only tested with mocks; Web Push can't run headless). Do it the evening before.
+- **Is the deployed Worker current?** Open `https://bezirkssaufen.domi-dominkovic.workers.dev/game`: `{"started":…}` = current version, `{"error":"not found"}` = an old one that still needs the paste-and-deploy from `worker/worker.js`.
 - **Worker redeploy**: after any change to `worker/worker.js` paste it into the Cloudflare dashboard (Edit code → Deploy). If a Git repo is connected under Worker → Settings → Builds, disconnect it, otherwise a push to `main` could overwrite the pasted code.
 - **Secrets**: `ADMIN_PIN` and the VAPID private key live only in Cloudflare (never commit them). The VAPID private key was pasted once into a Claude chat; rotate it after the party if that matters (new keys: `node worker/gen-vapid.mjs`, update `VAPID_PUBLIC`, `VAPID_PRIVATE_JWK` and `push-config.js`).
 - **Game day order**: (0) install the host app once, (1) both girls install + choose their name, (2) press "Reset all progress + back to the lobby" in admin.html, (3) at the start press "Start the game". Android install only works from a normal Chrome tab (not private, not Edge/Samsung).
@@ -331,7 +336,8 @@ There is no automated test suite in the repo. Before pushing:
 
 Newest first (the commits that only claim work in the table above are not listed). One line per commit: date · short hash (or "this commit") · who · what.
 
-- 2026-10-14 · this commit · Dominik (Claude) · Handbook audit: state keys and phases (lobby, waiting), flow, files, new Infrastructure section (Pages, Worker, endpoints, secrets), route table now lists Sara's challenges, testing recipes (mocking the Worker, Playwright selectors), open items (real-device test, Worker redeploy, secrets), real commit hashes in the changelog.
+- 2026-10-14 · this commit · Dominik (Claude) · Fix: tapping a mission notification did nothing. The service worker could hand the mission to the open admin window (same origin) instead of the game, and missions were hidden in the lobby/intro. Now: admin window is skipped, missions show in every phase except the name picker, new inbox safety net (`checkInbox`), lobby keeps polling for the game start under a mission screen; cache v23. No Worker change.
+- 2026-10-14 · `f87806e` · Dominik (Claude) · Handbook audit: state keys and phases (lobby, waiting), flow, files, new Infrastructure section (Pages, Worker, endpoints, secrets), route table now lists Sara's challenges, testing recipes (mocking the Worker, Playwright selectors), open items (real-device test, Worker redeploy, secrets), real commit hashes in the changelog.
 - 2026-10-14 · `afbd11e` · Dominik (Claude) · Host panel is installable as its own app "Heated Host" (own manifest, teal icon with star badge, own service worker, install button, opens offline); the game's app is unaffected.
 - 2026-10-14 · `e795fc9` · Dominik (Claude) · Name shortened to two words: "Heated Pages" (heated = rivalry/spice, pages = book nerd) in picker logo, page title, manifest, home-screen name, notification-settings hint, README, handbook; icon unchanged; cache v22.
 - 2026-10-14 · `cb42b59` · Dominik (Claude) · Name extended with the book-nerd side: "Icebreakers, Heated Rivalries & Dog-Eared Hearts" (third title line in the picker, page title, manifest, README, handbook); icon now has an open book with a dog-eared page under the heart; cache v21.

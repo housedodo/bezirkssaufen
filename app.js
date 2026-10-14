@@ -136,7 +136,7 @@
     const inGame = state.char && state.phase !== "pick" && state.phase !== "lobby";
     document.body.dataset.theme = state.char ? story().theme : "night";
     $("#topbar").hidden = !inGame;
-    $("#mission-pill").hidden = !(inGame && state.phase !== "intro" && state.bonus && state.bonus.paused);
+    $("#mission-pill").hidden = !(state.char && state.phase !== "pick" && state.bonus && state.bonus.paused);
     $("#progress").hidden = !inGame || state.phase === "intro";
     if (!inGame) return;
 
@@ -275,6 +275,33 @@
     );
   }
 
+  // Asks the worker every 5 s whether the host has started the game; also runs underneath a surprise mission screen.
+  function startLobbyPoll() {
+    let fails = 0;
+    const check = async () => {
+      try {
+        const r = await fetch(`${PUSH.workerUrl}/game?t=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) throw new Error("bad status");
+        const j = await r.json();
+        fails = 0;
+        if (state.phase !== "lobby") return;
+        if (j.started) {
+          clearInterval(lobbyT); lobbyT = null;
+          buzz([80, 60, 80, 60, 200]);
+          await flash(`<p class="match-title">It's on! 🎂</p><p class="match-sub">The host has started the game.</p>`, 1600, "boost");
+          set({ phase: "intro" });
+          window.scrollTo({ top: 0 });
+        }
+      } catch (_) {
+        const st = $("#lobby-status");
+        if (++fails >= 3 && st) st.textContent = "Can't reach the server right now. Check your connection — we keep trying.";
+      }
+    };
+    lobbyCheckNow = check;
+    check();
+    lobbyT = setInterval(check, 5000);
+  }
+
   // ── Lobby ("Under construction") ───────────────────────────
   function renderLobby() {
     const s = story();
@@ -301,30 +328,9 @@
     // Emergency exit for the host (e.g. the server is down): tap the hard hat 7 times.
     let taps = 0;
     $("#lobby-icon").addEventListener("click", () => { if (++taps >= 7) set({ phase: "intro" }); });
-    let li = 0, fails = 0;
+    let li = 0;
     lobbyL = setInterval(() => { li = (li + 1) % LOBBY_LINES.length; const el = $("#lobby-line"); if (el) el.textContent = LOBBY_LINES[li]; }, 6000);
-    const check = async () => {
-      try {
-        const r = await fetch(`${PUSH.workerUrl}/game?t=${Date.now()}`, { cache: "no-store" });
-        if (!r.ok) throw new Error("bad status");
-        const j = await r.json();
-        fails = 0;
-        if (state.phase !== "lobby") return;
-        if (j.started) {
-          clearInterval(lobbyT); lobbyT = null;
-          buzz([80, 60, 80, 60, 200]);
-          await flash(`<p class="match-title">It's on! 🎂</p><p class="match-sub">The host has started the game.</p>`, 1600, "boost");
-          set({ phase: "intro" });
-          window.scrollTo({ top: 0 });
-        }
-      } catch (_) {
-        const st = $("#lobby-status");
-        if (++fails >= 3 && st) st.textContent = "Can't reach the server right now. Check your connection — we keep trying.";
-      }
-    };
-    lobbyCheckNow = check;
-    check();
-    lobbyT = setInterval(check, 5000);
+    startLobbyPoll();
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && state.phase === "lobby" && lobbyCheckNow) lobbyCheckNow(); });
 
@@ -1034,8 +1040,9 @@
     if (!state.char) state.phase = "pick";
     renderChrome();
     const b = state.bonus;
-    if (b && !b.paused && state.char && ["clue", "travel", "done"].includes(state.phase) && typeof CHALLENGES !== "undefined" && CHALLENGES[b.key]) {
+    if (b && !b.paused && state.char && state.phase !== "pick" && typeof CHALLENGES !== "undefined" && CHALLENGES[b.key]) {
       renderChallenge(b.key, "surprise");
+      if (state.phase === "lobby" && lobbyOn()) startLobbyPoll(); // the game may start while the mission is open
       return;
     }
     ({ pick: renderPick, lobby: renderLobby, intro: renderIntro, clue: renderClue, travel: renderTravel, done: renderDone }[state.phase] || renderPick)();
@@ -1052,6 +1059,23 @@
     window.scrollTo({ top: 0 });
   }
   $("#mission-pill").addEventListener("click", () => set({ bonus: { ...state.bonus, paused: false } }));
+  // Safety net: if the notification tap didn't hand us the mission, ask the worker whether a fresh one is waiting
+  // (only missions sent in the last 45 minutes, each id only once).
+  async function checkInbox() {
+    try {
+      if (!pushCfg() || !pushSupported() || !state.char || Notification.permission !== "granted") return;
+      const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+      if (!sub) return;
+      const r = await fetch(`${PUSH.workerUrl}/inbox`, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ endpoint: sub.endpoint }),
+      });
+      if (!r.ok) return;
+      const m = await r.json();
+      if (m && m.ch && m.id && m.t && Date.now() - m.t < 45 * 60 * 1000) receiveMission(m.ch, m.id);
+    } catch (_) {}
+  }
+  checkInbox();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkInbox(); });
   try {
     const q = new URLSearchParams(location.search);
     if (q.get("mission")) {
