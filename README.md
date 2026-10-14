@@ -76,7 +76,7 @@ Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sip
 
 ## Sarah's dating app ("Icebreaker")
 
-- **Player stops** show a teammate's profile. **Like** → "It's a match!" → a Tinder-style chat: he says hi, she replies, he asks whether she's looking for the ice hockey guy, she replies (anything works), "doesn't matter actually, here's what I heard" and only then the riddle (between her two answers he drops two 🚩 red flags, written to be read out loud). **Pass** → Sarah owes penalty sips (1st pass 1 sip, 2nd 2 sips, …), gets a 10-second timeout with a joke (different for every guy) and he swipes back in. She can't skip him — he's her only lead.
+- **Player stops** show a teammate's profile. **Like** → "It's a match!" → a Tinder-style chat: he says hi and asks her a warm-but-weird question, she answers, he drops two 🚩 red flags, he asks whether she's looking for the ice hockey guy, she replies (anything works), "doesn't matter actually, here's what I heard" and only then the riddle (written to be read out loud). **Pass** → Sarah owes penalty sips (1st pass 1 sip, 2nd 2 sips, …), gets a 10-second timeout with a joke (different for every guy) and he swipes back in. She can't skip him — he's her only lead.
 - **Event stops** ("💔 No matches nearby") have a challenge before the message and riddle: +2 ❤️ (quizzes: −1 per wrong answer, at least +1).
 - **Sudden intermissions** interrupt some player stops before the profile shows: +1 ❤️.
 - The top bar counts drinks and ❤️. The finale shows matches, likes earned, penalty sips, the bio her crew wrote and the super likes.
