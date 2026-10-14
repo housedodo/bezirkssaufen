@@ -36,7 +36,7 @@
 
 | Who | What | Files / area | Since |
 |---|---|---|---|
-| — | *nothing claimed* | — | — |
+| Dominik (Claude) | Surprise missions: admin sends a challenge, notification tap opens it in the app | `worker/worker.js`, `admin.html`, `sw.js`, `app.js` (challenge engine: `surprise` mode), `styles.css`, `index.html` | 2026-10-14 |
 
 *(Add a row before you start. Remove it in the commit that finishes the work.)*
 
