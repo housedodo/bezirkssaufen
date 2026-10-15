@@ -165,7 +165,7 @@ export default {
 
       // ── lobby: the game only starts when the host says so ──
       // which code is deployed? (bump when worker.js changes; CLAUDE.md → Open items says what to expect)
-      if (path === "/version" && req.method === "GET") return json({ version: 4 });
+      if (path === "/version" && req.method === "GET") return json({ version: 5 });
 
       if (path === "/game" && req.method === "GET") {
         const g = JSON.parse((await env.KV.get("game")) || "null");
@@ -189,6 +189,7 @@ export default {
         return json({ ok: true, devices: out, started: !!g, startedAt: g ? g.startedAt : null });
       }
     } catch (e) {
+      if (e instanceof SyntaxError) return json({ error: "bad request" }, 400); // body was not valid JSON
       return json({ error: String(e && e.message || e) }, 500);
     }
     return json({ error: "not found" }, 404);

@@ -296,7 +296,7 @@ body[data-theme="paper"] .riddle .card-label { color: var(--accent); }
 body[data-theme="ice"] .guess h2 { text-transform: uppercase; }
 body[data-theme="paper"] .guess h2 { font-weight: 600; }
 .guess-sub { color: var(--muted); margin: 4px 0 14px; min-height: 1.5em; }
-.chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .chip {
   display: flex; align-items: baseline; gap: 8px;
   min-height: 52px; padding: 10px 12px; text-align: left;
@@ -306,7 +306,7 @@ body[data-theme="paper"] .guess h2 { font-weight: 600; }
 }
 .chip:active { transform: scale(.97); border-color: var(--accent); }
 .chip-roman { font-family: var(--display); font-weight: 700; font-size: 13px; color: var(--accent); min-width: 2.6em; }
-.chip-name { font-weight: 600; font-size: 16px; line-height: 1.2; }
+.chip-name { font-weight: 600; font-size: 16px; line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
 body[data-theme="paper"] .chip-name { font-weight: 400; }
 .chip.wrong { opacity: .38; text-decoration: line-through; cursor: default; }
 .chip.wrong .chip-roman { color: var(--alarm); }

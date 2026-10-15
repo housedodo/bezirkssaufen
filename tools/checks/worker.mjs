@@ -1,0 +1,38 @@
+import worker from '../../worker/worker.js';
+const { privateKey } = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+const kv = new Map();
+const env = { ADMIN_PIN: '9999', VAPID_PUBLIC: 'x', VAPID_SUBJECT: 'mailto:a@b.c', VAPID_PRIVATE_JWK: JSON.stringify(await crypto.subtle.exportKey('jwk', privateKey)),
+  KV: { get: async (k) => kv.get(k) ?? null, put: async (k, v) => void kv.set(k, v), delete: async (k) => void kv.delete(k), list: async ({ prefix }) => ({ keys: [...kv.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })) }) } };
+let pushes = []; globalThis.fetch = async (u) => { pushes.push(u); return new Response(null, { status: 201 }); };
+const call = async (path, method = 'GET', body, pin = '9999', raw) => { const r = await worker.fetch(new Request('https://w.dev' + path, { method, body: raw ?? (body && JSON.stringify(body)), headers: { authorization: 'Bearer ' + pin } }), env); let j = null; try { j = await r.json(); } catch {} return { s: r.status, j, h: r.headers }; };
+const res = []; const t = (name, cond, extra = '') => { res.push([cond, name]); console.log((cond ? '✓ ' : '✗ ') + name + (cond ? '' : '  ' + extra)); };
+
+t('OPTIONS answers with CORS', (await worker.fetch(new Request('https://w.dev/send', { method: 'OPTIONS' }), env)).status === 204);
+t('unknown path → 404 json', (await call('/nope')).s === 404);
+t('wrong PIN: /status, /progress, /start, /reset, /release, /send all 401', (await Promise.all([call('/status', 'GET', null, '1'), call('/progress', 'GET', null, '1'), call('/start', 'POST', {}, '1'), call('/reset', 'POST', {}, '1'), call('/release', 'POST', { step: 1 }, '1'), call('/send', 'POST', { to: 'both', title: 'x' }, '1')])).every((r) => r.s === 401));
+t('no Authorization header → 401', (await worker.fetch(new Request('https://w.dev/status'), env)).status === 401);
+const bad = await Promise.all([call('/subscribe', 'POST', null, '9999', '{not json'), call('/send', 'POST', null, '9999', 'xx'), call('/solved', 'POST', null, '9999', ''), call('/inbox', 'POST', null, '9999', '[')]);
+t('malformed JSON never crashes (no 500)', bad.every((r) => r.s < 500), JSON.stringify(bad.map((r) => r.s)));
+t('/subscribe rejects bad player / non-https endpoint', (await call('/subscribe', 'POST', { who: 'bob', sub: { endpoint: 'https://x/y' } })).s === 400 && (await call('/subscribe', 'POST', { who: 'sara', sub: { endpoint: 'http://x/y' } })).s === 400);
+await call('/subscribe', 'POST', { who: 'sarah', sub: { endpoint: 'https://push/a', keys: {} } }); await call('/subscribe', 'POST', { who: 'sara', sub: { endpoint: 'https://push/b', keys: {} } });
+let st = await call('/status'); t('status counts both phones', st.j.devices.sarah === 1 && st.j.devices.sara === 1);
+await call('/subscribe', 'POST', { who: 'sara', sub: { endpoint: 'https://push/a', keys: {} } });
+st = await call('/status'); t('a phone that switches player moves lists (no double registration)', st.j.devices.sarah === 0 && st.j.devices.sara === 2, JSON.stringify(st.j.devices));
+await call('/subscribe', 'POST', { who: 'sarah', sub: { endpoint: 'https://push/a', keys: {} } });
+t('/send validation: bad ch, empty title, unknown target', (await call('/send', 'POST', { to: 'both', title: 'x', ch: '../etc' })).s === 400 && (await call('/send', 'POST', { to: 'both', title: '  ' })).s === 400 && (await call('/send', 'POST', { to: 'nobody', title: 'x' })).s === 400);
+const big = 'x'.repeat(5000); const sent = await call('/send', 'POST', { to: 'sarah', title: big, body: big, ch: 'quiz' });
+const inbox = await call('/inbox', 'POST', { who: 'sarah' });
+t('long title/body are cut', sent.s === 200 && inbox.j.title.length <= 120 && inbox.j.body.length <= 400, inbox.j.title?.length + '/' + inbox.j.body?.length);
+for (let i = 0; i < 12; i++) await call('/send', 'POST', { to: 'sara', title: 'm' + i, ch: 'quiz' });
+const ib = (await call('/inbox', 'POST', { who: 'sara' })).j; t('inbox keeps only the last 8 missions, newest last', ib.recent.length === 8 && ib.recent.at(-1).title === 'm11', ib.recent?.map((r) => r.title).join());
+t('inbox for an unknown who/endpoint gives the generic message, not an error', (await call('/inbox', 'POST', { who: 'bob', endpoint: 'https://nobody' })).s === 200);
+t('/solved validation (bad who / step)', (await call('/solved', 'POST', { who: 'x', step: 1 })).s === 400 && (await call('/solved', 'POST', { who: 'sara', step: -1 })).s === 400 && (await call('/solved', 'POST', { who: 'sara', step: 99 })).s === 400);
+let r1 = await call('/solved', 'POST', { who: 'sara', step: 3 }); t('first solver is told to wait', r1.j.both === false);
+let r2 = await call('/solved', 'POST', { who: 'sarah', step: 3 }); t('second solver releases both', r2.j.both === true);
+await call('/solved', 'POST', { who: 'sara', step: 4 }); await call('/release', 'POST', { step: 4 });
+t('host release lets a single solver through', (await call('/solved', 'POST', { who: 'sara', step: 4 })).j.released === true);
+t('/game starts false, /start flips it and notifies', (await call('/game')).j.started === false && (await call('/start', 'POST', {})).j.ok === true && (await call('/game')).j.started === true);
+const startAgain = await call('/start', 'POST', {}); t('pressing Start twice is harmless', startAgain.s === 200);
+await call('/reset', 'POST', {}); const after = await call('/progress'); t('reset clears progress, game flag and missions', Object.keys(after.j.steps).length === 0 && (await call('/game')).j.started === false && (await call('/inbox', 'POST', { who: 'sara' })).j.recent.length === 0);
+t('/version is public and numeric', typeof (await worker.fetch(new Request('https://w.dev/version'), env).then((r) => r.json())).version === 'number');
+console.log(res.every(([c]) => c) ? '\nWORKER: ALL PASSED' : '\nWORKER: FAILURES ' + res.filter(([c]) => !c).length);

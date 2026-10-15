@@ -56,9 +56,25 @@
   function load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
-      if (raw) return { ...fresh(), ...JSON.parse(raw) };
+      if (raw) return sane({ ...fresh(), ...JSON.parse(raw) });
     } catch (_) { /* private mode etc. */ }
     return fresh();
+  }
+  // A broken or old saved game must never leave a blank screen: keep step/phase inside the route.
+  function sane(s) {
+    const last = ROUTE.length - 1;
+    if (!["pick", "lobby", "intro", "clue", "travel", "done"].includes(s.phase)) s.phase = s.char ? "intro" : "pick";
+    if (!Number.isInteger(s.step) || s.step < 0) s.step = 0;
+    if (s.step > last) s.step = last;
+    if (s.phase === "clue" && s.step >= last) { s.step = last; s.phase = "done"; }
+    if (s.phase === "travel" && s.step >= last) { s.step = last; s.phase = "done"; }
+    if (s.char && !STORIES[s.char]) return fresh();
+    for (const k of ["wrong", "log", "chat", "missions", "mq", "haul", "shopWrong", "superLikes", "words", "read"]) if (!Array.isArray(s[k])) s[k] = [];
+    if (!s.ch || typeof s.ch !== "object") s.ch = {};
+    if (!s.bch || typeof s.bch !== "object") s.bch = {};
+    if (!s.alt || typeof s.alt !== "object") s.alt = {};
+    if (!Number.isFinite(s.hearts)) s.hearts = 0;
+    return s;
   }
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (_) {}

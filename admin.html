@@ -385,18 +385,19 @@
       $("#conntext").textContent = text;
     }
 
-    let refreshing = false, lastSig = "";
-    const WORKER_VERSION = 4;
+    let refreshing = false, lastSig = "", verChecked = false;
+    const WORKER_VERSION = 5;
     async function refresh() {
       if (!pinEl.value || refreshing) { if (!pinEl.value) setConn(false, "PIN needed"); return; }
       refreshing = true;
       try { localStorage.setItem("bezirk.adminpin", pinEl.value); } catch (_) {}
       try {
-        const [st, pr, ver] = await Promise.all([call("/status", "GET"), call("/progress", "GET"), call("/version", "GET").catch(() => ({ version: 0 }))]);
+        const [st, pr, ver] = await Promise.all([call("/status", "GET"), call("/progress", "GET"), verChecked ? Promise.resolve(null) : call("/version", "GET").catch(() => ({ version: 0 }))]);
+        if (ver) verChecked = true;
         // the worker is pasted into Cloudflare by hand: say so loudly when the deployed code is older than this page expects
         const w = $("#workerwarn");
-        w.hidden = (ver.version || 0) >= WORKER_VERSION;
-        if (!w.hidden) w.innerHTML = `<b>⚠️ The Cloudflare worker is outdated</b> (deployed: ${ver.version ? "v" + ver.version : "old"}, needed: v${WORKER_VERSION}). Missions can get lost.
+        if (ver) w.hidden = (ver.version || 0) >= WORKER_VERSION;
+        if (ver && !w.hidden) w.innerHTML = `<b>⚠️ The Cloudflare worker is outdated</b> (deployed: ${ver.version ? "v" + ver.version : "old"}, needed: v${WORKER_VERSION}). Missions can get lost.
           <ol><li>Open <b>worker/worker.js</b> on GitHub, copy all of it.</li><li>Cloudflare → Workers → bezirkssaufen → <b>Edit code</b> → paste over everything → <b>Deploy</b>.</li><li>Come back here; this box disappears.</li></ol>`;
         live = { devices: st.devices, started: st.started, startedAt: st.startedAt, steps: pr.steps || {}, ok: true };
         $("#pinbox").classList.add("ok");
@@ -416,8 +417,9 @@
     $("#changepin").addEventListener("click", () => { $("#pinbox").classList.remove("ok"); pinEl.focus(); window.scrollTo({ top: 0, behavior: "smooth" }); });
     drawLive();
     refresh();
-    setInterval(refresh, 5000);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+    // every poll is a request against the free Cloudflare quota (100k/day): only while the page is visible, every 6 s, version once
+    setInterval(() => { if (!document.hidden) refresh(); }, 6000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) { verChecked = false; refresh(); } });
 
     $("#startgame").addEventListener("click", async (e) => {
       if (!confirm("Start the game now?\n\nSarah and Sara both get a notification and their story begins.")) return;

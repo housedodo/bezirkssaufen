@@ -372,7 +372,7 @@ It's your adventure day, Sara. Today you get that book.`,
         encounter: `A radio host outside the TV studio. "She came on my show to plug the book. Herbert meowed into the microphone for four minutes. Ratings were incredible. Then she said she wanted her cat's horoscope read, and walked north."`,
         item: { icon: "📄", name: "Page 12: “Herbert on the radio”" },
         riddle: `<i>"A mystery! In the 1920s a famous medium held séances in the next district — they called her a seer. Today an observatory crowns one of its two hills and old villas line the other. In between, old clay pits became a nature reserve."</i>`,
-        hint: "Ruckerlberg and Lustbühel (with the observatory). The 'Seherin von Waltendorf'.",
+        hint: "Ruckerlberg and Lustbühel (with the observatory). The famous seer was called 'die Seherin von …'.",
       },
       9: {
         encounter: `An astronomer by the observatory. "She asked me for Herbert's horoscope. I told her Herbert is a Taurus. She said that explains a lot. Then she said the next chapter is about freedom."`,
