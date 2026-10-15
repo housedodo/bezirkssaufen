@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v46) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v47) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -119,7 +119,7 @@ Live URL (once GitHub Pages is on): `https://housedodo.github.io/bezirkssaufen/`
   arrives while choosing the name waits and appears right after; the lobby keeps polling for the game start underneath), progress in its own `state.bch`, reward goes to `hearts`, `state.missions`
   remembers finished ids (a tapped mission can't be redone). **Admin page safety:** pick the recipient first (Sarah /
   Sara / Both, colour-coded banner "Sending to: …"); the mission list then only shows what fits (Sarah's own, Sara's
-  own, or the 9 **shared missions** for Both) and the confirm dialog repeats the recipient. Shared missions are
+  own, or the 10 **shared missions** for Both) and the confirm dialog repeats the recipient. Shared missions are
   `CHALLENGES` keys `d_*` with `shared: true` at the end of `story.js` (never attached to a stop, theme-neutral text). "Not now" pauses it and shows a 🎯 pill (`#mission-pill`). Inactive until
   `push-config.js` is filled in (the app hides the alerts card). Setup: `worker/README.md`.
 
@@ -242,7 +242,7 @@ See [Open items](#open-items).
 - `SARA_CHALLENGES` do not exist as a separate object: Sara's challenges are added to `CHALLENGES` with keys `s_*`
   (end of `story.js`) and attached to stops via `SARA_EVENTS` / `SARA_INTERMISSIONS` (district id → key). Extra
   optional challenge fields: `fieldLabel` (write), `noteLabel` (notes), `clockSub`, `doneLabel` (timer), `shared: true`
-  (only for the 9 `d_*` missions the host can send to both girls; never attached to a stop). Rewards: events +2,
+  (only for the 10 `d_*` missions the host can send to both girls; never attached to a stop). Rewards: events +2,
   intermissions +1 (shared: +2/+1); a quiz pays `max(1, reward − wrong answers)`.
 
 ### State (`app.js`, persisted in localStorage `bezirkssaufen.v1`; the key keeps the old game name on purpose, renaming it would wipe saved games)
@@ -377,7 +377,8 @@ Newest first (the commits that only claim work in the table above are not listed
 
 - 2026-10-14 · this commit · Dominik (Claude) · Handbook: new "Coverage check" section (every district has a person/encounter, and a real book for Sara in all 16 riddle districts).
 - 2026-10-14 · `previous` · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
-- 2026-10-15 · this commit · Dominik (Claude) · Full re-check of everything (300 screens × 4 phone widths, reloads in every game, a dead worker, 20 worker edge cases, 18 host-page checks, full playthrough). Fixes: a broken/old saved game could leave a blank screen (state is now sanitised on load: step/phase kept inside the route); the district buttons overflowed sideways at 320 px; Sara's hint at Geidorf named the answer district (Waltendorf); malformed JSON gave the worker a 500 (now 400, **worker version 5: redeploy `worker/worker.js`**); host page now polls only while visible, every 6 s, version once (Cloudflare free quota 100k requests/day). Cache v46.
+- 2026-10-15 · this commit · Dominik (Claude) · New shared mission "Desert island" (`d_island`, +2): everybody names one book, one song and one drink they would take to a desert island, with a why; the host sends it to Both. 10 shared missions now; cache v47.
+- 2026-10-15 · `fb1b51d` · Dominik (Claude) · Full re-check of everything (300 screens × 4 phone widths, reloads in every game, a dead worker, 20 worker edge cases, 18 host-page checks, full playthrough). Fixes: a broken/old saved game could leave a blank screen (state is now sanitised on load: step/phase kept inside the route); the district buttons overflowed sideways at 320 px; Sara's hint at Geidorf named the answer district (Waltendorf); malformed JSON gave the worker a 500 (now 400, **worker version 5: redeploy `worker/worker.js`**); host page now polls only while visible, every 6 s, version once (Cloudflare free quota 100k requests/day). Cache v46.
 - 2026-10-14 · `d0208ef` · Dominik (Claude) · New designs. Start page: "Ice & Fire" split hero (cracked ice/fire halves, the heart icon, crossed stick and book, gold-blue "HEATED PAGES") with Sarah (ice-blue) and Sara (paper) as two side-by-side cards (`.st-*` in `styles.css`, markup in `renderPick`). Host app: control-room look (24 h clock with a progress ring, Start button under it, glowing player tiles, "⭐ Fits now" / "Later" mission sections with a big Send button) plus a folded **🗺️ Route timeline** (all 17 stops with times, a line filled up to the furthest girl, Sarah/Sara pins). No behaviour change; cache v45.
 - 2026-10-14 · `e9f9605` · Dominik (Claude) · Fix "mission sent, no notification, nothing happens": a phone whose push subscription was lost never subscribed again (now `pushSync()` re-subscribes when notifications are allowed, also on every app focus); the open app now asks the worker for missions every 15 s by player name (`/inbox {who}`), so missions arrive even with notifications off; admin page warns when a mission reached 0 phones (log + alert with the fix) and shows a yellow box while the deployed worker is older than v4. **Redeploy `worker/worker.js`** (version 4). Playthrough checks a phone without notifications; cache v44.
 - 2026-10-14 · `816ef85` · Dominik (Claude) · Host page redesigned for a better overview: live dashboard on top (game state with a big Start button, one tile per girl: phone connected, which stop, solving / waiting for the other, missions sent, "Let them through" right there), sticky Sarah/Sara/Both switch with sent counts, mission list with not-sent first, ⭐ "fits now" for missions suggested at or before her current stop (`STORIES.<who>.missions.at` = old stop), 📍 suggested stop, done ones folded away; own message, log (kept on the phone) and setup (PIN, sync details, Reset) folded below; redraws only when something changed. No game-file change, no cache bump.

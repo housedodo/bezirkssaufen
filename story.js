@@ -829,6 +829,12 @@ Object.assign(CHALLENGES, {
     story: "Each of you makes one wish for the other's next year, out loud, in front of the whole crew. Then a drink to both wishes.",
     confirmLabel: "✅ Wishes made, drinks raised",
   },
+  d_island: {
+    type: "confirm", icon: "🏝️", reward: 2, shared: true,
+    title: "Desert island",
+    story: "You are stranded on a desert island, and you may take three things: one book, one song and one drink. Everybody at the table, one after the other, names theirs and says why in one sentence. The table may ask one follow-up question per person. Then raise a glass to the best island.",
+    confirmLabel: "✅ Everybody packed their island",
+  },
 });
 
 // ─────────────────────── LOBBY + FIRST CLUE ───────────────────────

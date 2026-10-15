@@ -65,7 +65,7 @@ At six stops the shop is replaced by a different game (wrong answers cost sips t
 
 **Sara's challenges** (earn 🔖 bookmarks). The host sends them from `admin.html` whenever it fits; the stops below are only the suggested timing: events — pop quiz @IX · dramatic reading @II · name that first line @III · menu poetry @VIII · back-cover blurb @XI · title this bar @XIII · five-star reviews @XV · chapter toast @XVI. Sudden plot twists — Herbert impression @VI · one word each @VIII · Herbert's nap @III · silence in the library @XIV · book swap @V · locker room speech @X · one-line fanfic @XVII.
 
-**Shared missions** (host → Both): Adventure clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, adventure wishes, **Bike vs Zamboni** (tap race: 40 taps in 10 s).
+**Shared missions** (host → Both): Adventure clink, twin selfie, drink swap, compliment battle, dance-off, staring contest, rock-paper-scissors, adventure wishes, **Desert island** (book, song, drink and why), **Bike vs Zamboni** (tap race: 40 taps in 10 s).
 
 ## Game day (host)
 
