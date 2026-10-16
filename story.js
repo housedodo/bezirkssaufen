@@ -1182,3 +1182,29 @@ STORIES.sarah.stops[7].profile.sim = {
     chaotic: { badge: "🌪️ Chaotic date", t: "I have no idea what just happened, but I think I liked it? Jakob, right? Here's what happened:" },
   },
 };
+
+// ─────────────────────── QUIET PUNISHMENTS (told inside the story) ───────────────────────
+// Sarah: 7 of the ten normal chats get one extra text from the guy after her first answer (dating-sim guy Tomasz,
+// Matze and Dragan stay clean). Nothing loud: faces, hands, sips. `who` is only documentation (who does it).
+const SARAH_DARES = {
+  6: { who: "Sarah", t: "I can tell when someone's lying. look me dead in the eye through the screen for 5 seconds and say nothing." },
+  8: { who: "Sarah", t: "quick, you're on mute: do your best radio host impression, but only with your face." },
+  10: { who: "table", t: "captain's orders: everyone puts their left hand on their head until the next sip." },
+  3: { who: "table", t: "ow, my stitches. nobody smiles while you read this. anyone who does, drinks." },
+  12: { who: "Sarah", t: "have you had water today? a sip of water first, then a sip of whatever's in your hand. hydration." },
+  14: { who: "table", t: "hold still, great light. everyone freezes for 5 seconds, whoever moves drinks." },
+  17: { who: "Sarah + neighbour", t: "rack up: the loser of a silent thumb war with the person on your right drinks." },
+};
+Object.entries(SARAH_DARES).forEach(([d, x]) => { STORIES.sarah.stops[d].profile.chat.dare = x.t; });
+
+// Sara: a note comes with the parcel after a wrong order or a wrong answer in one of the six games, one of seven in rotation
+// (state.dares counts them). She reads it out loud like everything else. Whispers and small gestures only.
+const SARA_NOTES = [
+  { who: "Sara", t: "Herbert sat on the parcel and refuses to move. Bow slightly to Herbert the Gracious, or drink." },
+  { who: "table", t: "Kafka the Schlimm gave this book one star: “too quiet”. Everyone gives a silent thumbs-down. The last one to do it drinks." },
+  { who: "Sara", t: "The parcel smells of old paper and regret. Sniff the book with a very serious face." },
+  { who: "table", t: "Library rules: whisper only until the next sip." },
+  { who: "Sara", t: "A bookmark falls out: “Drink with your other hand until the next stop.”" },
+  { who: "Sara", t: "Signature required: sign for the parcel on a beer mat with your wrong hand and hold it up for the table." },
+  { who: "table", t: "The author wants a new title. One word each, whispered round the table. The last person drinks." },
+];

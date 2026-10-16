@@ -46,6 +46,7 @@
     bought: false,   // the right listing was bought (or the replacement game solved) at the current step
     alt: {},         // Sara: progress in the replacement game of this stop (SARA_ALT)
     words: [],       // Sara: words collected from strangers (finale)
+    dares: 0,        // Sara: how many parcel notes (quiet punishments) were handed out so far
     simResult: "",   // Sarah: outcome of the dating-sim chat (finale)
     shopWrong: [],   // titles of dark romances bought by mistake at the current step
     haul: [],        // all dark romances bought by mistake (whole game)
@@ -573,11 +574,14 @@
 
 
   // ── Sara: replacement games instead of the shop (SARA_ALT) ──
+  // the quiet punishment that comes with a wrong order / wrong answer (SARA_NOTES, one after the other)
+  const noteNow = () => SARA_NOTES[(state.dares || 0) % SARA_NOTES.length];
+  const noteHtml = () => `<p class="modal-note"><b>✉️ A note comes with it:</b> ${esc(noteNow().t)}<br><i>Read it out loud, quietly. Skipping it = 2 sips.</i></p>`;
   async function altWrong(html, keep = false) {
     const n = state.shopWrong.length + 1;
     buzz(150);
-    await modal(`<p class="modal-kicker">🍺 Not quite</p>${html}<p class="modal-sips">Wrong: ${n} ${n === 1 ? "sip" : "sips"}</p>`, "Try again");
-    set({ shopWrong: [...state.shopWrong, "w" + n], sips: state.sips + n, sipsStep: state.sipsStep + n, alt: keep ? state.alt : {} });
+    await modal(`<p class="modal-kicker">🍺 Not quite</p>${html}<p class="modal-sips">Wrong: ${n} ${n === 1 ? "sip" : "sips"}</p>${noteHtml()}`, "Done");
+    set({ shopWrong: [...state.shopWrong, "w" + n], sips: state.sips + n, sipsStep: state.sipsStep + n, alt: keep ? state.alt : {}, dares: (state.dares || 0) + 1 });
   }
   async function altDone(readHtml) {
     const a = SARA_ALT[here()];
@@ -723,15 +727,15 @@
           <h2 class="modal-title">${esc(o.t)}</h2>
           <p class="modal-by">by ${esc(o.a)}</p>
           <p class="soldout-msg">${esc(SARA_SHOP.deliveredLines[(state.step + state.shopWrong.length * 2 + o.key) % SARA_SHOP.deliveredLines.length])}</p>
-          <p class="modal-sips">Lovely. Not what you needed. ${sips}</p>`, "Close the book");
+          <p class="modal-sips">Lovely. Not what you needed. ${sips}</p>${noteHtml()}`, "Close the book");
       } else {
         await modal(`
           <p class="modal-kicker">📭 Order failed</p>
           <h2 class="modal-title">${esc(o.t)}</h2>
           <p class="soldout-msg">${esc(soldOutText(o))}</p>
-          <p class="modal-sips">${sips}</p>`, "Back to the shop");
+          <p class="modal-sips">${sips}</p>${noteHtml()}`, "Back to the shop");
       }
-      set({ shopWrong: [...state.shopWrong, id], haul: o.delivers ? [...state.haul, o.t] : state.haul, sips: state.sips + n, sipsStep: state.sipsStep + n });
+      set({ shopWrong: [...state.shopWrong, id], haul: o.delivers ? [...state.haul, o.t] : state.haul, sips: state.sips + n, sipsStep: state.sipsStep + n, dares: (state.dares || 0) + 1 });
     } finally { buying = false; }
   }
 
@@ -884,6 +888,7 @@
     const script = [
       { t: pick(c.his || [c.hi]), reply: true },
       ...(c.flags && c.flags.length ? [{ t: pick(c.flags), reply: true }] : []),
+      ...(c.dare ? [{ t: c.dare, reply: true }] : []), // a quiet dare, told as a normal text
       { t: c.ask, reply: true },
       { t: c.reveal },
       { t: p.bio },
@@ -910,7 +915,7 @@
           <span class="badge">Matched</span>
         </header>
         <div class="chat-msgs" id="chat-msgs">
-          <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other<br>📣 Read the messages out loud to the table</p>
+          <p class="chat-sys">🔥 It's a match! You and ${esc(p.name)} liked each other<br>📣 Read the messages out loud to the table${c.dare ? `<br>🍺 Skipping a dare = 2 sips` : ""}</p>
           ${msgs.map((m, i) => `<div class="msg ${m.from}${i === msgs.length - 1 ? " last" : ""}"><span>${m.from === "her" ? esc(m.text) : m.text}</span></div>`).join("")}
           ${her && !complete && typing ? `<p class="chat-seen">Seen ✓✓</p>` : ""}
           ${typing ? `<div class="msg him typing last" aria-label="${esc(p.name)} is typing"><span><i></i><i></i><i></i></span></div>` : ""}

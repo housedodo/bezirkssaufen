@@ -40,8 +40,9 @@ const adminCall = async (p, method, body) => (await workerCall(p, method, body))
 
 // ── static checks ──────────────────────────────────────────────────────────
 const vm = await import('vm');
-const sandbox = {}; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'story.js'), 'utf8') + ';globalThis.X={ROUTE,DISTRICTS,STORIES,CHALLENGES,SARA_SHOP,SARA_ALT}', sandbox);
-const { ROUTE, DISTRICTS, STORIES, CHALLENGES, SARA_SHOP, SARA_ALT } = sandbox.X;
+const sandbox = {}; vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'story.js'), 'utf8') + ';globalThis.X={ROUTE,DISTRICTS,STORIES,CHALLENGES,SARA_SHOP,SARA_ALT,SARA_NOTES,SARAH_DARES}', sandbox);
+const { ROUTE, DISTRICTS, STORIES, CHALLENGES, SARA_SHOP, SARA_ALT, SARA_NOTES, SARAH_DARES } = sandbox.X;
+const NDARES = Object.keys(SARAH_DARES).length;
 const strip = (t) => String(t).replace(/<[^>]+>/g, '');
 const noEmoji = (t) => strip(t).replace(/[\p{Extended_Pictographic}️‍]/gu, '').replace(/ {2,}/g, ' ').replace(/\s+([?.!,])/g, '$1').replace(/\s+/g, ' ').trim();
 for (const who of ['sarah', 'sara']) ROUTE.slice(0, -1).forEach((d, i) => {
@@ -85,6 +86,11 @@ if (SIM_D) {
   note('lint', `dating sim (${STORIES.sarah.stops[SIM_D].profile.name}, stop ${ROUTE.indexOf(SIM_D) + 1}): 27 paths → ${JSON.stringify(count)}`);
   for (const o of ['perfect', 'good', 'funny', 'bad', 'verybad', 'chaotic']) { if (!count[o]) issue('lint', `dating sim outcome "${o}" is unreachable`); if (!sim.endings[o]) issue('lint', `dating sim has no ending "${o}"`); }
 } else issue('lint', 'no dating-sim chat found');
+if (NDARES !== 7) issue('lint', `expected 7 Sarah dares, found ${NDARES}`);
+if (SARA_NOTES.length !== 7) issue('lint', `expected 7 Sara parcel notes, found ${SARA_NOTES.length}`);
+for (const [d, x] of Object.entries(SARAH_DARES)) { const pr = STORIES.sarah.stops[d] && STORIES.sarah.stops[d].profile; if (!pr || pr.sim) issue('lint', `dare at ${d} is not on a normal chat guy`); if (/[A-Z]{5,}/.test(x.t) || /!{2,}|\b(shout|sing|scream|yell|loud)\b/i.test(x.t)) issue('lint', `dare at ${d} looks loud: ${x.t}`); }
+for (const n of SARA_NOTES) if (/\b(shout|sing|scream|yell|loud)\b/i.test(n.t) && !/too quiet/.test(n.t)) issue('lint', `parcel note looks loud: ${n.t}`);
+note('lint', `quiet punishments: ${NDARES} Sarah dares, ${SARA_NOTES.length} Sara parcel notes`);
 note('lint', 'static checks done');
 
 // ── browsers ───────────────────────────────────────────────────────────────
@@ -145,6 +151,7 @@ const P = {}; // who → page
 const st8 = {}; // who → { step, finished }
 const flashWait = async (p) => { if (await p.$('.match-overlay')) await p.waitForTimeout(1900); };
 const pump = (p) => p.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); // asks the worker's inbox
+const notesSeen = new Set();
 const flags = { lostRace: new Set(), delegated: false, paused: false };
 const done = { sarah: [], sara: [] }; // mission keys finished on each phone
 
@@ -200,7 +207,15 @@ async function doMission(p, who) {
 }
 // everything that can interrupt a phone at any moment: modals and host missions
 async function service(p, who) {
-  if (await p.$('.modal-overlay')) { await p.waitForTimeout(400); await p.click('#modal-ok').catch(() => {}); await p.waitForTimeout(400); return true; }
+  if (await p.$('.modal-overlay')) {
+    if (who === 'sara' && await p.$('.modal-note')) { // parcel note: must be the next one in rotation
+      const st = await stateOf(p); const want = SARA_NOTES[(st.dares || 0) % SARA_NOTES.length].t;
+      const got = (await p.innerText('.modal-note')).replace(/\s+/g, ' ');
+      const norm = (t) => t.replace(/\s+/g, ' ');
+      if (!got.includes(norm(want).replace(/“|”/g, '"').slice(0, 25)) && !got.includes(norm(want).slice(0, 25))) issue(who, `parcel note out of rotation: wanted “${want.slice(0, 40)}”, got “${got.slice(0, 60)}”`);
+      else { notesSeen.add((st.dares || 0) % SARA_NOTES.length); }
+    }
+    await p.waitForTimeout(400); await p.click('#modal-ok').catch(() => {}); await p.waitForTimeout(400); return true; }
   if (await p.$('.ch-title')) {
     if (!await p.$('.ch-banner.sur')) issue(who, 'a challenge appeared on a stop by itself (should be host-only)');
     await doMission(p, who); return true;
@@ -256,10 +271,11 @@ async function play(who, p) {
             const prof = STORIES.sarah.stops[d].profile, c = prof.chat;
             const his = (await p.$$eval('.msg.him:not(.typing) span', (els) => els.map((e) => e.innerText))).map((t) => t.replace(/\s+/g, ' ').trim());
             const hers = await p.locator('.msg.her').count();
-            const exp = [c.his.map(noEmoji), c.flags.map(noEmoji), [noEmoji(c.ask)], [noEmoji(c.reveal)], [noEmoji(prof.bio)]];
-            const ok = his.length === 5 && hers === 3 && his.every((t, k) => exp[k].includes(t));
+            const exp = [c.his.map(noEmoji), c.flags.map(noEmoji), ...(c.dare ? [[noEmoji(c.dare)]] : []), [noEmoji(c.ask)], [noEmoji(c.reveal)], [noEmoji(prof.bio)]];
+            const nExp = c.dare ? 6 : 5;
+            const ok = his.length === nExp && hers === nExp - 2 && his.every((t, k) => exp[k].includes(t));
             if (!ok) issue(who, `chat with ${prof.name}: unexpected messages (${his.length} his, ${hers} hers): ${JSON.stringify(his).slice(0, 200)}`);
-            else note(who, `chat with ${prof.name}: hi → red flag → hockey question → reveal → tip ✓ (“${his[0].slice(0, 40)}” / “${his[1].slice(0, 50)}”)`);
+            else note(who, `chat with ${prof.name}${c.dare ? ' (with a quiet dare: ' + c.dare.slice(0, 40) + '…)' : ''}: hi → red flag${c.dare ? ' → dare' : ''} → hockey question → reveal → tip ✓ (“${his[0].slice(0, 40)}” / “${his[1].slice(0, 50)}”)`);
             if (his.some((t) => /\p{Extended_Pictographic}/u.test(t))) issue(who, `chat with ${prof.name} contains emoji`);
           }
         } else {
@@ -422,6 +438,7 @@ await H.click('[data-to=sara]'); await H.waitForTimeout(200);
 const inboxAfter = (await workerCall('/inbox', 'POST', { endpoint: 'https://push.test/sara' })).json;
 if ((inboxAfter.recent || []).length || inboxAfter.ch) issue('host', 'Reset left old missions in the inbox');
 if (after.started || await H.locator('.mission.sent').count()) issue('host', 'Reset did not clear the game / the done marks'); else note('host', 'Reset: game back to "not started", done marks cleared ✓');
+if (notesSeen.size < 4) issue('sara', `only ${notesSeen.size} different parcel notes were shown`); else note('sara', `parcel notes shown in rotation: ${[...notesSeen].sort().map((n) => n + 1).join(', ')} of 7 ✓`);
 fs.writeFileSync(`${OUT}/play.log`, log.join('\n') + '\n\nISSUES:\n' + (issues.join('\n') || 'none') + '\n');
 console.log('\n===== ISSUES =====\n' + (issues.join('\n') || 'none'));
 await browser.close();

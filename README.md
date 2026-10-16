@@ -74,6 +74,10 @@ At six stops the shop is replaced by a different game (wrong answers cost sips t
 2. In `admin.html`: enter the PIN, check both phones are registered, press **Reset all progress + back to the lobby**.
 3. When everyone is ready, press **🚀 Start the game**. During the game, send the challenges from the mission list whenever it fits (pick Sarah / Sara / Both first). A sent mission is marked **✓ Done** in the list. Both phones get a notification; each girl reads her story and a first clue to the meeting point (Auer, Schmidtgasse, Innere Stadt). At Auer they press **Start the quest**.
 
+## Quiet punishments
+
+Told inside the story, nothing loud, skipping one = 2 sips. **Sarah:** 7 of her chats contain one extra text: Elias (silent 5-second stare, Sarah), Felix (silent radio face, Sarah), Marcus (everyone's left hand on their head until the next sip), Luca (nobody smiles, a smiler drinks), Jonas (water, then a sip, Sarah), Nico (everyone freezes for 5 seconds), Samuel (silent thumb war with her right neighbour, loser drinks). **Sara:** after a wrong order or a wrong answer in a game, a note comes with the parcel (7 in rotation): bow to Herbert (Sara), silent thumbs-down for one star (table), sniff the book (Sara), whisper only until the next sip (table), drink with the other hand until the next stop (Sara), sign a beer mat with the wrong hand (Sara), whispered one-word-each new title (table).
+
 ## Spending points, and moving on together
 
 Hearts (Sarah) and bookmarks (Sara) can be spent: buy a hint (1), cancel the sips of the current stop (2), make someone else do a challenge for you (3), Sara can have the real Bookbazaar listing marked (2). Only when **both** phones have solved the district (correct guess) does the next-stop screen appear; the host can release a stuck stop in `admin.html` → "Game sync".
