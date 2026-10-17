@@ -1039,6 +1039,8 @@
   const e2delay = (e) => (e.outcome ? 2300 : e.choice ? 1500 : 1700);
 
   // ── Sarah: challenges ──────────────────────────────────────
+  // settings of the current tap race (first race rigged if the challenge has `rigged`)
+  const tapCfg = (c, ch) => ((ch.attempt || 0) === 0 && c.rigged ? { ...c.rigged, rigged: true } : { seconds: c.seconds, goal: c.goal });
   function renderChallenge(key, mode) {
     const c = CHALLENGES[key];
     const d = here();
@@ -1084,16 +1086,17 @@
           : `<p class="clock done">0:00</p><button class="btn primary big" id="confirm">${c.doneLabel || "Time's up — collect your likes"}</button>`;
       }
     } else if (c.type === "tap") {
+      const tc = tapCfg(c, ch);
       const over = ch.endsAt && Date.now() >= ch.endsAt;
       if (ch.result === "win") {
         body = `<p class="tap-lose">🚴 ${ch.taps} taps. The Zamboni lost!</p><button class="btn primary big" id="confirm">${c.doneLabel}</button>`;
       } else if (ch.result === "lose" || over) {
-        body = `<p class="tap-lose">🧊 The Zamboni won (${ch.taps || 0} of ${c.goal} taps). Everybody at the table drinks a sip. Then try again.</p><button class="btn primary big" id="tapretry">🔄 Try again</button>`;
+        body = `<p class="tap-lose">${tc.rigged && c.riggedLose ? c.riggedLose : `🧊 The Zamboni won (${ch.taps || 0} of ${tc.goal} taps). Everybody at the table drinks a sip. Then try again.`}</p><button class="btn primary big" id="tapretry">🔄 Try again</button>`;
       } else if (!ch.endsAt) {
-        body = `<button class="btn primary big" id="tapstart">🏁 Ready? Start the race · ${c.seconds} s</button>`;
+        body = `<button class="btn primary big" id="tapstart">🏁 Ready? Start the race</button>`;
       } else {
         body = `<div class="tap-track"><div class="tap-lane"><span id="tap-bike" class="tap-rider" style="left:0%">🚴</span></div><div class="tap-lane"><span id="tap-zam" class="tap-rider" style="left:0%">🚜</span></div></div>
-          <p class="tap-count"><b id="tap-n">0</b> / ${c.goal} taps</p>
+          <p class="tap-count"><b id="tap-n">0</b> taps</p>
           <button class="btn primary big tap-btn" id="tapbtn">🚴 PEDAL!</button>`;
       }
     } else if (c.type === "write") {
@@ -1186,22 +1189,24 @@
     });
 
     // bike vs Zamboni: taps are counted locally (no re-render per tap)
-    $("#tapstart")?.addEventListener("click", () => setCh({ endsAt: Date.now() + c.seconds * 1000, taps: 0, result: null }));
-    $("#tapretry")?.addEventListener("click", () => setCh({ endsAt: 0, taps: 0, result: null }));
+    // 1st race: the Zamboni is on turbo (c.rigged: unwinnable, everybody drinks); from the 2nd race on it is fair (c.seconds / c.goal)
+    $("#tapstart")?.addEventListener("click", () => { const t = tapCfg(c, chNow()); setCh({ endsAt: Date.now() + t.seconds * 1000, taps: 0, result: null }); });
+    $("#tapretry")?.addEventListener("click", () => setCh({ endsAt: 0, taps: 0, result: null, attempt: (chNow().attempt || 0) + 1 }));
     if (c.type === "tap" && ch.endsAt && !ch.result && ch.endsAt > Date.now()) {
       let taps = 0;
-      const t0 = ch.endsAt - c.seconds * 1000;
+      const tc = tapCfg(c, ch);
+      const t0 = ch.endsAt - tc.seconds * 1000;
       const finish = (win) => { clearInterval(tick); tick = null; buzz(win ? [30, 40, 30, 40, 30] : [200, 100, 200]); setCh({ result: win ? "win" : "lose", taps }); };
       $("#tapbtn").addEventListener("pointerdown", (e) => {
         e.preventDefault();
         taps++;
         buzz(8);
         $("#tap-n").textContent = taps;
-        $("#tap-bike").style.left = Math.min(taps / c.goal, 1) * 82 + "%";
-        if (taps >= c.goal) finish(true);
+        $("#tap-bike").style.left = Math.min(taps / tc.goal, 1) * 82 + "%";
+        if (taps >= tc.goal) finish(true);
       });
       tick = setInterval(() => {
-        const frac = Math.min((Date.now() - t0) / (c.seconds * 1000), 1);
+        const frac = Math.min((Date.now() - t0) / (tc.seconds * 1000), 1);
         const z = $("#tap-zam"); if (z) z.style.left = frac * 82 + "%";
         if (frac >= 1) finish(false);
       }, 80);

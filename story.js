@@ -774,9 +774,12 @@ Object.entries(SARA_INTERMISSIONS).forEach(([d, k]) => { STORIES.sara.stops[d].i
 // same text shows up on Sarah's and on Sara's phone; both do it at the same time, together.
 Object.assign(CHALLENGES, {
   d_race: {
-    type: "tap", icon: "🚴", reward: 2, shared: true, goal: 40, seconds: 10,
+    type: "tap", icon: "🚴", reward: 2, shared: true, goal: 35, seconds: 10,
+    // the first race is rigged: the Zamboni is on turbo (4 s, 60 taps needed = nobody wins), so everybody drinks; the rematch is fair
+    rigged: { seconds: 4, goal: 60 },
+    riggedLose: "🧊 The Zamboni was on turbo. Rigged, obviously. Everybody at the table drinks a sip. Then ask for a rematch, it will be fairer.",
     title: "Bike vs Zamboni",
-    story: "A race! Your bicycle against the Zamboni. Tap the pedal button as fast as you can for 10 seconds. You need 40 taps before the Zamboni crosses the line. If the Zamboni wins, everybody at the table drinks a sip and you try again. Both of you do it at the same time. Whoever needs more tries buys the next round.",
+    story: "A race! Your bicycle against the Zamboni. Tap the pedal button as fast as you can and cross the line before the Zamboni does. If the Zamboni wins, everybody at the table drinks a sip and you try again. Both of you do it at the same time. Whoever needs more tries buys the next round.",
     doneLabel: "🏁 Beat the Zamboni — collect your reward",
   },
   d_toast: {

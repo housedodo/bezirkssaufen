@@ -22,7 +22,7 @@
    - In `story.js`, only touch the stops/challenges you claimed. Don't reformat or reorder the file.
    - In `app.js`, don't rename functions or state keys without noting it in the changelog.
 5. **Before pushing**: `git pull --rebase origin main`, resolve conflicts, re-test (see [Testing](#testing)), then push.
-6. **Bump the cache** (`VERSION` in `sw.js`, currently v48) whenever any file the phones load changes — otherwise
+6. **Bump the cache** (`VERSION` in `sw.js`, currently v49) whenever any file the phones load changes — otherwise
    installed phones keep the old version. (The host app has its own `ADMIN_VERSION` in `admin-sw.js`; it is network-first,
    so bump it only when its cached file list changes.)
 7. **No build step, no frameworks, no npm.** Plain HTML/CSS/JS so it runs offline on two phones. Keep it that way
@@ -221,7 +221,7 @@ See [Open items](#open-items).
   - `timer` — `seconds`, start button, live clock, unlocks at 0.
   - `write` — `seconds` (optional clock), textarea → saved to `state.myBio`.
   - `notes` — `count` textareas → appended to `state.superLikes`.
-  - `tap` — `goal` taps within `seconds` (button mashing race, bike vs Zamboni): lose = everybody drinks + retry, win = reward. Taps are counted locally, no re-render per tap.
+  - `tap` — `goal` taps within `seconds` (button mashing race, bike vs Zamboni): lose = everybody drinks + retry, win = reward. Taps are counted locally, no re-render per tap. Optional `rigged: {seconds, goal}` + `riggedLose`: the **first** race uses these (Bike vs Zamboni: 60 taps in 4 s = nobody wins, so everybody drinks, "the Zamboni was on turbo"), every later race the normal `goal`/`seconds` (35 taps in 10 s). `state.bch/ch.attempt` counts the tries.
 
 - `SARA_SHOP` — `{ name, tip, decoys[30], soldDecoys[10], deliveredLines[5], soldOut[6], real{districtId} }`. `decoys[i] = {t, a,
   d, s(spice 1–5), p}` where **`d` is the spicy excerpt she reads out loud** (~21–34 words); `soldDecoys` lists the decoy
@@ -378,7 +378,8 @@ Newest first (the commits that only claim work in the table above are not listed
 
 - 2026-10-14 · this commit · Dominik (Claude) · Handbook: new "Coverage check" section (every district has a person/encounter, and a real book for Sara in all 16 riddle districts).
 - 2026-10-14 · `previous` · Dominik (Claude) · Sara's shop: 14 of the 30 decoy excerpts rewritten as steamier dark-romance prose (tension, breath, hands; nothing explicit), same length as before so the real listing still doesn't stand out; cache v38.
-- 2026-10-16 · this commit · Dominik (Claude) · Quiet punishments told inside the story: 7 dares in Sarah's chats (Elias, Felix, Marcus, Luca, Jonas, Nico, Samuel) and 7 parcel notes for Sara (wrong order / wrong game answer, in rotation), some for the player alone, some for the table, all quiet (whispers, faces, hands, sips); skip = 2 sips. Playthrough checks the dare in each of the 7 chats, the note rotation and that nothing sounds loud; cache v48.
+- 2026-10-17 · this commit · Dominik (Claude) · Bike vs Zamboni: the first race is rigged (the Zamboni is on turbo: 60 taps needed in 4 s, so everybody drinks and is told it was rigged), the rematch is fair (35 taps in 10 s); numbers no longer shown in the mission text or on the button; playthrough/edge checks cover both races; cache v49.
+- 2026-10-16 · `1ab533e` · Dominik (Claude) · Quiet punishments told inside the story: 7 dares in Sarah's chats (Elias, Felix, Marcus, Luca, Jonas, Nico, Samuel) and 7 parcel notes for Sara (wrong order / wrong game answer, in rotation), some for the player alone, some for the table, all quiet (whispers, faces, hands, sips); skip = 2 sips. Playthrough checks the dare in each of the 7 chats, the note rotation and that nothing sounds loud; cache v48.
 - 2026-10-15 · `8296354` · Dominik (Claude) · New shared mission "Desert island" (`d_island`, +2): everybody names one book, one song and one drink they would take to a desert island, with a why; the host sends it to Both. 10 shared missions now; cache v47.
 - 2026-10-15 · `fb1b51d` · Dominik (Claude) · Full re-check of everything (300 screens × 4 phone widths, reloads in every game, a dead worker, 20 worker edge cases, 18 host-page checks, full playthrough). Fixes: a broken/old saved game could leave a blank screen (state is now sanitised on load: step/phase kept inside the route); the district buttons overflowed sideways at 320 px; Sara's hint at Geidorf named the answer district (Waltendorf); malformed JSON gave the worker a 500 (now 400, **worker version 5: redeploy `worker/worker.js`**); host page now polls only while visible, every 6 s, version once (Cloudflare free quota 100k requests/day). Cache v46.
 - 2026-10-14 · `d0208ef` · Dominik (Claude) · New designs. Start page: "Ice & Fire" split hero (cracked ice/fire halves, the heart icon, crossed stick and book, gold-blue "HEATED PAGES") with Sarah (ice-blue) and Sara (paper) as two side-by-side cards (`.st-*` in `styles.css`, markup in `renderPick`). Host app: control-room look (24 h clock with a progress ring, Start button under it, glowing player tiles, "⭐ Fits now" / "Later" mission sections with a big Send button) plus a folded **🗺️ Route timeline** (all 17 stops with times, a line filled up to the furthest girl, Sarah/Sara pins). No behaviour change; cache v45.

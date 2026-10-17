@@ -91,6 +91,9 @@ if (SARA_NOTES.length !== 7) issue('lint', `expected 7 Sara parcel notes, found 
 for (const [d, x] of Object.entries(SARAH_DARES)) { const pr = STORIES.sarah.stops[d] && STORIES.sarah.stops[d].profile; if (!pr || pr.sim) issue('lint', `dare at ${d} is not on a normal chat guy`); if (/[A-Z]{5,}/.test(x.t) || /!{2,}|\b(shout|sing|scream|yell|loud)\b/i.test(x.t)) issue('lint', `dare at ${d} looks loud: ${x.t}`); }
 for (const n of SARA_NOTES) if (/\b(shout|sing|scream|yell|loud)\b/i.test(n.t) && !/too quiet/.test(n.t)) issue('lint', `parcel note looks loud: ${n.t}`);
 note('lint', `quiet punishments: ${NDARES} Sarah dares, ${SARA_NOTES.length} Sara parcel notes`);
+{ const r = CHALLENGES.d_race; const rigged = r.rigged.goal / r.rigged.seconds, fair = r.goal / r.seconds;
+  if (rigged < 12) issue('lint', `first Zamboni race is not rigged enough (${rigged.toFixed(1)} taps/s needed)`); if (fair > 4.5) issue('lint', `second Zamboni race is too hard (${fair.toFixed(1)} taps/s)`);
+  note('lint', `Zamboni race: first race needs ${rigged.toFixed(0)} taps/s (rigged), the rematch ${fair.toFixed(1)} taps/s`); }
 note('lint', 'static checks done');
 
 // ── browsers ───────────────────────────────────────────────────────────────

@@ -49,9 +49,9 @@ const out = []; const bad = (m) => { out.push('✗ ' + m); console.log('✗ ' + 
   { const p = await mk(); await setS(p, { char: 'sara', phase: 'clue', step: 3, bonus: { key: 'd_race', id: 'r', paused: false } }); await p.reload();
     await p.click('#tapstart'); await p.waitForTimeout(500); await p.reload(); await p.waitForTimeout(500);
     if (!(await p.$('#tapbtn')) && !(await p.$('#tapretry'))) bad('tap race: nothing to tap after reload'); else ok('tap race: reload mid-race still shows the race');
-    await p.waitForTimeout(10500); if (!await p.$('#tapretry')) bad('tap race never ended after the time ran out'); else ok('tap race ends with "try again" when time runs out');
+    await p.waitForTimeout(5500); if (!await p.$('#tapretry')) bad('first (rigged) race did not end after ~4 s'); else ok('first race: the Zamboni is on turbo and wins within 5 s'); if (!/turbo/i.test(await p.innerText('.tap-lose'))) bad('rigged race shows no turbo message'); else ok('first race tells them the Zamboni was on turbo');
     await p.click('#tapretry'); await p.click('#tapstart'); await p.waitForTimeout(300);
-    for (let i = 0; i < 40; i++) await p.click('#tapbtn', { delay: 1 }); await p.waitForSelector('#confirm'); ok('tap race can be won'); await p.context().close(); }
+    for (let i = 0; i < 35; i++) await p.click('#tapbtn', { delay: 1 }); await p.waitForSelector('#confirm'); ok('second race is fair and can be won (35 taps)'); await p.context().close(); }
 
   // 4 · mission arrives while a modal / the sim is open, then finishing the mission returns to the same screen
   { const p = await mk(); await setS(p, { char: 'sarah', phase: 'clue', step: 2, liked: true, chat: [] }); await p.reload(); await p.waitForSelector('[data-sim]');
